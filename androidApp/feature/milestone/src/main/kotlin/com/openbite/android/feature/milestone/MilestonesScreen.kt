@@ -39,7 +39,9 @@ import com.openbite.android.core.designsystem.component.TrailingText
 import com.openbite.android.core.designsystem.component.segmentShape
 import com.openbite.android.core.designsystem.icon.OpenBiteIcons
 import com.openbite.android.core.designsystem.preview.PreviewData
+import com.openbite.android.core.designsystem.text.fullDate
 import com.openbite.android.core.designsystem.text.milestoneTitle
+import com.openbite.core.domain.milestoneGlyph
 import com.openbite.android.core.designsystem.text.monthDay
 import com.openbite.android.core.designsystem.text.monthDayWeekday
 import com.openbite.android.core.designsystem.text.previousCelebrationLabel
@@ -55,11 +57,11 @@ import com.openbite.feature.milestone.MilestonesViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import com.openbite.android.core.designsystem.R as DsR
 
-/** 纪念日 Tab。提前天数设置和新建纪念日还没做（app 传空实现）。 */
+/** 纪念日 Tab。点纪念日或“提前提醒”进纪念日管理。 */
 @Composable
 fun MilestonesRoute(
     onOpenPlace: (placeId: String) -> Unit,
-    onEditReminder: () -> Unit,
+    onEditMilestone: (milestoneId: String) -> Unit,
     onAddMilestone: () -> Unit,
     viewModel: MilestonesViewModel = koinViewModel(),
 ) {
@@ -68,7 +70,7 @@ fun MilestonesRoute(
     MilestonesScreen(
         state,
         onOpenPlace,
-        onEditReminder,
+        onEditMilestone,
         onAddMilestone,
         notificationsOn = reminders?.milestones ?: true,
         onNotifications = viewModel::setMilestoneReminders,
@@ -80,7 +82,7 @@ fun MilestonesRoute(
 fun MilestonesScreen(
     state: MilestonesUiState,
     onOpenPlace: (String) -> Unit = {},
-    onEditReminder: () -> Unit = {},
+    onEditMilestone: (String) -> Unit = {},
     onAddMilestone: () -> Unit = {},
     notificationsOn: Boolean = true,
     onNotifications: (Boolean) -> Unit = {},
@@ -114,7 +116,7 @@ fun MilestonesScreen(
                     )
                 }
             } else {
-                item { NextMilestoneCard(next, onOpenPlace) }
+                item { NextMilestoneCard(next, onOpenPlace) { onEditMilestone(next.upcoming.milestone.id) } }
             }
             if (state.later.isNotEmpty()) {
                 item { SectionHeader(stringResource(R.string.milestone_later), Modifier.padding(top = Spacing.xs)) }
@@ -127,17 +129,31 @@ fun MilestonesScreen(
                         modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.xxs / 2),
                         leading = { GlyphAvatar(item.glyph, shape = MilestoneAvatarShape) },
                         trailing = { TrailingText(stringResource(DsR.string.ds_days_count, item.upcoming.daysUntil)) },
+                        onClick = { onEditMilestone(item.upcoming.milestone.id) },
                     )
                 }
             }
-            item { ReminderSection(state.remindDaysBefore, onEditReminder, notificationsOn, onNotifications) }
+            if (state.past.isNotEmpty()) {
+                item { SectionHeader(stringResource(R.string.milestone_past), Modifier.padding(top = Spacing.xs)) }
+                itemsIndexed(state.past, key = { _, it -> "past-" + it.id }) { index, milestone ->
+                    SegmentedListItem(
+                        headline = milestone.title,
+                        supporting = fullDate(milestone.date) + stringResource(DsR.string.ds_separator) + recurrenceLabel(milestone.recurrence),
+                        shape = segmentShape(index, state.past.size),
+                        modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.xxs / 2),
+                        leading = { GlyphAvatar(milestoneGlyph(milestone), shape = MilestoneAvatarShape) },
+                        onClick = { onEditMilestone(milestone.id) },
+                    )
+                }
+            }
+            item { ReminderSection(state.remindDaysBefore, { state.next?.let { onEditMilestone(it.upcoming.milestone.id) } }, notificationsOn, onNotifications) }
         }
     }
 }
 
 /** 下一个纪念日的大卡片，附上次为它吃的那顿饭。 */
 @Composable
-private fun NextMilestoneCard(highlight: MilestoneHighlight, onOpenPlace: (String) -> Unit) {
+private fun NextMilestoneCard(highlight: MilestoneHighlight, onOpenPlace: (String) -> Unit, onEdit: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     Column(
         modifier = Modifier
@@ -148,7 +164,10 @@ private fun NextMilestoneCard(highlight: MilestoneHighlight, onOpenPlace: (Strin
         verticalArrangement = Arrangement.spacedBy(Spacing.m),
     ) {
         Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-            Column(Modifier.weight(1f).padding(bottom = 6.dp), verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
+            Column(
+                Modifier.weight(1f).clip(MaterialTheme.shapes.medium).clickable(onClickLabel = stringResource(R.string.milestone_edit), onClick = onEdit).padding(bottom = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xxs),
+            ) {
                 Text(stringResource(R.string.milestone_next), style = MaterialTheme.typography.labelLarge, color = scheme.onTertiaryContainer)
                 Text(milestoneTitle(highlight), style = MaterialTheme.typography.headlineMedium.emphasized(), color = scheme.onTertiaryContainer)
                 Text(

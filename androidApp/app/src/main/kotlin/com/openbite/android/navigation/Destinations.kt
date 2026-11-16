@@ -47,6 +47,10 @@ data class MapKey(val focusPlaceId: String? = null) : NavKey
 @Serializable
 data class PickLocationKey(val placeId: String) : NavKey
 
+/** 纪念日管理：[milestoneId] 为 null 是新建。 */
+@Serializable
+data class MilestoneEditKey(val milestoneId: String? = null) : NavKey
+
 /** 补记忆（05）。 */
 @Serializable
 data class MemoryEditKey(val logId: String) : NavKey

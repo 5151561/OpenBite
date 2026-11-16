@@ -58,6 +58,7 @@ class ScanMenuUseCaseTest {
         val sent = mutableSetOf<String>()
         override suspend fun sentMilestoneReminders(): Set<String> = sent.toSet()
         override suspend fun markMilestoneRemindersSent(keys: Set<String>) { sent += keys }
+        override suspend fun clearMilestoneReminders(milestoneId: String) { sent.removeAll { it.startsWith("$milestoneId:") } }
     }
 
     private class FakeRepo(val places: MutableMap<String, Place> = mutableMapOf(), val menus: Map<String, List<Dish>> = emptyMap()) :

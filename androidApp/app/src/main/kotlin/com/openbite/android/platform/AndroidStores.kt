@@ -85,6 +85,10 @@ internal class DataStorePreferencesStore(context: Context) : PreferencesStore {
         store.edit { it[sentMilestones] = it[sentMilestones].orEmpty() + keys }
     }
 
+    override suspend fun clearMilestoneReminders(milestoneId: String) {
+        store.edit { prefs -> prefs[sentMilestones] = prefs[sentMilestones].orEmpty().filterNot { it.startsWith("$milestoneId:") }.toSet() }
+    }
+
     private companion object {
         val mealReminders = booleanPreferencesKey("reminder_meal")
         val milestoneReminders = booleanPreferencesKey("reminder_milestone")

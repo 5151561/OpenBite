@@ -99,7 +99,21 @@ data class PlaceCounts(val dishes: Int, val photos: Int)
 
 interface MilestoneRepository {
     fun observeMilestones(): Flow<List<Milestone>>
+
+    /** 一个纪念日和“关于谁”；不在了返回 null。 */
+    suspend fun milestone(id: String): MilestoneWithPeople?
+
+    /** 新建或更新（同一个 id 就是更新），同时换掉“关于谁”。 */
+    suspend fun save(milestone: Milestone, personIds: List<String>)
+
+    /** 删掉纪念日；标了它的记录还在，只是去掉标签。 */
+    suspend fun delete(id: String)
+
+    /** 标了这个纪念日的用餐记录数。 */
+    suspend fun taggedMealCount(id: String): Int
 }
+
+data class MilestoneWithPeople(val milestone: Milestone, val personIds: List<String>)
 
 /** 设置页的示例数据和清空操作。 */
 interface SampleDataRepository {
@@ -158,6 +172,19 @@ internal class RoomPlaceRepository(private val db: OpenBiteDatabase) : PlaceRepo
 
 internal class RoomMilestoneRepository(private val db: OpenBiteDatabase) : MilestoneRepository {
     override fun observeMilestones() = db.milestoneDao().observeAll().map { rows -> rows.map { it.toModel() } }
+
+    override suspend fun milestone(id: String): MilestoneWithPeople? {
+        val dao = db.milestoneEditDao()
+        val entity = dao.byId(id) ?: return null
+        return MilestoneWithPeople(entity.toModel(), dao.personIdsOf(id))
+    }
+
+    override suspend fun save(milestone: Milestone, personIds: List<String>) =
+        db.milestoneEditDao().save(milestone.toEntity(), personIds)
+
+    override suspend fun delete(id: String) = db.milestoneEditDao().delete(id)
+
+    override suspend fun taggedMealCount(id: String) = db.milestoneEditDao().taggedLogCount(id)
 }
 
 /** 草稿记录里的一道菜（名字和价格是快照）。 */

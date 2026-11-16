@@ -357,3 +357,45 @@ abstract class ImportDao {
         if (dishes.isNotEmpty()) insertDishes(dishes)
     }
 }
+
+/** 纪念日管理：读、存（含“关于谁”）、删。 */
+@Dao
+abstract class MilestoneEditDao {
+    @Query("SELECT * FROM milestone WHERE id = :id")
+    abstract suspend fun byId(id: String): MilestoneEntity?
+
+    @Query("SELECT personId FROM milestone_person WHERE milestoneId = :id")
+    abstract suspend fun personIdsOf(id: String): List<String>
+
+    @Query("SELECT COUNT(*) FROM dining_log WHERE milestoneId = :id")
+    abstract suspend fun taggedLogCount(id: String): Int
+
+    @Upsert
+    protected abstract suspend fun upsert(milestone: MilestoneEntity)
+
+    @Query("DELETE FROM milestone_person WHERE milestoneId = :id")
+    protected abstract suspend fun clearLinks(id: String)
+
+    @Insert
+    protected abstract suspend fun insertLinks(links: List<MilestonePersonEntity>)
+
+    @Query("UPDATE dining_log SET milestoneId = NULL WHERE milestoneId = :id")
+    protected abstract suspend fun untagLogs(id: String)
+
+    @Query("DELETE FROM milestone WHERE id = :id")
+    protected abstract suspend fun deleteById(id: String)
+
+    @Transaction
+    open suspend fun save(milestone: MilestoneEntity, personIds: List<String>) {
+        upsert(milestone)
+        clearLinks(milestone.id)
+        if (personIds.isNotEmpty()) insertLinks(personIds.distinct().map { MilestonePersonEntity(milestone.id, it) })
+    }
+
+    /** 外键本来就是 SET NULL；这里显式先改，dining_log 的观察者一定会收到更新。 */
+    @Transaction
+    open suspend fun delete(id: String) {
+        untagLogs(id)
+        deleteById(id)
+    }
+}

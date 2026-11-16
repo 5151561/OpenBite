@@ -28,6 +28,7 @@ import com.openbite.android.feature.meal.MealRoute
 import com.openbite.android.feature.meal.MemoryEditRoute
 import com.openbite.android.feature.meal.ReceiptArchiveRoute
 import com.openbite.android.feature.memories.MemoriesRoute
+import com.openbite.android.feature.milestone.MilestoneEditRoute
 import com.openbite.android.feature.milestone.MilestonesRoute
 import com.openbite.android.feature.order.OrderRoute
 import com.openbite.android.feature.order.ReceiptRoute
@@ -106,8 +107,8 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
         entry<MilestonesKey> {
             MilestonesRoute(
                 onOpenPlace = openPlace,
-                onEditReminder = notYet, // TODO: 每个纪念日的提前天数（纪念日管理页一起做）
-                onAddMilestone = notYet, // TODO: 纪念日管理页（11/27）
+                onEditMilestone = { navigator.navigate(MilestoneEditKey(it)) },
+                onAddMilestone = { navigator.navigate(MilestoneEditKey()) },
             )
         }
         entry<SettingsKey> {
@@ -158,6 +159,7 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
                 onShare = { navigator.navigate(ShareMealKey(key.logId)) },
             )
         }
+        entry<MilestoneEditKey> { key -> MilestoneEditRoute(milestoneId = key.milestoneId, onDone = navigator::goBack) }
         entry<ShareMealKey> { key -> ShareMealRoute(logId = key.logId, onBack = navigator::goBack) }
         entry<SharePlaceKey> { key -> SharePlaceRoute(placeId = key.placeId, onBack = navigator::goBack) }
         entry<MapKey> { key ->

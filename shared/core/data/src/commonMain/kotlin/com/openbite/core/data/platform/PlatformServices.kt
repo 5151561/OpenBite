@@ -96,6 +96,9 @@ interface PreferencesStore {
     /** 已经发过的纪念日提醒，键是 "<milestoneId>:<年份>"。 */
     suspend fun sentMilestoneReminders(): Set<String>
     suspend fun markMilestoneRemindersSent(keys: Set<String>)
+
+    /** 纪念日改了日期或提醒天数、或者被删了：忘掉它“今年已经提醒过”。 */
+    suspend fun clearMilestoneReminders(milestoneId: String)
 }
 
 /** SecretStore 里的键名。 */

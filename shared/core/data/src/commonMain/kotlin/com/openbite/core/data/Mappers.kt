@@ -112,3 +112,12 @@ internal fun Dish.toEntity() = DishEntity(
 )
 
 internal fun Place.toEntity(createdAt: Long) = PlaceEntity(id, name, lat, lon, address, createdAt)
+
+internal fun Milestone.toEntity() = MilestoneEntity(
+    id = id,
+    title = title,
+    type = type.name.lowercase(),
+    date = date.toString(),
+    recurrence = recurrence.name.lowercase(),
+    remindDaysBefore = remindDaysBefore,
+)

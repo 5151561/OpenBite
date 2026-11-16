@@ -10,7 +10,9 @@ import kotlinx.coroutines.launch
 import com.openbite.core.model.MilestoneHighlight
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
+import com.openbite.core.data.MilestoneRepository
+import com.openbite.core.model.Milestone
 import kotlinx.coroutines.flow.stateIn
 
 data class MilestonesUiState(
@@ -19,6 +21,8 @@ data class MilestonesUiState(
     val next: MilestoneHighlight? = null,
     /** 之后的，按日期排。 */
     val later: List<MilestoneHighlight> = emptyList(),
+    /** 已经过去的一次性纪念日（不再出现在“之后”里，但还能点开改或删）。 */
+    val past: List<Milestone> = emptyList(),
 ) {
     /** 提醒提前几天：取最近一个纪念日的设置。 */
     val remindDaysBefore: Int get() = next?.upcoming?.milestone?.remindDaysBefore ?: DEFAULT_REMIND_DAYS
@@ -30,6 +34,7 @@ data class MilestonesUiState(
 
 class MilestonesViewModel(
     observeHighlights: ObserveMilestoneHighlightsUseCase,
+    milestones: MilestoneRepository,
     observeReminders: ObserveReminderSettingsUseCase,
     private val setReminders: SetReminderSettingsUseCase,
 ) : ViewModel() {
@@ -44,8 +49,14 @@ class MilestonesViewModel(
     }
 
     val uiState: StateFlow<MilestonesUiState> =
-        observeHighlights(daysAhead = DAYS_AHEAD).map { all ->
-            MilestonesUiState(isLoading = false, next = all.firstOrNull(), later = all.drop(1))
+        combine(observeHighlights(daysAhead = DAYS_AHEAD), milestones.observeMilestones()) { all, every ->
+            val upcomingIds = all.map { it.upcoming.milestone.id }.toSet()
+            MilestonesUiState(
+                isLoading = false,
+                next = all.firstOrNull(),
+                later = all.drop(1),
+                past = every.filterNot { it.id in upcomingIds }.sortedByDescending { it.date },
+            )
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
