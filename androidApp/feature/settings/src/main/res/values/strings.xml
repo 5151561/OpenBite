@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">设置</string>
+    <string name="settings_back">返回首页</string>
+
+    <string name="settings_taste">我的口味</string>
+    <string name="settings_taste_hint">过敏原、忌口和辣度</string>
+
+    <string name="settings_model_section">识别模型</string>
+    <string name="settings_model">模型</string>
+    <string name="settings_model_default">Claude Haiku 5.5</string>
+    <string name="settings_model_note">识别新菜单要用你自己的 API Key，只存本机。不填也能用示例菜单体验全部流程。</string>
+
+    <string name="settings_privacy_section">隐私</string>
+    <string name="settings_strip_exif">上传前剥离 EXIF</string>
+    <string name="settings_keep_location">保留经纬度作为店铺位置</string>
+    <string name="settings_privacy_note">识别时，去掉 EXIF 的菜单图片会发给你选的模型。其余数据都留在本机。</string>
+
+    <string name="settings_assistant_section">手机 AI 助手</string>
+    <string name="settings_appfunctions">AppFunctions</string>
+    <string name="settings_appfunctions_hint">Android 16 及以上</string>
+    <string name="settings_appfunctions_count">5 个函数</string>
+    <string name="settings_reminders">纪念日和饭后提醒</string>
+    <string name="settings_reminders_hint">本机通知</string>
+    <string name="settings_assistant_note">手机上的 AI 助手通过 AppFunctions 查询和新增用餐记录，不能修改或删除。</string>
+
+    <string name="settings_load_sample">载入示例数据</string>
+    <string name="settings_clear_all">清空全部记忆</string>
+    <string name="settings_clear_confirm_title">清空全部记忆？</string>
+    <string name="settings_clear_confirm_text">店铺、菜单、用餐记录和纪念日都会从这台手机上删除，不能恢复。</string>
+    <string name="settings_clear_confirm">清空</string>
+    <string name="settings_cancel">取消</string>
+
+    <string name="settings_msg_sample_loaded">已载入示例数据</string>
+    <string name="settings_msg_sample_skipped">已有记忆，没有载入。想换成示例数据，先清空。</string>
+    <string name="settings_msg_cleared">已清空全部记忆</string>
+    <string name="settings_msg_failed">操作失败，请重试</string>
+</resources>

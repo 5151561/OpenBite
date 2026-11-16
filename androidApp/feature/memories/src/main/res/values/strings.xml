@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="memories_title">记忆</string>
+    <string name="memories_search">搜索记忆</string>
+    <string name="memories_filter_group">筛选记忆</string>
+    <string name="memories_filter_all">全部</string>
+    <string name="memories_filter_milestone">纪念日</string>
+    <string name="memories_filter_draft">草稿</string>
+    <string name="memories_scan_menu">拍菜单</string>
+    <string name="memories_empty">还没有记录。拍一张菜单，点完菜就会自动记下来。</string>
+    <string name="memories_empty_filtered">这个筛选下没有记录。</string>
+</resources>

@@ -2,9 +2,13 @@ package com.openbite.core.domain
 
 import com.openbite.core.data.DiningLogRepository
 import com.openbite.core.data.MilestoneRepository
+import com.openbite.core.data.SampleDataRepository
 import com.openbite.core.model.DiningLog
+import com.openbite.core.model.MemorySummary
+import com.openbite.core.model.MilestoneHighlight
 import com.openbite.core.model.UpcomingMilestone
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -32,4 +36,32 @@ class ObserveUpcomingMilestonesUseCase(
 ) {
     operator fun invoke(daysAhead: Int = 30): Flow<List<UpcomingMilestone>> =
         repository.observeMilestones().map { upcomingMilestones(it, todayProvider.today(), daysAhead) }
+}
+
+/** 全部用餐记忆的摘要，最新的在前。 */
+class ObserveMemoriesUseCase(
+    private val repository: DiningLogRepository,
+    private val todayProvider: TodayProvider,
+) {
+    operator fun invoke(): Flow<List<MemorySummary>> =
+        repository.observeLogs().map { summarize(it, todayProvider.today()) }
+}
+
+/** 未来 [daysAhead] 天内的纪念日，每个都带上上一次为它吃的那顿饭。 */
+class ObserveMilestoneHighlightsUseCase(
+    private val milestones: ObserveUpcomingMilestonesUseCase,
+    private val memories: ObserveMemoriesUseCase,
+) {
+    operator fun invoke(daysAhead: Int): Flow<List<MilestoneHighlight>> =
+        combine(milestones(daysAhead), memories()) { upcoming, summaries -> highlight(upcoming, summaries) }
+}
+
+/** 载入示例数据。数据库里已有数据时不动，返回 false。 */
+class LoadSampleDataUseCase(private val repository: SampleDataRepository) {
+    suspend operator fun invoke(): Boolean = repository.loadSampleIfEmpty()
+}
+
+/** 清空全部记忆。界面必须先让用户确认。 */
+class ClearAllDataUseCase(private val repository: SampleDataRepository) {
+    suspend operator fun invoke() = repository.clearAll()
 }

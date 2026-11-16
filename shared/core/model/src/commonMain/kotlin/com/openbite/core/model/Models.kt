@@ -61,6 +61,8 @@ data class DiningLog(
     val note: String?,
     val source: LogSource,
     val items: List<DiningLogItem>,
+    /** 同行人。 */
+    val companions: List<Person> = emptyList(),
 )
 
 @Serializable

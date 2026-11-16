@@ -128,3 +128,34 @@ abstract class SeedDao {
         insertLogPersons(logPersons)
     }
 }
+
+/** 设置页的“清空全部记忆”。按外键从子表删到父表，整批在一个事务里。 */
+@Dao
+abstract class MaintenanceDao {
+    @Query("DELETE FROM dining_log_item") protected abstract suspend fun deleteLogItems()
+    @Query("DELETE FROM dining_log_person") protected abstract suspend fun deleteLogPersons()
+    @Query("DELETE FROM photo") protected abstract suspend fun deletePhotos()
+    @Query("DELETE FROM dining_log") protected abstract suspend fun deleteLogs()
+    @Query("DELETE FROM dish") protected abstract suspend fun deleteDishes()
+    @Query("DELETE FROM menu_scan") protected abstract suspend fun deleteMenuScans()
+    @Query("DELETE FROM place_tag") protected abstract suspend fun deletePlaceTags()
+    @Query("DELETE FROM place") protected abstract suspend fun deletePlaces()
+    @Query("DELETE FROM milestone_person") protected abstract suspend fun deleteMilestonePersons()
+    @Query("DELETE FROM milestone") protected abstract suspend fun deleteMilestones()
+    @Query("DELETE FROM person") protected abstract suspend fun deletePersons()
+
+    @Transaction
+    open suspend fun clearAll() {
+        deleteLogItems()
+        deleteLogPersons()
+        deletePhotos()
+        deleteLogs()
+        deleteDishes()
+        deleteMenuScans()
+        deletePlaceTags()
+        deletePlaces()
+        deleteMilestonePersons()
+        deleteMilestones()
+        deletePersons()
+    }
+}

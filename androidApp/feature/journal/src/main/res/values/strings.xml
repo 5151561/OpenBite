@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="journal_title">用餐记忆</string>
-    <string name="journal_empty">还没有记录，去拍一张菜单吧</string>
-    <string name="journal_upcoming">还有 %1$d 天 · 第 %2$d 年</string>
-</resources>

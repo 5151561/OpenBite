@@ -1,6 +1,13 @@
 {
   "persons": [
-    { "id": "person-partner", "displayName": "老婆" }
+    {
+      "id": "person-wife",
+      "displayName": "老婆"
+    },
+    {
+      "id": "person-roommates",
+      "displayName": "大学室友"
+    }
   ],
   "milestones": [
     {
@@ -10,58 +17,880 @@
       "date": "2024-11-27",
       "recurrence": "yearly",
       "remindDaysBefore": 7,
-      "personIds": ["person-partner"]
+      "personIds": [
+        "person-wife"
+      ]
+    },
+    {
+      "id": "ms-wife-birthday",
+      "title": "老婆生日",
+      "type": "birthday",
+      "date": "1996-03-08",
+      "recurrence": "yearly",
+      "remindDaysBefore": 7,
+      "personIds": [
+        "person-wife"
+      ]
+    },
+    {
+      "id": "ms-reunion",
+      "title": "大学室友聚会",
+      "type": "celebration",
+      "date": "2027-06-20",
+      "recurrence": "none",
+      "remindDaysBefore": 7,
+      "personIds": [
+        "person-roommates"
+      ]
     }
   ],
   "places": [
     {
-      "id": "place-izakaya",
-      "name": "居酒屋 とり吉",
-      "lat": 35.6595,
-      "lon": 139.7005,
-      "address": "東京都渋谷区",
-      "tags": ["深夜食堂", "适合约会"],
+      "id": "place-minato",
+      "name": "割烹 みなと",
+      "lat": 35.0085,
+      "lon": 135.7713,
+      "address": "京都市中京区木屋町通三条下ル",
+      "tags": [
+        "适合约会",
+        "纪念日"
+      ],
       "dishes": [
-        { "id": "dish-tsukune", "category": "串焼き", "nameOriginal": "つくね", "nameTranslated": "鸡肉丸串", "priceMinor": 280, "currency": "JPY", "allergens": ["egg"] },
-        { "id": "dish-negima", "category": "串焼き", "nameOriginal": "ねぎま", "nameTranslated": "葱段鸡腿串", "priceMinor": 250, "currency": "JPY" },
-        { "id": "dish-dashimaki", "category": "一品料理", "nameOriginal": "だし巻き玉子", "nameTranslated": "高汤厚蛋烧", "priceMinor": 480, "currency": "JPY", "allergens": ["egg", "fish"] }
+        {
+          "id": "minato-goma",
+          "category": "先付",
+          "nameOriginal": "ごま豆腐",
+          "nameTranslated": "胡麻豆腐",
+          "priceMinor": 1600,
+          "currency": "JPY",
+          "allergens": [
+            "sesame"
+          ]
+        },
+        {
+          "id": "minato-uni",
+          "category": "蒸物",
+          "nameOriginal": "うに茶碗蒸し",
+          "nameTranslated": "海胆茶碗蒸",
+          "priceMinor": 2800,
+          "currency": "JPY",
+          "allergens": [
+            "shellfish",
+            "egg",
+            "fish"
+          ]
+        },
+        {
+          "id": "minato-tsukuri",
+          "category": "造り",
+          "nameOriginal": "お造り盛り合わせ",
+          "nameTranslated": "刺身拼盘",
+          "priceMinor": 4200,
+          "currency": "JPY",
+          "allergens": [
+            "fish"
+          ]
+        },
+        {
+          "id": "minato-saikyo",
+          "category": "焼物",
+          "nameOriginal": "鰆の西京焼き",
+          "nameTranslated": "西京烧鲅鱼",
+          "priceMinor": 3600,
+          "currency": "JPY",
+          "allergens": [
+            "fish",
+            "soy"
+          ]
+        },
+        {
+          "id": "minato-amadai",
+          "category": "焼物",
+          "nameOriginal": "甘鯛の松笠焼き",
+          "nameTranslated": "松笠烤方头鱼",
+          "priceMinor": 3800,
+          "currency": "JPY",
+          "allergens": [
+            "fish"
+          ]
+        },
+        {
+          "id": "minato-takiawase",
+          "category": "煮物",
+          "nameOriginal": "炊き合わせ",
+          "nameTranslated": "时蔬炖煮",
+          "priceMinor": 2400,
+          "currency": "JPY",
+          "allergens": [
+            "soy",
+            "fish"
+          ]
+        },
+        {
+          "id": "minato-dobin",
+          "category": "椀物",
+          "nameOriginal": "松茸の土瓶蒸し",
+          "nameTranslated": "土瓶蒸松茸",
+          "priceMinor": 3400,
+          "currency": "JPY",
+          "allergens": [
+            "fish"
+          ]
+        },
+        {
+          "id": "minato-tempura",
+          "category": "揚物",
+          "nameOriginal": "季節の天ぷら",
+          "nameTranslated": "时令天妇罗",
+          "priceMinor": 2200,
+          "currency": "JPY",
+          "allergens": [
+            "wheat",
+            "egg",
+            "shellfish"
+          ]
+        },
+        {
+          "id": "minato-donabe",
+          "category": "食事",
+          "nameOriginal": "土鍋ご飯",
+          "nameTranslated": "砂锅饭",
+          "priceMinor": 3800,
+          "currency": "JPY",
+          "allergens": []
+        },
+        {
+          "id": "minato-taichazuke",
+          "category": "食事",
+          "nameOriginal": "鯛茶漬け",
+          "nameTranslated": "鲷鱼茶泡饭",
+          "priceMinor": 1800,
+          "currency": "JPY",
+          "allergens": [
+            "fish"
+          ]
+        },
+        {
+          "id": "minato-warabi",
+          "category": "甘味",
+          "nameOriginal": "わらび餅",
+          "nameTranslated": "蕨饼",
+          "priceMinor": 600,
+          "currency": "JPY",
+          "allergens": [
+            "soy"
+          ]
+        },
+        {
+          "id": "minato-matcha",
+          "category": "甘味",
+          "nameOriginal": "抹茶アイス",
+          "nameTranslated": "抹茶冰淇淋",
+          "priceMinor": 700,
+          "currency": "JPY",
+          "allergens": [
+            "milk"
+          ]
+        }
       ]
     },
     {
-      "id": "place-ramen",
-      "name": "麺屋 しずく",
-      "lat": 35.7023,
-      "lon": 139.7745,
-      "address": "東京都台東区",
-      "tags": ["一人食"],
+      "id": "place-torimatsu",
+      "name": "炭火焼鳥 とり松",
+      "lat": 35.0068,
+      "lon": 135.7707,
+      "address": "京都市中京区先斗町通",
+      "tags": [
+        "深夜食堂"
+      ],
       "dishes": [
-        { "id": "dish-shoyu", "category": "ラーメン", "nameOriginal": "醤油らーめん", "nameTranslated": "酱油拉面", "priceMinor": 950, "currency": "JPY", "allergens": ["wheat", "soy"] }
+        {
+          "id": "tori-negima",
+          "category": "串焼き",
+          "nameOriginal": "ねぎま",
+          "nameTranslated": "葱段鸡腿串",
+          "priceMinor": 280,
+          "currency": "JPY",
+          "allergens": []
+        },
+        {
+          "id": "tori-tsukune",
+          "category": "串焼き",
+          "nameOriginal": "つくね（月見）",
+          "nameTranslated": "鸡肉丸串（蘸蛋黄）",
+          "priceMinor": 350,
+          "currency": "JPY",
+          "allergens": [
+            "egg",
+            "soy"
+          ]
+        },
+        {
+          "id": "tori-sasami",
+          "category": "串焼き",
+          "nameOriginal": "ささみ梅しそ",
+          "nameTranslated": "梅子紫苏鸡胸串",
+          "priceMinor": 300,
+          "currency": "JPY",
+          "allergens": []
+        },
+        {
+          "id": "tori-tebasaki",
+          "category": "串焼き",
+          "nameOriginal": "手羽先",
+          "nameTranslated": "烤鸡翅",
+          "priceMinor": 320,
+          "currency": "JPY",
+          "allergens": []
+        },
+        {
+          "id": "tori-bonjiri",
+          "category": "串焼き",
+          "nameOriginal": "ぼんじり",
+          "nameTranslated": "鸡尾肉串",
+          "priceMinor": 280,
+          "currency": "JPY",
+          "allergens": []
+        },
+        {
+          "id": "tori-soup",
+          "category": "一品",
+          "nameOriginal": "鶏スープ",
+          "nameTranslated": "鸡汤",
+          "priceMinor": 500,
+          "currency": "JPY",
+          "allergens": []
+        }
+      ]
+    },
+    {
+      "id": "place-komorebi",
+      "name": "喫茶 こもれび",
+      "lat": 35.011,
+      "lon": 135.7672,
+      "address": "京都市中京区寺町通",
+      "tags": [],
+      "dishes": [
+        {
+          "id": "komorebi-jelly",
+          "category": "飲み物",
+          "nameOriginal": "ゼリーソーダ",
+          "nameTranslated": "果冻苏打",
+          "priceMinor": 650,
+          "currency": "JPY",
+          "allergens": []
+        },
+        {
+          "id": "komorebi-pudding",
+          "category": "甘味",
+          "nameOriginal": "固めプリン",
+          "nameTranslated": "布丁",
+          "priceMinor": 550,
+          "currency": "JPY",
+          "allergens": [
+            "egg",
+            "milk"
+          ]
+        },
+        {
+          "id": "komorebi-coffee",
+          "category": "飲み物",
+          "nameOriginal": "ブレンドコーヒー",
+          "nameTranslated": "招牌咖啡",
+          "priceMinor": 500,
+          "currency": "JPY",
+          "allergens": []
+        },
+        {
+          "id": "komorebi-matcha",
+          "category": "飲み物",
+          "nameOriginal": "抹茶ラテ",
+          "nameTranslated": "抹茶拿铁",
+          "priceMinor": 600,
+          "currency": "JPY",
+          "allergens": [
+            "milk"
+          ]
+        },
+        {
+          "id": "komorebi-mixjuice",
+          "category": "飲み物",
+          "nameOriginal": "ミックスジュース",
+          "nameTranslated": "综合果汁",
+          "priceMinor": 600,
+          "currency": "JPY",
+          "allergens": [
+            "milk"
+          ]
+        },
+        {
+          "id": "komorebi-napolitan",
+          "category": "食事",
+          "nameOriginal": "ナポリタン",
+          "nameTranslated": "拿坡里意面",
+          "priceMinor": 950,
+          "currency": "JPY",
+          "allergens": [
+            "wheat"
+          ]
+        },
+        {
+          "id": "komorebi-tamagosando",
+          "category": "食事",
+          "nameOriginal": "たまごサンド",
+          "nameTranslated": "玉子三明治",
+          "priceMinor": 800,
+          "currency": "JPY",
+          "allergens": [
+            "egg",
+            "wheat"
+          ]
+        },
+        {
+          "id": "komorebi-hotcake",
+          "category": "甘味",
+          "nameOriginal": "ホットケーキ",
+          "nameTranslated": "松饼",
+          "priceMinor": 750,
+          "currency": "JPY",
+          "allergens": [
+            "wheat",
+            "egg",
+            "milk"
+          ]
+        },
+        {
+          "id": "komorebi-cheesecake",
+          "category": "甘味",
+          "nameOriginal": "チーズケーキ",
+          "nameTranslated": "芝士蛋糕",
+          "priceMinor": 600,
+          "currency": "JPY",
+          "allergens": [
+            "milk",
+            "egg",
+            "wheat"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "place-hinata",
+      "name": "麺屋 ひなた",
+      "lat": 34.9862,
+      "lon": 135.759,
+      "address": "京都市下京区東塩小路町",
+      "tags": [
+        "深夜食堂"
+      ],
+      "dishes": [
+        {
+          "id": "hinata-black",
+          "category": "らーめん",
+          "nameOriginal": "黒醤油らーめん",
+          "nameTranslated": "黑酱油拉面",
+          "priceMinor": 900,
+          "currency": "JPY",
+          "allergens": [
+            "wheat",
+            "soy"
+          ]
+        },
+        {
+          "id": "hinata-paitan",
+          "category": "らーめん",
+          "nameOriginal": "鶏白湯らーめん",
+          "nameTranslated": "鸡白汤拉面",
+          "priceMinor": 950,
+          "currency": "JPY",
+          "allergens": [
+            "wheat"
+          ]
+        },
+        {
+          "id": "hinata-tsukemen",
+          "category": "らーめん",
+          "nameOriginal": "つけ麺",
+          "nameTranslated": "蘸面",
+          "priceMinor": 1000,
+          "currency": "JPY",
+          "allergens": [
+            "wheat",
+            "soy"
+          ]
+        },
+        {
+          "id": "hinata-ajitama",
+          "category": "トッピング",
+          "nameOriginal": "味玉",
+          "nameTranslated": "溏心蛋",
+          "priceMinor": 150,
+          "currency": "JPY",
+          "allergens": [
+            "egg",
+            "soy"
+          ]
+        },
+        {
+          "id": "hinata-kaedama",
+          "category": "トッピング",
+          "nameOriginal": "替え玉",
+          "nameTranslated": "加面",
+          "priceMinor": 150,
+          "currency": "JPY",
+          "allergens": [
+            "wheat"
+          ]
+        },
+        {
+          "id": "hinata-chashudon",
+          "category": "ご飯",
+          "nameOriginal": "チャーシュー丼",
+          "nameTranslated": "叉烧饭",
+          "priceMinor": 400,
+          "currency": "JPY",
+          "allergens": [
+            "soy"
+          ]
+        },
+        {
+          "id": "hinata-gyoza",
+          "category": "一品",
+          "nameOriginal": "餃子",
+          "nameTranslated": "煎饺",
+          "priceMinor": 400,
+          "currency": "JPY",
+          "allergens": [
+            "wheat",
+            "soy"
+          ]
+        },
+        {
+          "id": "hinata-beer",
+          "category": "飲み物",
+          "nameOriginal": "生ビール",
+          "nameTranslated": "生啤",
+          "priceMinor": 600,
+          "currency": "JPY",
+          "allergens": [
+            "wheat"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "place-tsubame",
+      "name": "洋食 つばめ",
+      "lat": 35.03,
+      "lon": 135.77,
+      "address": "京都市左京区下鴨",
+      "tags": [],
+      "dishes": [
+        {
+          "id": "tsubame-omurice",
+          "category": "洋食",
+          "nameOriginal": "オムライス",
+          "nameTranslated": "蛋包饭",
+          "priceMinor": 1200,
+          "currency": "JPY",
+          "allergens": [
+            "egg",
+            "wheat",
+            "milk"
+          ]
+        },
+        {
+          "id": "tsubame-kakifry",
+          "category": "洋食",
+          "nameOriginal": "カキフライ",
+          "nameTranslated": "炸牡蛎",
+          "priceMinor": 1400,
+          "currency": "JPY",
+          "allergens": [
+            "shellfish",
+            "wheat",
+            "egg"
+          ]
+        },
+        {
+          "id": "tsubame-hamburg",
+          "category": "洋食",
+          "nameOriginal": "ハンバーグ",
+          "nameTranslated": "汉堡肉",
+          "priceMinor": 1300,
+          "currency": "JPY",
+          "allergens": [
+            "egg",
+            "wheat",
+            "milk"
+          ]
+        },
+        {
+          "id": "tsubame-stew",
+          "category": "洋食",
+          "nameOriginal": "ビーフシチュー",
+          "nameTranslated": "炖牛肉",
+          "priceMinor": 1800,
+          "currency": "JPY",
+          "allergens": [
+            "wheat",
+            "milk"
+          ]
+        },
+        {
+          "id": "tsubame-ebifry",
+          "category": "洋食",
+          "nameOriginal": "エビフライ",
+          "nameTranslated": "炸虾",
+          "priceMinor": 1500,
+          "currency": "JPY",
+          "allergens": [
+            "shellfish",
+            "wheat",
+            "egg"
+          ]
+        },
+        {
+          "id": "tsubame-napolitan",
+          "category": "洋食",
+          "nameOriginal": "ナポリタン",
+          "nameTranslated": "拿坡里意面",
+          "priceMinor": 1000,
+          "currency": "JPY",
+          "allergens": [
+            "wheat"
+          ]
+        },
+        {
+          "id": "tsubame-katsu",
+          "category": "洋食",
+          "nameOriginal": "ポークカツ",
+          "nameTranslated": "炸猪排",
+          "priceMinor": 1300,
+          "currency": "JPY",
+          "allergens": [
+            "wheat",
+            "egg"
+          ]
+        },
+        {
+          "id": "tsubame-croquette",
+          "category": "洋食",
+          "nameOriginal": "コロッケ",
+          "nameTranslated": "可乐饼",
+          "priceMinor": 700,
+          "currency": "JPY",
+          "allergens": [
+            "wheat",
+            "egg",
+            "milk"
+          ]
+        },
+        {
+          "id": "tsubame-potage",
+          "category": "スープ",
+          "nameOriginal": "ポタージュ",
+          "nameTranslated": "浓汤",
+          "priceMinor": 400,
+          "currency": "JPY",
+          "allergens": [
+            "milk"
+          ]
+        },
+        {
+          "id": "tsubame-pudding",
+          "category": "デザート",
+          "nameOriginal": "プリン",
+          "nameTranslated": "布丁",
+          "priceMinor": 450,
+          "currency": "JPY",
+          "allergens": [
+            "egg",
+            "milk"
+          ]
+        }
       ]
     }
   ],
   "logs": [
     {
-      "id": "log-2025-anniv",
-      "placeId": "place-izakaya",
+      "id": "log-2026-11-17-torimatsu",
+      "placeId": "place-torimatsu",
+      "visitedAtLocal": "2026-11-17T19:42",
+      "timezone": "Asia/Tokyo",
+      "status": "draft",
+      "personIds": [],
+      "items": [
+        {
+          "dishId": "tori-negima",
+          "name": "葱段鸡腿串",
+          "priceMinor": 280,
+          "currency": "JPY",
+          "qty": 2
+        },
+        {
+          "dishId": "tori-tsukune",
+          "name": "鸡肉丸串（蘸蛋黄）",
+          "priceMinor": 350,
+          "currency": "JPY",
+          "qty": 2
+        },
+        {
+          "dishId": "tori-sasami",
+          "name": "梅子紫苏鸡胸串",
+          "priceMinor": 300,
+          "currency": "JPY",
+          "qty": 1
+        },
+        {
+          "dishId": "tori-tebasaki",
+          "name": "烤鸡翅",
+          "priceMinor": 320,
+          "currency": "JPY",
+          "qty": 1
+        },
+        {
+          "dishId": "tori-bonjiri",
+          "name": "鸡尾肉串",
+          "priceMinor": 280,
+          "currency": "JPY",
+          "qty": 1
+        }
+      ]
+    },
+    {
+      "id": "log-2026-11-15-komorebi",
+      "placeId": "place-komorebi",
+      "visitedAtLocal": "2026-11-15T15:20",
+      "timezone": "Asia/Tokyo",
+      "status": "done",
+      "personIds": [],
+      "items": [
+        {
+          "dishId": "komorebi-jelly",
+          "name": "果冻苏打",
+          "priceMinor": 650,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 4,
+          "comment": "颜色好看，有点甜"
+        },
+        {
+          "dishId": "komorebi-pudding",
+          "name": "布丁",
+          "priceMinor": 550,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 5,
+          "comment": "偏硬的老派布丁"
+        }
+      ]
+    },
+    {
+      "id": "log-2026-11-14-hinata",
+      "placeId": "place-hinata",
+      "visitedAtLocal": "2026-11-14T22:40",
+      "timezone": "Asia/Tokyo",
+      "status": "done",
+      "personIds": [],
+      "items": [
+        {
+          "dishId": "hinata-black",
+          "name": "黑酱油拉面",
+          "priceMinor": 900,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 5,
+          "comment": "汤底比上次更浓"
+        }
+      ]
+    },
+    {
+      "id": "log-2026-10-26-tsubame",
+      "placeId": "place-tsubame",
+      "visitedAtLocal": "2026-10-26T12:30",
+      "timezone": "Asia/Tokyo",
+      "status": "done",
+      "personIds": [],
+      "items": [
+        {
+          "dishId": "tsubame-omurice",
+          "name": "蛋包饭",
+          "priceMinor": 1200,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 4
+        },
+        {
+          "dishId": "tsubame-kakifry",
+          "name": "炸牡蛎",
+          "priceMinor": 1400,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 4,
+          "comment": "牡蛎很大"
+        }
+      ]
+    },
+    {
+      "id": "log-2026-10-03-minato",
+      "placeId": "place-minato",
+      "visitedAtLocal": "2026-10-03T18:45",
+      "timezone": "Asia/Tokyo",
+      "status": "done",
+      "note": "换了秋天的菜单，西京烧比上次更好。",
+      "personIds": [
+        "person-wife"
+      ],
+      "items": [
+        {
+          "dishId": "minato-uni",
+          "name": "海胆茶碗蒸",
+          "priceMinor": 2800,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 5
+        },
+        {
+          "dishId": "minato-saikyo",
+          "name": "西京烧鲅鱼",
+          "priceMinor": 3600,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 5
+        },
+        {
+          "dishId": "minato-tempura",
+          "name": "时令天妇罗",
+          "priceMinor": 2200,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 5
+        },
+        {
+          "dishId": "minato-warabi",
+          "name": "蕨饼",
+          "priceMinor": 600,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 5
+        }
+      ]
+    },
+    {
+      "id": "log-2026-09-05-hinata",
+      "placeId": "place-hinata",
+      "visitedAtLocal": "2026-09-05T23:10",
+      "timezone": "Asia/Tokyo",
+      "status": "done",
+      "personIds": [],
+      "items": [
+        {
+          "dishId": "hinata-paitan",
+          "name": "鸡白汤拉面",
+          "priceMinor": 950,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 4
+        },
+        {
+          "dishId": "hinata-gyoza",
+          "name": "煎饺",
+          "priceMinor": 400,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 4
+        }
+      ]
+    },
+    {
+      "id": "log-2026-06-12-hinata",
+      "placeId": "place-hinata",
+      "visitedAtLocal": "2026-06-12T21:30",
+      "timezone": "Asia/Tokyo",
+      "status": "done",
+      "personIds": [],
+      "items": [
+        {
+          "dishId": "hinata-black",
+          "name": "黑酱油拉面",
+          "priceMinor": 900,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 5,
+          "comment": "第一次来，深夜还开着"
+        },
+        {
+          "dishId": "hinata-ajitama",
+          "name": "溏心蛋",
+          "priceMinor": 150,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 5
+        }
+      ]
+    },
+    {
+      "id": "log-2025-11-27-minato",
+      "placeId": "place-minato",
       "visitedAtLocal": "2025-11-27T19:30",
       "timezone": "Asia/Tokyo",
       "status": "done",
       "milestoneId": "ms-love",
-      "note": "一周年，坐吧台，老板送了一份厚蛋烧",
-      "personIds": ["person-partner"],
+      "note": "海胆茶碗蒸，她说明年还要来。",
+      "personIds": [
+        "person-wife"
+      ],
       "items": [
-        { "dishId": "dish-tsukune", "name": "つくね", "priceMinor": 280, "currency": "JPY", "qty": 2, "rating": 5, "comment": "蘸蛋黄，必点" },
-        { "dishId": "dish-dashimaki", "name": "だし巻き玉子", "priceMinor": 480, "currency": "JPY", "qty": 1, "rating": 4 }
-      ]
-    },
-    {
-      "id": "log-2026-ramen",
-      "placeId": "place-ramen",
-      "visitedAtLocal": "2026-03-14T12:10",
-      "timezone": "Asia/Tokyo",
-      "status": "done",
-      "items": [
-        { "dishId": "dish-shoyu", "name": "醤油らーめん", "priceMinor": 950, "currency": "JPY", "qty": 1, "rating": 4, "comment": "汤很清" }
+        {
+          "dishId": "minato-goma",
+          "name": "胡麻豆腐",
+          "priceMinor": 1600,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 5
+        },
+        {
+          "dishId": "minato-uni",
+          "name": "海胆茶碗蒸",
+          "priceMinor": 2800,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 5,
+          "comment": "她最喜欢这道"
+        },
+        {
+          "dishId": "minato-tsukuri",
+          "name": "刺身拼盘",
+          "priceMinor": 4200,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 5
+        },
+        {
+          "dishId": "minato-saikyo",
+          "name": "西京烧鲅鱼",
+          "priceMinor": 3600,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 5
+        },
+        {
+          "dishId": "minato-takiawase",
+          "name": "时蔬炖煮",
+          "priceMinor": 2400,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 5
+        },
+        {
+          "dishId": "minato-donabe",
+          "name": "砂锅饭",
+          "priceMinor": 3800,
+          "currency": "JPY",
+          "qty": 1,
+          "rating": 5
+        }
       ]
     }
   ]

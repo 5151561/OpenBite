@@ -11,6 +11,7 @@ import com.openbite.core.model.LogSource
 import com.openbite.core.model.Milestone
 import com.openbite.core.model.MilestoneType
 import com.openbite.core.model.Money
+import com.openbite.core.model.Person
 import com.openbite.core.model.Place
 import com.openbite.core.model.Recurrence
 import kotlinx.datetime.LocalDate
@@ -45,6 +46,7 @@ internal fun DiningLogWithDetails.toModel() = DiningLog(
     note = log.note,
     source = LogSource.valueOf(log.createdBy.uppercase()),
     items = items.map { it.toModel() },
+    companions = persons.map { Person(it.id, it.displayName) },
 )
 
 internal fun MilestoneEntity.toModel() = Milestone(

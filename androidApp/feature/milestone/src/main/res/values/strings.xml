@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="milestone_title">纪念日</string>
+    <string name="milestone_next">下一个</string>
+    <string name="milestone_later">之后</string>
+    <string name="milestone_reminders">提醒</string>
+    <string name="milestone_remind_before">提前提醒</string>
+    <string name="milestone_notifications">系统通知</string>
+    <string name="milestone_previous_rating">%1$s · %2$s 分</string>
+    <string name="milestone_add">新建纪念日</string>
+    <string name="milestone_empty">还没有纪念日。</string>
+    <string name="milestone_footer">提醒是手机本地通知，每天检查一次。手机上的 AI 助手也能通过 AppFunctions 读到去年的记录，问它“今年纪念日去哪吃”就行。</string>
+</resources>

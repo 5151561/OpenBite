@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 日期 -->
+    <string name="ds_month_day">%1$d月%2$d日</string>
+    <string name="ds_year_month_day">%1$d年%2$d月%3$d日</string>
+    <string name="ds_month">%1$d月</string>
+    <string name="ds_year_month">%1$d年%2$d月</string>
+    <string name="ds_date_weekday">%1$s %2$s</string>
+    <string-array name="ds_weekdays">
+        <item>周一</item>
+        <item>周二</item>
+        <item>周三</item>
+        <item>周四</item>
+        <item>周五</item>
+        <item>周六</item>
+        <item>周日</item>
+    </string-array>
+    <string name="ds_tonight_time">今晚 %1$s</string>
+    <string name="ds_today_time">今天 %1$s</string>
+    <string name="ds_separator">" · "</string>
+    <string name="ds_list_separator">、</string>
+
+    <!-- 记忆行 -->
+    <string name="ds_memory_dish_count">%1$d 道菜</string>
+    <string name="ds_memory_needs_detail">待补记忆</string>
+    <string name="ds_memory_visit_number">第 %1$d 次来</string>
+    <string name="ds_memory_with">和%1$s</string>
+    <string name="ds_memory_draft">草稿</string>
+    <string name="ds_rating_description">%1$s 分</string>
+
+    <!-- 纪念日 -->
+    <string name="ds_anniversary_title">%1$s%2$s周年</string>
+    <string name="ds_anniversary_suffix">纪念日</string>
+    <string-array name="ds_chinese_digits">
+        <item>零</item>
+        <item>一</item>
+        <item>二</item>
+        <item>三</item>
+        <item>四</item>
+        <item>五</item>
+        <item>六</item>
+        <item>七</item>
+        <item>八</item>
+        <item>九</item>
+    </string-array>
+    <string name="ds_two_standalone">两</string>
+    <string name="ds_ten">十</string>
+    <string name="ds_days_after">天后</string>
+    <string name="ds_today">今天</string>
+    <string name="ds_days_count">%1$d 天</string>
+    <string name="ds_recurrence_yearly">每年</string>
+    <string name="ds_recurrence_none">不重复</string>
+    <string name="ds_previous_last_year">去年在 %1$s</string>
+    <string name="ds_previous_in_year">%1$d年在 %2$s</string>
+    <string name="ds_quote">「%1$s」</string>
+</resources>
