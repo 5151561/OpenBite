@@ -3,6 +3,10 @@ package com.openbite.feature.place
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.openbite.core.domain.AddPlaceTagUseCase
+import com.openbite.core.domain.DishEditError
+import com.openbite.core.domain.DishEditInput
+import com.openbite.core.domain.DishEditResult
+import com.openbite.core.domain.UpdateDishUseCase
 import com.openbite.core.domain.ObserveAllTagsUseCase
 import com.openbite.core.domain.ObservePlaceDetailUseCase
 import com.openbite.core.domain.RemovePlaceTagUseCase
@@ -85,8 +89,20 @@ class PlaceMenuViewModel(
     initialTab: MenuTab,
     observeMenu: ObservePlaceMenuUseCase,
     todayProvider: TodayProvider,
+    private val updateDish: UpdateDishUseCase,
 ) : ViewModel() {
     private val tab = MutableStateFlow(initialTab)
+
+    /** 改一道菜的译名、分类、价格。[onResult] 收到 null 表示存好了，否则是校验错误。 */
+    fun updateDish(dishId: String, input: DishEditInput, onResult: (DishEditError?) -> Unit) {
+        viewModelScope.launch {
+            when (val result = updateDish.invoke(dishId, input)) {
+                is DishEditResult.Valid -> onResult(null)
+                is DishEditResult.Invalid -> onResult(result.error)
+            }
+        }
+    }
+
     private val photoIndex = MutableStateFlow(0)
 
     val uiState: StateFlow<PlaceMenuUiState> =

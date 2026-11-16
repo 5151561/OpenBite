@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.openbite.core.domain.ClearAllDataUseCase
 import com.openbite.core.domain.ClearApiKeyUseCase
 import com.openbite.core.data.platform.ReminderSettings
+import com.openbite.core.domain.ObserveKeepLocationUseCase
 import com.openbite.core.domain.ObserveReminderSettingsUseCase
+import com.openbite.core.domain.SetKeepLocationUseCase
 import com.openbite.core.domain.ObserveTasteProfileUseCase
 import com.openbite.core.domain.SetReminderSettingsUseCase
 import com.openbite.core.domain.ObserveVisionSettingsUseCase
@@ -44,7 +46,17 @@ class SettingsViewModel(
     observeTaste: ObserveTasteProfileUseCase,
     observeReminders: ObserveReminderSettingsUseCase,
     private val setReminderSettings: SetReminderSettingsUseCase,
+    observeKeepLocation: ObserveKeepLocationUseCase,
+    private val setKeepLocation: SetKeepLocationUseCase,
 ) : ViewModel() {
+
+    /** “保留经纬度作为店铺位置”；加载完之前为 null。 */
+    val keepLocation: StateFlow<Boolean?> = observeKeepLocation()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    fun setKeepLocation(keep: Boolean) {
+        viewModelScope.launch { setKeepLocation.invoke(keep) }
+    }
 
     /** 两个提醒开关；加载完之前为 null。 */
     val reminders: StateFlow<ReminderSettings?> = observeReminders()

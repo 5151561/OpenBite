@@ -21,6 +21,30 @@ import com.openbite.core.database.entity.PlaceTagEntity
 import com.openbite.core.database.entity.PlaceWithTags
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * 搜索用的 SQL（LIKE，转义符是反斜杠；:pattern 由 likePattern 生成）。
+ * 单独列成常量，好在 JVM 上直接跑（见 SearchSqlTest）。
+ */
+const val SEARCH_LOGS_SQL =
+    "SELECT l.id FROM dining_log l " +
+        "JOIN place p ON p.id = l.placeId " +
+        "LEFT JOIN milestone m ON m.id = l.milestoneId " +
+        "WHERE p.name LIKE :pattern ESCAPE '\\' OR l.note LIKE :pattern ESCAPE '\\' OR m.title LIKE :pattern ESCAPE '\\' " +
+        "OR EXISTS (SELECT 1 FROM dining_log_item i WHERE i.logId = l.id AND (i.nameSnapshot LIKE :pattern ESCAPE '\\' " +
+        "OR i.nameTranslatedSnapshot LIKE :pattern ESCAPE '\\' OR i.comment LIKE :pattern ESCAPE '\\')) " +
+        "OR EXISTS (SELECT 1 FROM dining_log_person lp JOIN person pe ON pe.id = lp.personId " +
+        "WHERE lp.logId = l.id AND pe.displayName LIKE :pattern ESCAPE '\\') " +
+        "ORDER BY l.visitedAt DESC LIMIT :limit"
+
+const val SEARCH_PLACES_SQL =
+    "SELECT DISTINCT p.id FROM place p " +
+        "LEFT JOIN place_tag t ON t.placeId = p.id " +
+        "LEFT JOIN dish d ON d.placeId = p.id " +
+        "WHERE p.name LIKE :pattern ESCAPE '\\' OR p.address LIKE :pattern ESCAPE '\\' " +
+        "OR t.tag LIKE :pattern ESCAPE '\\' OR d.nameOriginal LIKE :pattern ESCAPE '\\' " +
+        "OR d.nameTranslated LIKE :pattern ESCAPE '\\' " +
+        "LIMIT :limit"
+
 @Dao
 interface PlaceDao {
     @Upsert
@@ -66,6 +90,16 @@ interface PlaceDao {
     @Query("UPDATE place SET lat = :lat, lon = :lon WHERE id = :placeId")
     suspend fun setLocation(placeId: String, lat: Double, lon: Double)
 
+    @Query(
+        "UPDATE dish SET nameTranslated = :nameTranslated, category = :category, priceMinor = :priceMinor, currency = :currency " +
+            "WHERE id = :dishId",
+    )
+    suspend fun updateDish(dishId: String, nameTranslated: String, category: String, priceMinor: Long?, currency: String?)
+
+    /** 店铺搜索：店名、地址、标签、菜名（原文或译名）。[pattern] 已转义，用 \ 作转义符。 */
+    @Query(SEARCH_PLACES_SQL)
+    suspend fun searchPlaceIds(pattern: String, limit: Int): List<String>
+
     @Query("DELETE FROM place_tag WHERE placeId = :placeId AND tag = :tag")
     suspend fun deleteTag(placeId: String, tag: String)
 
@@ -94,6 +128,10 @@ interface DiningLogDao {
     @Transaction
     @Query("SELECT * FROM dining_log ORDER BY visitedAt DESC")
     fun observeAll(): Flow<List<DiningLogWithDetails>>
+
+    /** 记忆搜索：店名、菜名（原文、译名）、菜的短评、这一餐的短评、同行人、纪念日标题。 */
+    @Query(SEARCH_LOGS_SQL)
+    suspend fun searchLogIds(pattern: String, limit: Int): List<String>
 
     @Transaction
     @Query("SELECT * FROM dining_log WHERE milestoneId = :milestoneId ORDER BY visitedAt DESC")

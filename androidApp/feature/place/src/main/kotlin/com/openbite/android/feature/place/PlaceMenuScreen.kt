@@ -1,6 +1,18 @@
 package com.openbite.android.feature.place
 
 import androidx.compose.foundation.BorderStroke
+import com.openbite.core.model.moneyInputText
+import com.openbite.core.model.Dish
+import com.openbite.core.domain.DishEditInput
+import com.openbite.core.domain.DishEditError
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.AlertDialog
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -86,7 +98,7 @@ import com.openbite.feature.place.PlaceMenuViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-/** 电子菜单与原照片（设计稿 13 / 14）。改译名或价格还没做（app 传空实现）。 */
+/** 电子菜单与原照片（设计稿 13 / 14）。点一道菜可以改译名、分类和价格。 */
 @Composable
 fun PlaceMenuRoute(
     placeId: String,
@@ -94,13 +106,12 @@ fun PlaceMenuRoute(
     onBack: () -> Unit,
     onOrder: () -> Unit,
     onRescan: () -> Unit,
-    onEditDish: () -> Unit,
     viewModel: PlaceMenuViewModel = koinViewModel(
         parameters = { parametersOf(placeId, if (showPhotos) MenuTab.PHOTO else MenuTab.DIGITAL) },
     ),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    PlaceMenuScreen(state, viewModel::selectTab, viewModel::selectPhoto, onBack, onOrder, onRescan, onEditDish)
+    PlaceMenuScreen(state, viewModel::selectTab, viewModel::selectPhoto, onBack, onOrder, onRescan, onSaveDish = viewModel::updateDish)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -112,9 +123,14 @@ fun PlaceMenuScreen(
     onBack: () -> Unit = {},
     onOrder: () -> Unit = {},
     onRescan: () -> Unit = {},
-    onEditDish: () -> Unit = {},
+    onSaveDish: (dishId: String, input: DishEditInput, onResult: (DishEditError?) -> Unit) -> Unit = { _, _, _ -> },
 ) {
     val menu = state.menu
+    var editing by rememberSaveable { mutableStateOf<String?>(null) }
+    val editingDish = menu?.entries?.firstOrNull { it.dish.id == editing }?.dish
+    if (editingDish != null) {
+        DishEditDialog(editingDish, onSave = { input, onResult -> onSaveDish(editingDish.id, input, onResult) }, onDismiss = { editing = null })
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -159,7 +175,7 @@ fun PlaceMenuScreen(
                 }
             }
             when (state.tab) {
-                MenuTab.DIGITAL -> DigitalMenu(menu, state.currentYear, onRescan, onEditDish)
+                MenuTab.DIGITAL -> DigitalMenu(menu, state.currentYear, onRescan, onEditDish = { editing = it })
                 MenuTab.PHOTO -> PhotoMenu(menu, state.photoIndex, state.currentYear, onSelectPhoto, onRescan)
             }
         }
@@ -167,7 +183,9 @@ fun PlaceMenuScreen(
 }
 
 @Composable
-private fun DigitalMenu(menu: PlaceMenu, currentYear: Int, onRescan: () -> Unit, onEditDish: () -> Unit) {
+private fun DigitalMenu(menu: PlaceMenu, currentYear: Int, onRescan: () -> Unit, onEditDish: (String) -> Unit) {
+    val context = LocalContext.current
+    val pickHint = stringResource(R.string.menu_edit_pick_hint)
     LazyColumn(contentPadding = PaddingValues(start = Spacing.l, end = Spacing.l, top = Spacing.m, bottom = Spacing.l)) {
         item(key = "header") {
             val scanned = menu.lastScannedAt
@@ -194,7 +212,7 @@ private fun DigitalMenu(menu: PlaceMenu, currentYear: Int, onRescan: () -> Unit,
             }
         }
         itemsIndexed(menu.entries, key = { _, it -> it.dish.id }) { index, entry ->
-            MenuDishRow(entry, index, menu.entries.size)
+            MenuDishRow(entry, index, menu.entries.size) { onEditDish(entry.dish.id) }
         }
         item(key = "actions") {
             Column(
@@ -211,7 +229,8 @@ private fun DigitalMenu(menu: PlaceMenu, currentYear: Int, onRescan: () -> Unit,
                     headline = stringResource(R.string.menu_edit_dish),
                     shape = segmentShape(1, 2),
                     leading = { Icon(OpenBiteIcons.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-                    onClick = onEditDish,
+                    supporting = stringResource(R.string.menu_edit_dish_hint),
+                    onClick = { Toast.makeText(context, pickHint, Toast.LENGTH_SHORT).show() },
                 )
             }
         }
@@ -220,14 +239,16 @@ private fun DigitalMenu(menu: PlaceMenu, currentYear: Int, onRescan: () -> Unit,
 
 /** 电子菜单的一行：头像、原名 + 译名、价格 + 点过几次。 */
 @Composable
-private fun MenuDishRow(entry: MenuEntry, index: Int, count: Int) {
+private fun MenuDishRow(entry: MenuEntry, index: Int, count: Int, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
             .padding(vertical = Spacing.xxs / 2)
             .fillMaxWidth()
             .heightIn(min = 64.dp)
-            .background(scheme.surfaceContainer, segmentShape(index, count))
+            .clip(segmentShape(index, count))
+            .background(scheme.surfaceContainer)
+            .clickable(onClickLabel = stringResource(R.string.menu_edit_dish_title), onClick = onClick)
             .padding(horizontal = Spacing.l, vertical = Spacing.s),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.l),
@@ -429,4 +450,81 @@ private fun PlaceMenuPhotoDarkPreview() {
     OpenBiteTheme(darkTheme = true) {
         PlaceMenuScreen(PlaceMenuUiState(isLoading = false, menu = PlacePreviewData.menu.copy(photos = emptyList()), tab = MenuTab.PHOTO, currentYear = 2026))
     }
+}
+
+/** 改一道菜：译名、分类、价格、币种。原名不改（它是和菜单照片对应的依据）。 */
+@Composable
+private fun DishEditDialog(dish: Dish, onSave: (DishEditInput, (DishEditError?) -> Unit) -> Unit, onDismiss: () -> Unit) {
+    var name by rememberSaveable(dish.id) { mutableStateOf(dish.nameTranslated) }
+    var category by rememberSaveable(dish.id) { mutableStateOf(dish.category) }
+    var price by rememberSaveable(dish.id) { mutableStateOf(dish.price?.let(::moneyInputText).orEmpty()) }
+    var currency by rememberSaveable(dish.id) { mutableStateOf(dish.price?.currency ?: "JPY") }
+    var error by remember { mutableStateOf<DishEditError?>(null) }
+    var saving by remember { mutableStateOf(false) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(dish.nameOriginal) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text(stringResource(R.string.menu_edit_name)) },
+                    singleLine = true,
+                    isError = error == DishEditError.NAME_TOO_LONG,
+                )
+                OutlinedTextField(
+                    value = category,
+                    onValueChange = { category = it },
+                    label = { Text(stringResource(R.string.menu_edit_category)) },
+                    singleLine = true,
+                    isError = error == DishEditError.CATEGORY_TOO_LONG,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                    OutlinedTextField(
+                        value = price,
+                        onValueChange = { price = it },
+                        label = { Text(stringResource(R.string.menu_edit_price)) },
+                        placeholder = { Text(stringResource(R.string.menu_edit_price_hint)) },
+                        singleLine = true,
+                        isError = error == DishEditError.BAD_PRICE,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.weight(1f),
+                    )
+                    OutlinedTextField(
+                        value = currency,
+                        onValueChange = { currency = it.uppercase().take(3) },
+                        label = { Text(stringResource(R.string.menu_edit_currency)) },
+                        singleLine = true,
+                        isError = error == DishEditError.BAD_CURRENCY,
+                        modifier = Modifier.width(96.dp),
+                    )
+                }
+                error?.let {
+                    val message = when (it) {
+                        DishEditError.NAME_TOO_LONG -> R.string.menu_edit_error_name
+                        DishEditError.CATEGORY_TOO_LONG -> R.string.menu_edit_error_category
+                        DishEditError.BAD_PRICE -> R.string.menu_edit_error_price
+                        DishEditError.BAD_CURRENCY -> R.string.menu_edit_error_currency
+                    }
+                    Text(stringResource(message), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                }
+                Text(stringResource(R.string.menu_edit_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    saving = true
+                    onSave(DishEditInput(name, category, price, currency)) { result ->
+                        saving = false
+                        error = result
+                        if (result == null) onDismiss()
+                    }
+                },
+                enabled = !saving,
+            ) { Text(stringResource(R.string.menu_edit_save)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.menu_edit_cancel)) } },
+    )
 }

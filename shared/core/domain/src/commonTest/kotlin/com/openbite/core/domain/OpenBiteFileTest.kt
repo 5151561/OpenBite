@@ -51,6 +51,8 @@ class OpenBiteFileTest {
         override suspend fun addTag(placeId: String, tag: String) = Unit
         override suspend fun removeTag(placeId: String, tag: String) = Unit
         override fun observeAllTags(): Flow<List<String>> = flowOf(emptyList())
+        override suspend fun updateDish(dishId: String, nameTranslated: String, category: String, price: Money?) = Unit
+        override suspend fun searchIds(pattern: String, limit: Int) = emptyList<String>()
     }
 
     private class FakeImport : PlaceImportRepository {

@@ -139,6 +139,14 @@ fun receiptExtra(paid: Money?, ordered: Money?): Money? {
     return Money(paid.amountMinor - ordered.amountMinor, paid.currency).takeIf { it.amountMinor != 0L }
 }
 
+class ObserveKeepLocationUseCase(private val preferences: PreferencesStore) {
+    operator fun invoke(): Flow<Boolean> = preferences.observeKeepLocation()
+}
+
+class SetKeepLocationUseCase(private val preferences: PreferencesStore) {
+    suspend operator fun invoke(keep: Boolean) = preferences.setKeepLocation(keep)
+}
+
 class ObserveReminderSettingsUseCase(private val preferences: PreferencesStore) {
     operator fun invoke(): Flow<ReminderSettings> = preferences.observeReminderSettings()
 }

@@ -11,6 +11,7 @@ import com.openbite.android.feature.milestone.milestoneFeatureModule
 import com.openbite.android.feature.order.orderFeatureModule
 import com.openbite.android.feature.place.placeFeatureModule
 import com.openbite.android.feature.scan.scanFeatureModule
+import com.openbite.android.feature.search.searchFeatureModule
 import com.openbite.android.feature.settings.settingsFeatureModule
 import com.openbite.android.feature.share.shareFeatureModule
 import com.openbite.android.platform.androidPlatformModule
@@ -47,6 +48,7 @@ class OpenBiteApplication : Application() {
                 scanFeatureModule,
                 settingsFeatureModule,
                 shareFeatureModule,
+                searchFeatureModule,
             )
         }
         // 通知渠道随时可建；纪念日每天检查一次（已经排过就不重复排，开关在 Worker 里判断）。

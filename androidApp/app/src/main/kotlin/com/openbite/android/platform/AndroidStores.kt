@@ -89,7 +89,14 @@ internal class DataStorePreferencesStore(context: Context) : PreferencesStore {
         store.edit { prefs -> prefs[sentMilestones] = prefs[sentMilestones].orEmpty().filterNot { it.startsWith("$milestoneId:") }.toSet() }
     }
 
+    override fun observeKeepLocation(): Flow<Boolean> = store.data.map { it[keepLocation] ?: true }
+
+    override suspend fun setKeepLocation(keep: Boolean) {
+        store.edit { it[keepLocation] = keep }
+    }
+
     private companion object {
+        val keepLocation = booleanPreferencesKey("privacy_keep_location")
         val mealReminders = booleanPreferencesKey("reminder_meal")
         val milestoneReminders = booleanPreferencesKey("reminder_milestone")
         val sentMilestones = stringSetPreferencesKey("milestone_reminders_sent")

@@ -47,6 +47,10 @@ data class MapKey(val focusPlaceId: String? = null) : NavKey
 @Serializable
 data class PickLocationKey(val placeId: String) : NavKey
 
+/** 搜索：[places] 为 true 搜店铺，否则搜记忆。 */
+@Serializable
+data class SearchKey(val places: Boolean) : NavKey
+
 /** 纪念日管理：[milestoneId] 为 null 是新建。 */
 @Serializable
 data class MilestoneEditKey(val milestoneId: String? = null) : NavKey

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_back">返回</string>
+    <string name="search_clear">清除</string>
+    <string name="search_memories_hint">搜店名、菜名、短评、同行人、纪念日</string>
+    <string name="search_places_hint">搜店名、地址、标签、菜名</string>
+    <string name="search_memories_idle">输入关键词找一顿饭，比如“海胆”“老婆”“恋爱”。</string>
+    <string name="search_places_idle">输入关键词找一家店，比如“深夜”“中京区”“拉面”。</string>
+    <string name="search_no_result">没有找到“%1$s”。</string>
+    <string name="search_place_meta">菜单 %1$d 道 · 来过 %2$d 次</string>
+    <string name="search_result_count">%1$d 条结果</string>
+</resources>

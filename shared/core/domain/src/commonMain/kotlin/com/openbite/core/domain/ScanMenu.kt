@@ -138,8 +138,11 @@ class ScanMenuUseCase(
         emit(ScanUpdate.PhotoReady(image.jpegBytes))
         val photoLat = image.lat
         val photoLon = image.lon
+        // 关了“保留经纬度”：新店不用照片 GPS，也不定位（已有店铺本来的位置不动）。
+        val keepLocation = preferences.observeKeepLocation().first()
         val location: Pair<Double, Double>? = when {
             existingPlace != null -> existingPlace.lat?.let { lat -> existingPlace.lon?.let { lat to it } }
+            !keepLocation -> null
             photoLat != null && photoLon != null -> photoLat to photoLon
             ensureLocationPermission() -> runCatching { locationProvider.currentLocation() }.getOrNull()
             else -> null

@@ -90,6 +90,11 @@ val sharedCoreModule: Module = module {
     factory { com.openbite.core.domain.TaggedMealCountUseCase(get()) }
     factory { com.openbite.core.domain.SaveMilestoneUseCase(get(), get(), get()) }
     factory { com.openbite.core.domain.DeleteMilestoneUseCase(get(), get()) }
+    factory { com.openbite.core.domain.ObserveKeepLocationUseCase(get()) }
+    factory { com.openbite.core.domain.SetKeepLocationUseCase(get()) }
+    factory { com.openbite.core.domain.SearchMemoriesUseCase(get(), get()) }
+    factory { com.openbite.core.domain.SearchPlacesUseCase(get(), get()) }
+    factory { com.openbite.core.domain.UpdateDishUseCase(get()) }
     factory { ObserveTasteProfileUseCase(get()) }
     factory { SaveTasteProfileUseCase(get()) }
 }

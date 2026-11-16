@@ -38,6 +38,7 @@ dependencies {
     implementation(project(":androidApp:feature:meal"))
     implementation(project(":androidApp:feature:map"))
     implementation(project(":androidApp:feature:share"))
+    implementation(project(":androidApp:feature:search"))
     implementation(project(":androidApp:feature:order"))
     implementation(project(":androidApp:feature:place"))
     implementation(project(":androidApp:feature:scan"))

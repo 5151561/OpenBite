@@ -61,10 +61,7 @@ import com.openbite.feature.settings.SettingsUiState
 import com.openbite.feature.settings.SettingsViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
-/**
- * 设置页。U1 只做静态部分和两个数据操作：
- * 隐私开关现在固定为开。
- */
+/** 设置页：口味、识别模型和 Key、隐私、手机助手、提醒、示例数据。 */
 @Composable
 fun SettingsRoute(
     onBack: () -> Unit,
@@ -75,7 +72,10 @@ fun SettingsRoute(
     val vision by viewModel.vision.collectAsStateWithLifecycle()
     val tasteSummary by viewModel.tasteSummary.collectAsStateWithLifecycle()
     val reminders by viewModel.reminders.collectAsStateWithLifecycle()
+    val keepLocation by viewModel.keepLocation.collectAsStateWithLifecycle()
     SettingsScreen(
+        keepLocation = keepLocation,
+        onKeepLocation = viewModel::setKeepLocation,
         state = state,
         vision = vision,
         tasteSummary = tasteSummary,
@@ -101,6 +101,8 @@ fun SettingsScreen(
     vision: VisionSettings? = null,
     tasteSummary: String? = null,
     reminders: ReminderSettings? = null,
+    keepLocation: Boolean? = null,
+    onKeepLocation: (Boolean) -> Unit = {},
     onReminders: (meal: Boolean, milestones: Boolean) -> Unit = { _, _ -> },
     onBack: () -> Unit = {},
     onOpenTaste: () -> Unit = {},
@@ -178,18 +180,22 @@ fun SettingsScreen(
             SectionHeader(stringResource(R.string.settings_model_section), color = MaterialTheme.colorScheme.primary)
             if (vision != null) VisionSection(vision, state.isWorking, onChooseModel, onSaveKey, onClearKey)
 
-            // TODO: 去 EXIF 是强制的（开关只是展示）；“保留经纬度”还没接 DataStore，现在固定为开。
             SectionHeader(stringResource(R.string.settings_privacy_section), color = MaterialTheme.colorScheme.primary)
             SegmentedList {
+                // 去 EXIF 是强制的，不给开关。
                 SegmentedListItem(
                     headline = stringResource(R.string.settings_strip_exif),
+                    supporting = stringResource(R.string.settings_strip_exif_why),
                     shape = segmentShape(0, 2),
-                    trailing = { Switch(checked = true, onCheckedChange = null, enabled = false) },
+                    trailing = { TrailingText(stringResource(R.string.settings_always_on)) },
                 )
+                val keep = keepLocation ?: true
                 SegmentedListItem(
                     headline = stringResource(R.string.settings_keep_location),
+                    supporting = stringResource(if (keep) R.string.settings_keep_location_on else R.string.settings_keep_location_off),
                     shape = segmentShape(1, 2),
-                    trailing = { Switch(checked = true, onCheckedChange = null, enabled = false) },
+                    trailing = { Switch(checked = keep, onCheckedChange = onKeepLocation, enabled = keepLocation != null) },
+                    onClick = { onKeepLocation(!keep) },
                 )
             }
             Note(stringResource(R.string.settings_privacy_note))

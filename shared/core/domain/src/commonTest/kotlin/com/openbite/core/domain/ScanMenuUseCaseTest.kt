@@ -59,6 +59,9 @@ class ScanMenuUseCaseTest {
         override suspend fun sentMilestoneReminders(): Set<String> = sent.toSet()
         override suspend fun markMilestoneRemindersSent(keys: Set<String>) { sent += keys }
         override suspend fun clearMilestoneReminders(milestoneId: String) { sent.removeAll { it.startsWith("$milestoneId:") } }
+        val keepLocation = MutableStateFlow(true)
+        override fun observeKeepLocation() = keepLocation
+        override suspend fun setKeepLocation(keep: Boolean) { keepLocation.value = keep }
     }
 
     private class FakeRepo(val places: MutableMap<String, Place> = mutableMapOf(), val menus: Map<String, List<Dish>> = emptyMap()) :
@@ -173,6 +176,18 @@ class ScanMenuUseCaseTest {
         val (newPlace, _, dishes) = repo.saved!!
         assertEquals(null, newPlace)
         assertEquals(Money(680, "JPY"), dishes.first { it.id == "d-old" }.price)
+    }
+
+    @Test
+    fun keepLocationOffIgnoresGpsAndNeverAsks() = runTest {
+        val repo = FakeRepo()
+        val prefs = FakePrefs().apply { keepLocation.value = false }
+        var asked = false
+        val updates = useCase(repo, gps = 35.01 to 135.77, prefs = prefs).invoke(request()) { asked = true; true }.toList()
+        assertFalse(asked)
+        assertFalse(updates.filterIsInstance<ScanUpdate.Prepared>().single().hasLocation)
+        assertEquals(null, repo.saved!!.first!!.lat)
+        assertEquals(null, repo.saved!!.first!!.lon)
     }
 
     @Test

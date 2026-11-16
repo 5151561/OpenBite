@@ -27,6 +27,10 @@
     <string name="settings_privacy_section">隐私</string>
     <string name="settings_strip_exif">上传前剥离 EXIF</string>
     <string name="settings_keep_location">保留经纬度作为店铺位置</string>
+    <string name="settings_strip_exif_why">照片里的拍摄时间、机型等信息一律去掉再发给模型或存下，不能关。</string>
+    <string name="settings_always_on">始终开启</string>
+    <string name="settings_keep_location_on">新店用照片 GPS 或一次定位，会出现在地图上</string>
+    <string name="settings_keep_location_off">新店不记位置，可以之后在店铺页手动设置</string>
     <string name="settings_privacy_note">识别时，去掉 EXIF 的菜单图片会发给你选的模型。其余数据都留在本机。</string>
 
     <string name="settings_assistant_section">手机 AI 助手</string>

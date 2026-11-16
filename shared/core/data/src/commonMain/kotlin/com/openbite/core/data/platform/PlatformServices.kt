@@ -99,6 +99,10 @@ interface PreferencesStore {
 
     /** 纪念日改了日期或提醒天数、或者被删了：忘掉它“今年已经提醒过”。 */
     suspend fun clearMilestoneReminders(milestoneId: String)
+
+    /** 隐私：识别新店时要不要用照片 GPS / 当前定位作为店铺位置。默认 true。 */
+    fun observeKeepLocation(): Flow<Boolean>
+    suspend fun setKeepLocation(keep: Boolean)
 }
 
 /** SecretStore 里的键名。 */

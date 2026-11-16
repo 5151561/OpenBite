@@ -21,6 +21,9 @@ import kotlinx.coroutines.flow.map
 
 interface DiningLogRepository {
     fun observeLogs(): Flow<List<DiningLog>>
+
+    /** 按 LIKE 模式（已转义，转义符是反斜杠）搜记录 id，最新的在前。 */
+    suspend fun searchIds(pattern: String, limit: Int): List<String>
     suspend fun logsOfMilestone(milestoneId: String): List<DiningLog>
 }
 
@@ -40,6 +43,12 @@ interface PlaceRepository {
     suspend fun rename(placeId: String, name: String)
 
     suspend fun setLocation(placeId: String, lat: Double, lon: Double)
+
+    /** 改一道菜的译名、分类、价格（用餐记录里的快照不变）。 */
+    suspend fun updateDish(dishId: String, nameTranslated: String, category: String, price: Money?)
+
+    /** 按 LIKE 模式（已转义）搜店铺 id。 */
+    suspend fun searchIds(pattern: String, limit: Int): List<String>
     suspend fun addTag(placeId: String, tag: String)
     suspend fun removeTag(placeId: String, tag: String)
 
@@ -138,6 +147,8 @@ internal class RoomDiningLogRepository(private val db: OpenBiteDatabase) : Dinin
 
     override suspend fun logsOfMilestone(milestoneId: String) =
         db.diningLogDao().byMilestone(milestoneId).map { it.toModel() }
+
+    override suspend fun searchIds(pattern: String, limit: Int) = db.diningLogDao().searchLogIds(pattern, limit)
 }
 
 internal class RoomPlaceRepository(private val db: OpenBiteDatabase) : PlaceRepository {
@@ -161,6 +172,11 @@ internal class RoomPlaceRepository(private val db: OpenBiteDatabase) : PlaceRepo
     override suspend fun rename(placeId: String, name: String) = db.placeDao().rename(placeId, name)
 
     override suspend fun setLocation(placeId: String, lat: Double, lon: Double) = db.placeDao().setLocation(placeId, lat, lon)
+
+    override suspend fun updateDish(dishId: String, nameTranslated: String, category: String, price: Money?) =
+        db.placeDao().updateDish(dishId, nameTranslated, category, price?.amountMinor, price?.currency)
+
+    override suspend fun searchIds(pattern: String, limit: Int) = db.placeDao().searchPlaceIds(pattern, limit)
 
     override suspend fun addTag(placeId: String, tag: String) =
         db.placeDao().upsertTags(listOf(com.openbite.core.database.entity.PlaceTagEntity(placeId, tag)))

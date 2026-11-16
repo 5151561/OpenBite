@@ -36,6 +36,7 @@ import com.openbite.android.feature.place.PlaceDetailRoute
 import com.openbite.android.feature.place.PlaceMenuRoute
 import com.openbite.android.feature.place.PlacesRoute
 import com.openbite.android.feature.scan.ScanRoute
+import com.openbite.android.feature.search.SearchRoute
 import com.openbite.android.feature.settings.SettingsRoute
 import com.openbite.android.feature.share.ImportSheetRoute
 import com.openbite.android.feature.share.ShareMealRoute
@@ -67,9 +68,6 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
         onDeepLinkHandled()
     }
 
-    // 以下回调的目标页面还没排期（见各行 TODO），现在什么都不做。
-    val notYet: () -> Unit = {}
-
     val openPlace: (String) -> Unit = { navigator.navigate(PlaceKey(it)) }
 
     /** 草稿直接进补记忆；已完成的先看只读页。 */
@@ -90,7 +88,7 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
         }
         entry<MemoriesKey> {
             MemoriesRoute(
-                onSearch = notYet, // TODO: 搜索记忆（设计稿未定）
+                onSearch = { navigator.navigate(SearchKey(places = false)) },
                 onScanMenu = { navigator.navigate(ScanKey()) },
                 onOpenMemory = openMemory,
             )
@@ -98,7 +96,7 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
         entry<PlacesKey> {
             PlacesRoute(
                 onOpenPlace = openPlace,
-                onSearch = notYet, // TODO: 搜索店铺（设计稿未定）
+                onSearch = { navigator.navigate(SearchKey(places = true)) },
                 onOpenMap = { navigator.navigate(MapKey()) },
                 onScanMenu = { navigator.navigate(ScanKey()) },
                 onImportFile = { importUri = it },
@@ -159,6 +157,9 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
                 onShare = { navigator.navigate(ShareMealKey(key.logId)) },
             )
         }
+        entry<SearchKey> { key ->
+            SearchRoute(places = key.places, onBack = navigator::goBack, onOpenMemory = openMemory, onOpenPlace = openPlace)
+        }
         entry<MilestoneEditKey> { key -> MilestoneEditRoute(milestoneId = key.milestoneId, onDone = navigator::goBack) }
         entry<ShareMealKey> { key -> ShareMealRoute(logId = key.logId, onBack = navigator::goBack) }
         entry<SharePlaceKey> { key -> SharePlaceRoute(placeId = key.placeId, onBack = navigator::goBack) }
@@ -191,7 +192,6 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
                 onBack = navigator::goBack,
                 onOrder = { navigator.navigate(OrderKey(placeId = key.placeId)) },
                 onRescan = { navigator.navigate(ScanKey(placeId = key.placeId)) },
-                onEditDish = notYet, // TODO: 改译名或价格（还没排期）
             )
         }
     }
