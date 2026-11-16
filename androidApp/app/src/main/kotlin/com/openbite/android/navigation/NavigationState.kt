@@ -78,6 +78,14 @@ class Navigator(private val state: NavigationState) {
         state.selectTab(tab)
     }
 
+    /** 通知点进来：切到 [tab]，清掉它上面的页面，再打开 [key]（可以没有）。 */
+    fun openFresh(tab: TopLevelDestination, key: NavKey?) {
+        state.selectTab(tab)
+        val stack = state.currentStack
+        while (stack.size > 1) stack.removeLastOrNull()
+        key?.let { stack.add(it) }
+    }
+
     fun goBack() {
         val stack = state.currentStack
         if (stack.lastOrNull() == state.currentTab.key) {

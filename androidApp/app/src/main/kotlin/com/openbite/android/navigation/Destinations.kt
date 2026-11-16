@@ -39,6 +39,26 @@ data class ReceiptKey(val sessionId: String) : NavKey
 @Serializable
 data object TasteKey : NavKey
 
+/** 补记忆（05）。 */
+@Serializable
+data class MemoryEditKey(val logId: String) : NavKey
+
+/** 一餐（只读）。 */
+@Serializable
+data class MealKey(val logId: String) : NavKey
+
+/** 小票存档（19）。 */
+@Serializable
+data class ReceiptArchiveKey(val logId: String) : NavKey
+
+/** 从通知进来要去的地方。 */
+sealed interface DeepLink {
+    data class EditMeal(val logId: String) : DeepLink
+
+    /** [logId]：去年那顿饭，有就打开。 */
+    data class Milestones(val logId: String?) : DeepLink
+}
+
 /** 店铺详情，压在当前 Tab 的返回栈上。 */
 @Serializable
 data class PlaceKey(val placeId: String) : NavKey

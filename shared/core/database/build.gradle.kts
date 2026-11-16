@@ -17,6 +17,11 @@ kotlin {
             api(libs.androidx.room.runtime)
             api(libs.kotlinx.coroutines.core)
         }
+        // 迁移测试：在 JVM 上用 sqlite-jdbc 跑迁移 SQL，对照导出的 schema。
+        getByName("androidHostTest").dependencies {
+            implementation(libs.sqlite.jdbc)
+            implementation(libs.kotlinx.serialization.json)
+        }
         if (providers.gradleProperty("openbite.ios").orNull?.toBoolean() == true) {
             iosMain.dependencies {
                 implementation(libs.androidx.sqlite.bundled)

@@ -45,13 +45,19 @@ class ScanMenuUseCaseTest {
         override suspend fun remove(key: String) { values.value -= key }
     }
 
-    private class FakePrefs(initial: VisionModelChoice? = null) : PreferencesStore {
+    internal class FakePrefs(initial: VisionModelChoice? = null) : PreferencesStore {
         val value = MutableStateFlow(initial)
         override fun observeVisionModel() = value
         override suspend fun setVisionModel(choice: VisionModelChoice) { value.value = choice }
         val taste = MutableStateFlow(TasteProfile.EMPTY)
         override fun observeTasteProfile() = taste
         override suspend fun setTasteProfile(profile: TasteProfile) { taste.value = profile }
+        val reminderSettings = MutableStateFlow(com.openbite.core.data.platform.ReminderSettings())
+        override fun observeReminderSettings() = reminderSettings
+        override suspend fun setReminderSettings(settings: com.openbite.core.data.platform.ReminderSettings) { reminderSettings.value = settings }
+        val sent = mutableSetOf<String>()
+        override suspend fun sentMilestoneReminders(): Set<String> = sent.toSet()
+        override suspend fun markMilestoneRemindersSent(keys: Set<String>) { sent += keys }
     }
 
     private class FakeRepo(val places: MutableMap<String, Place> = mutableMapOf(), val menus: Map<String, List<Dish>> = emptyMap()) :

@@ -33,8 +33,12 @@
     <string name="settings_appfunctions">AppFunctions</string>
     <string name="settings_appfunctions_hint">Android 16 及以上</string>
     <string name="settings_appfunctions_count">5 个函数</string>
-    <string name="settings_reminders">纪念日和饭后提醒</string>
-    <string name="settings_reminders_hint">本机通知</string>
+    <string name="settings_reminders">提醒</string>
+    <string name="settings_reminders_hint">提醒都是这台手机上的本地通知，不经过任何服务器。</string>
+    <string name="settings_reminder_meal">饭后补记忆</string>
+    <string name="settings_reminder_meal_hint">点完菜一个半小时后提醒打分、加照片</string>
+    <string name="settings_reminder_milestone">纪念日</string>
+    <string name="settings_reminder_milestone_hint">提前几天提醒，附上去年那顿饭</string>
     <string name="settings_assistant_note">手机上的 AI 助手通过 AppFunctions 查询和新增用餐记录，不能修改或删除。</string>
 
     <string name="settings_load_sample">载入示例数据</string>

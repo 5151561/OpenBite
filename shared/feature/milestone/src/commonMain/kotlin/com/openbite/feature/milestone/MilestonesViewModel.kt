@@ -2,7 +2,11 @@ package com.openbite.feature.milestone
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.openbite.core.data.platform.ReminderSettings
 import com.openbite.core.domain.ObserveMilestoneHighlightsUseCase
+import com.openbite.core.domain.ObserveReminderSettingsUseCase
+import com.openbite.core.domain.SetReminderSettingsUseCase
+import kotlinx.coroutines.launch
 import com.openbite.core.model.MilestoneHighlight
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +30,18 @@ data class MilestonesUiState(
 
 class MilestonesViewModel(
     observeHighlights: ObserveMilestoneHighlightsUseCase,
+    observeReminders: ObserveReminderSettingsUseCase,
+    private val setReminders: SetReminderSettingsUseCase,
 ) : ViewModel() {
+
+    /** “系统通知”开关：纪念日提醒。加载完之前为 null。 */
+    val reminders: StateFlow<ReminderSettings?> = observeReminders()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    fun setMilestoneReminders(enabled: Boolean) {
+        val current = reminders.value ?: return
+        viewModelScope.launch { setReminders(current.copy(milestones = enabled)) }
+    }
 
     val uiState: StateFlow<MilestonesUiState> =
         observeHighlights(daysAhead = DAYS_AHEAD).map { all ->

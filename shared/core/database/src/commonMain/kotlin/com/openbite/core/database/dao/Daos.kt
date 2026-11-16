@@ -15,6 +15,7 @@ import com.openbite.core.database.entity.MenuScanEntity
 import com.openbite.core.database.entity.MilestonePersonEntity
 import com.openbite.core.database.entity.PlaceCount
 import com.openbite.core.database.entity.PersonEntity
+import com.openbite.core.database.entity.PhotoEntity
 import com.openbite.core.database.entity.PlaceEntity
 import com.openbite.core.database.entity.PlaceTagEntity
 import com.openbite.core.database.entity.PlaceWithTags
@@ -232,5 +233,93 @@ abstract class DraftDao {
         newPlace?.let { insertPlace(it) }
         insertLog(log)
         insertItems(items)
+    }
+}
+
+/** 一餐的查看和编辑（补记忆、小票存档、饭后提醒）。 */
+@Dao
+abstract class MealDao {
+    @Transaction
+    @Query("SELECT * FROM dining_log WHERE id = :logId")
+    abstract fun observe(logId: String): Flow<DiningLogWithDetails?>
+
+    @Transaction
+    @Query("SELECT * FROM dining_log WHERE id = :logId")
+    abstract suspend fun byId(logId: String): DiningLogWithDetails?
+
+    @Query("SELECT status FROM dining_log WHERE id = :logId")
+    abstract suspend fun statusOf(logId: String): String?
+
+    @Query("SELECT * FROM person ORDER BY displayName")
+    abstract fun observePersons(): Flow<List<PersonEntity>>
+
+    @Insert
+    abstract suspend fun insertPerson(person: PersonEntity)
+
+    @Query(
+        "UPDATE dining_log SET rating = :rating, note = :note, milestoneId = :milestoneId, status = :status, " +
+            "updatedAt = :updatedAt WHERE id = :logId",
+    )
+    protected abstract suspend fun updateLog(logId: String, rating: Int?, note: String?, milestoneId: String?, status: String, updatedAt: Long)
+
+    @Query("UPDATE dining_log_item SET qty = :qty, rating = :rating, comment = :comment WHERE id = :itemId AND logId = :logId")
+    protected abstract suspend fun updateItem(logId: String, itemId: String, qty: Int, rating: Int?, comment: String?)
+
+    @Query("DELETE FROM dining_log_item WHERE logId = :logId AND id IN (:itemIds)")
+    protected abstract suspend fun deleteItems(logId: String, itemIds: List<String>)
+
+    @Query("DELETE FROM dining_log_person WHERE logId = :logId")
+    protected abstract suspend fun clearPersons(logId: String)
+
+    @Insert
+    protected abstract suspend fun insertPersonLinks(links: List<DiningLogPersonEntity>)
+
+    @Insert
+    protected abstract suspend fun insertPhotos(photos: List<PhotoEntity>)
+
+    @Query("DELETE FROM photo WHERE logId = :logId AND id IN (:photoIds)")
+    protected abstract suspend fun deletePhotos(logId: String, photoIds: List<String>)
+
+    @Query("SELECT path FROM photo WHERE logId = :logId AND kind = 'receipt'")
+    abstract suspend fun receiptPhotoPaths(logId: String): List<String>
+
+    @Query("DELETE FROM photo WHERE logId = :logId AND kind = 'receipt'")
+    protected abstract suspend fun deleteReceiptPhotos(logId: String)
+
+    @Query("UPDATE dining_log SET totalMinor = :totalMinor, currency = :currency, updatedAt = :updatedAt WHERE id = :logId")
+    protected abstract suspend fun updateTotal(logId: String, totalMinor: Long?, currency: String?, updatedAt: Long)
+
+    /** 补记忆的保存：一条记录的评分、短评、纪念日、状态、菜品、同行人、照片，一个事务。 */
+    @Transaction
+    open suspend fun saveEdit(
+        logId: String,
+        rating: Int?,
+        note: String?,
+        milestoneId: String?,
+        status: String,
+        updatedAt: Long,
+        items: List<DiningLogItemEntity>,
+        removedItemIds: List<String>,
+        personIds: List<String>,
+        addedPhotos: List<PhotoEntity>,
+        removedPhotoIds: List<String>,
+    ) {
+        updateLog(logId, rating, note, milestoneId, status, updatedAt)
+        items.forEach { updateItem(logId, it.id, it.qty, it.rating, it.comment) }
+        if (removedItemIds.isNotEmpty()) deleteItems(logId, removedItemIds)
+        clearPersons(logId)
+        if (personIds.isNotEmpty()) insertPersonLinks(personIds.distinct().map { DiningLogPersonEntity(logId, it) })
+        if (addedPhotos.isNotEmpty()) insertPhotos(addedPhotos)
+        if (removedPhotoIds.isNotEmpty()) deletePhotos(logId, removedPhotoIds)
+    }
+
+    /** 小票存档：换掉旧的小票照片（[photo] 为 null 表示只记金额、不留照片），写实付金额。 */
+    @Transaction
+    open suspend fun saveReceipt(logId: String, photo: PhotoEntity?, totalMinor: Long?, currency: String?, updatedAt: Long) {
+        if (photo != null) {
+            deleteReceiptPhotos(logId)
+            insertPhotos(listOf(photo))
+        }
+        updateTotal(logId, totalMinor, currency, updatedAt)
     }
 }

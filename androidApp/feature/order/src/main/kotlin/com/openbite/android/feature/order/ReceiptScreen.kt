@@ -1,8 +1,15 @@
 package com.openbite.android.feature.order
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -79,10 +86,27 @@ fun ReceiptRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(state.placedLogId) { state.placedLogId?.let(onPlaced) }
+    val context = LocalContext.current
+    // 通知权限只在第一次“已下单”时要（饭后补记忆的提醒要用）；不管给不给都接着下单。
+    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        viewModel.placeOrder()
+    }
+    val place = {
+        val prefs = context.getSharedPreferences(PERMISSION_PREFS, Context.MODE_PRIVATE)
+        val needsAsk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED &&
+            !prefs.getBoolean(KEY_ASKED_NOTIFICATIONS, false)
+        if (needsAsk) {
+            prefs.edit { putBoolean(KEY_ASKED_NOTIFICATIONS, true) }
+            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            viewModel.placeOrder()
+        }
+    }
     ReceiptScreen(
         state = state,
         onBack = onBack,
-        onPlace = viewModel::placeOrder,
+        onPlace = place,
         onRetrySave = viewModel::retrySave,
         onPlaceWithoutMenu = viewModel::placeWithoutMenu,
         onDismissDecision = viewModel::dismissDecision,
@@ -283,6 +307,9 @@ private fun KeepScreenOnFullScreen() {
         }
     }
 }
+
+private const val PERMISSION_PREFS = "openbite_permissions"
+private const val KEY_ASKED_NOTIFICATIONS = "asked_post_notifications"
 
 private tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this

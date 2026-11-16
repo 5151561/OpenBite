@@ -105,12 +105,12 @@ Hackathon-kiroween/
 │   ├── core/network/                # VisionModel：Claude（SSE 流式）+ 示例菜单  ✅ U3a
 │   ├── core/data/                   # Repository、种子导入、平台接口        ✅ 已建
 │   ├── core/domain/                 # 用例、纪念日计算（含单元测试）         ✅ 已建
-│   └── feature/                     # 各页 ViewModel：home / memories / milestone / settings ✅ U1，place ✅ U2，scan ✅ U3a，order ✅ U3b
+│   └── feature/                     # 各页 ViewModel：home / memories / milestone / settings ✅ U1，place ✅ U2，scan ✅ U3a，order ✅ U3b，meal ✅ U4
 │       （map 按阶段加）
 ├── androidApp/
 │   ├── app/                         # Application、Koin 装配、Navigation 3 外壳、种子 JSON  ✅ 已建
 │   ├── core/designsystem/           # Compose 主题、通用组件、图标           ✅ U1
-│   ├── feature/                     # 各页 Compose：home / memories / milestone / settings ✅ U1，place ✅ U2，scan ✅ U3a，order ✅ U3b
+│   ├── feature/                     # 各页 Compose：home / memories / milestone / settings ✅ U1，place ✅ U2，scan ✅ U3a，order ✅ U3b，meal ✅ U4
 │   │   （map 按阶段加）
 │   └── assistant/                   # AppFunctions，只调 AssistantApi       主线之后
 ├── iosApp/                          # 后半段
@@ -130,7 +130,7 @@ Hackathon-kiroween/
 | `ImageProcessor` | 读 GPS、去 EXIF、压缩到 1568px 长边 | `ExifInterface` + 重新编码 JPEG | ✅ U3a |
 | `LocationProvider` | 取一次当前定位 | `LocationManagerCompat.getCurrentLocation`（不依赖 Play 服务） | ✅ U3a |
 | `SecretStore` | 存 API Key | Keystore AES/GCM 加密后存 DataStore | ✅ U3a |
-| `ReminderScheduler` | 饭后提醒、纪念日提醒 | WorkManager + 通知 | 11/23 |
+| `ReminderScheduler` | 饭后提醒、纪念日提醒 | WorkManager + 通知（两个渠道） | ✅ U4 |
 | `PhotoStore` | 保存照片，返回相对路径 | `filesDir/photos/<id>.jpg` | ✅ U3a |
 
 ### 构建环境与技术栈
@@ -204,10 +204,10 @@ erDiagram
 | `place_tag` | `placeId`, `tag` | “深夜食堂”“适合约会” |
 | `menu_scan` | `placeId`, `photoPath`, `model`, `rawJson` | 一次识别；存原始输出便于重放 |
 | `dish` | `placeId`, `scanId`, `nameOriginal`, `nameTranslated`, `priceMinor`, `currency`, `allergensJson` | 过敏原界面标“仅供参考” |
-| `dining_log` | `placeId`, `visitedAt`, `timezone`, `localDate`, `status`, `milestoneId`, `createdBy` | `status`：draft / done；`createdBy`：user / assistant |
-| `dining_log_item` | `logId`, `dishId`, `nameSnapshot`, `priceMinorSnapshot`, `qty`, `rating`, `comment` | 评分 1–5 |
+| `dining_log` | `placeId`, `visitedAt`, `timezone`, `localDate`, `status`, `milestoneId`, `createdBy`, `rating`, `totalMinor`, `currency` | `status`：draft / done；`createdBy`：user / assistant |
+| `dining_log_item` | `logId`, `dishId`, `nameSnapshot`, `nameTranslatedSnapshot`, `priceMinorSnapshot`, `qty`, `rating`, `comment` | 评分 1–5；`nameSnapshot` 是菜单原文（v2） |
 | `dining_log_person` | `logId`, `personId` | 同行人 |
-| `photo` | `logId`, `path`, `takenAt` | 相对路径 |
+| `photo` | `logId`, `path`, `takenAt`, `kind` | 相对路径；`kind`：meal / receipt（v2） |
 | `milestone` | `title`, `type`, `date`, `recurrence`, `remindDaysBefore` | 每年重复；2 月 29 日平年按 28 日 |
 | `milestone_person` | `milestoneId`, `personId` | 纪念日关于谁 |
 | `person` | `displayName` | “老婆”“大学室友” |

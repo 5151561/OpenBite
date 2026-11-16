@@ -1,6 +1,8 @@
 package com.openbite.android.feature.place
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -74,10 +76,11 @@ fun PlaceDetailRoute(
     onShare: () -> Unit,
     onAddTag: () -> Unit,
     onScanMenu: () -> Unit,
+    onOpenMeal: (logId: String, isDraft: Boolean) -> Unit,
     viewModel: PlaceDetailViewModel = koinViewModel(parameters = { parametersOf(placeId) }),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    PlaceDetailScreen(state, onBack, onOpenMenu, onShare, onAddTag, onScanMenu)
+    PlaceDetailScreen(state, onBack, onOpenMenu, onShare, onAddTag, onScanMenu, onOpenMeal)
 }
 
 @Composable
@@ -88,6 +91,7 @@ fun PlaceDetailScreen(
     onShare: () -> Unit = {},
     onAddTag: () -> Unit = {},
     onScanMenu: () -> Unit = {},
+    onOpenMeal: (String, Boolean) -> Unit = { _, _ -> },
 ) {
     val detail = state.detail
     Scaffold(
@@ -117,7 +121,7 @@ fun PlaceDetailScreen(
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }
-            else -> PlaceDetailContent(detail, padding, onBack, onOpenMenu, onShare, onAddTag)
+            else -> PlaceDetailContent(detail, padding, onBack, onOpenMenu, onShare, onAddTag, onOpenMeal)
         }
     }
 }
@@ -130,6 +134,7 @@ private fun PlaceDetailContent(
     onOpenMenu: () -> Unit,
     onShare: () -> Unit,
     onAddTag: () -> Unit,
+    onOpenMeal: (String, Boolean) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -141,7 +146,7 @@ private fun PlaceDetailContent(
             item(key = "no-visits") { Note(stringResource(R.string.place_no_visits)) }
         }
         itemsIndexed(detail.visits, key = { _, it -> it.memory.logId }) { index, visit ->
-            VisitCard(visit, index, detail.visits.size)
+            VisitCard(visit, index, detail.visits.size) { onOpenMeal(visit.memory.logId, visit.memory.isDraft) }
         }
         item(key = "dishes") {
             SectionHeader(
@@ -241,14 +246,16 @@ internal fun RoundIconButton(icon: androidx.compose.ui.graphics.vector.ImageVect
 
 /** 一次到店：日期、纪念日标签、评分、短评、“4 道菜 · ¥9,200 · 和老婆”。 */
 @Composable
-private fun VisitCard(visit: PlaceVisit, index: Int, count: Int) {
+private fun VisitCard(visit: PlaceVisit, index: Int, count: Int, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     val memory = visit.memory
     Column(
         modifier = Modifier
             .padding(horizontal = Spacing.l, vertical = Spacing.xxs / 2)
             .fillMaxWidth()
-            .background(scheme.surfaceContainer, segmentShape(index, count))
+            .clip(segmentShape(index, count))
+            .background(scheme.surfaceContainer)
+            .clickable(onClick = onClick)
             .padding(horizontal = Spacing.l, vertical = Spacing.m),
         verticalArrangement = Arrangement.spacedBy(Spacing.xs),
     ) {

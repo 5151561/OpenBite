@@ -19,6 +19,18 @@ class MoneyFormatTest {
     }
 
     @Test
+    fun parsesUserInput() {
+        assertEquals(Money(4246, "JPY"), parseMoneyInput("¥4,246", "JPY"))
+        assertEquals(Money(1250, "USD"), parseMoneyInput("12.5", "usd"))
+        assertEquals(Money(1205, "USD"), parseMoneyInput("$12.05", "USD"))
+        assertEquals(null, parseMoneyInput("12.5", "JPY"))
+        assertEquals(null, parseMoneyInput("", "JPY"))
+        assertEquals(null, parseMoneyInput("1.2.3", "USD"))
+        assertEquals("4246", moneyInputText(Money(4246, "JPY")))
+        assertEquals("12.05", moneyInputText(Money(1205, "USD")))
+    }
+
+    @Test
     fun negativeAmount() {
         assertEquals("-¥500", formatMoney(Money(-500, "JPY")))
     }

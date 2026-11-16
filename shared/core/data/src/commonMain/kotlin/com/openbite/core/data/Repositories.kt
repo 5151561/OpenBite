@@ -5,10 +5,14 @@ import com.openbite.core.database.OpenBiteDatabase
 import com.openbite.core.database.entity.DiningLogEntity
 import com.openbite.core.database.entity.DiningLogItemEntity
 import com.openbite.core.database.entity.MenuScanEntity
+import com.openbite.core.database.entity.PersonEntity
+import com.openbite.core.database.entity.PhotoEntity
 import com.openbite.core.model.DiningLog
 import com.openbite.core.model.Dish
 import com.openbite.core.model.MenuScan
 import com.openbite.core.model.Money
+import com.openbite.core.model.Person
+import com.openbite.core.model.PhotoKind
 import com.openbite.core.model.Milestone
 import com.openbite.core.model.Place
 import kotlinx.coroutines.flow.Flow
@@ -145,7 +149,9 @@ data class NewDraftItem(
     val id: String,
     /** 没关联到菜单时为 null。 */
     val dishId: String?,
+    /** 菜单原文。 */
     val name: String,
+    val nameTranslated: String?,
     val price: Money?,
     val qty: Int,
 )
@@ -194,8 +200,81 @@ internal class RoomDraftRepository(private val db: OpenBiteDatabase) : DraftRepo
                     qty = it.qty,
                     rating = null,
                     comment = null,
+                    nameTranslatedSnapshot = it.nameTranslated,
                 )
             },
         )
     }
+}
+
+/** 补记忆要写回的内容。只改这些字段，名字和价格快照不动。 */
+data class MealEdit(
+    val logId: String,
+    val rating: Int?,
+    val note: String?,
+    val milestoneId: String?,
+    val done: Boolean,
+    /** 留下来的菜：份数、评分、短评。 */
+    val items: List<MealItemEdit>,
+    val removedItemIds: List<String>,
+    val personIds: List<String>,
+    val addedPhotos: List<NewPhoto>,
+    val removedPhotoIds: List<String>,
+    val updatedAt: Long,
+)
+
+data class MealItemEdit(val id: String, val qty: Int, val rating: Int?, val comment: String?)
+
+data class NewPhoto(val id: String, val path: String, val kind: PhotoKind, val takenAt: Long?)
+
+interface MealRepository {
+    fun observeMeal(logId: String): Flow<DiningLog?>
+    suspend fun meal(logId: String): DiningLog?
+
+    /** "draft" / "done"；记录不在了返回 null。 */
+    suspend fun statusOf(logId: String): String?
+    fun observePersons(): Flow<List<Person>>
+    suspend fun addPerson(person: Person)
+    suspend fun save(edit: MealEdit)
+
+    /** 现有的小票照片路径（换小票时删旧文件用）。 */
+    suspend fun receiptPhotoPaths(logId: String): List<String>
+    suspend fun saveReceipt(logId: String, photo: NewPhoto?, total: Money?, updatedAt: Long)
+}
+
+internal class RoomMealRepository(private val db: OpenBiteDatabase) : MealRepository {
+    private val dao get() = db.mealDao()
+
+    override fun observeMeal(logId: String) = dao.observe(logId).map { it?.toModel() }
+
+    override suspend fun meal(logId: String) = dao.byId(logId)?.toModel()
+
+    override suspend fun statusOf(logId: String) = dao.statusOf(logId)
+
+    override fun observePersons() = dao.observePersons().map { rows -> rows.map { Person(it.id, it.displayName) } }
+
+    override suspend fun addPerson(person: Person) = dao.insertPerson(PersonEntity(person.id, person.displayName))
+
+    override suspend fun save(edit: MealEdit) = dao.saveEdit(
+        logId = edit.logId,
+        rating = edit.rating,
+        note = edit.note,
+        milestoneId = edit.milestoneId,
+        status = if (edit.done) "done" else "draft",
+        updatedAt = edit.updatedAt,
+        // 只用到 id / qty / rating / comment，其余字段 DAO 不写。
+        items = edit.items.map { DiningLogItemEntity(it.id, edit.logId, null, "", null, null, it.qty, it.rating, it.comment) },
+        removedItemIds = edit.removedItemIds,
+        personIds = edit.personIds,
+        addedPhotos = edit.addedPhotos.map { it.toEntity(edit.logId) },
+        removedPhotoIds = edit.removedPhotoIds,
+    )
+
+    override suspend fun receiptPhotoPaths(logId: String) = dao.receiptPhotoPaths(logId)
+
+    override suspend fun saveReceipt(logId: String, photo: NewPhoto?, total: Money?, updatedAt: Long) =
+        dao.saveReceipt(logId, photo?.toEntity(logId), total?.amountMinor, total?.currency, updatedAt)
+
+    private fun NewPhoto.toEntity(logId: String) =
+        PhotoEntity(id, logId, path, takenAt, if (kind == PhotoKind.RECEIPT) "receipt" else "meal")
 }

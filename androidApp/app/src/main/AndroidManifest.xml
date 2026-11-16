@@ -9,6 +9,8 @@
     <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
     <!-- 拍照交给系统相机（ACTION_IMAGE_CAPTURE），不需要 CAMERA 权限。 -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <!-- 饭后补记忆、纪念日提醒；第一次“已下单”时才申请。 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".OpenBiteApplication"
@@ -20,12 +22,18 @@
 
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 通知上的“一小时后提醒”。 -->
+        <receiver
+            android:name=".reminders.SnoozeReceiver"
+            android:exported="false" />
 
         <!-- 系统相机把照片写进 cache/scan/，识别完由 App 清理。 -->
         <provider

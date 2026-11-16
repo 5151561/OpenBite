@@ -71,11 +71,11 @@ fun isDrinkCategory(category: String): Boolean = drinkKeywords.any { it in categ
  */
 fun dishStats(placeLogs: List<DiningLog>, menu: List<Dish>): List<DishStats> {
     val dishesById = menu.associateBy { it.id }
-    data class Order(val key: String, val dish: Dish?, val name: String, val qty: Int, val rating: Int?, val date: LocalDate)
+    data class Order(val key: String, val dish: Dish?, val name: String, val translated: String?, val qty: Int, val rating: Int?, val date: LocalDate)
     val orders = placeLogs.flatMap { log ->
         log.items.map { item ->
             val dish = item.dishId?.let { dishesById[it] }
-            Order(item.dishId ?: "name:${item.name}", dish, item.name, item.qty, item.rating, log.localDate)
+            Order(item.dishId ?: "name:${item.name}", dish, item.name, item.nameTranslated, item.qty, item.rating, log.localDate)
         }
     }
     return orders.groupBy { it.key }.map { (_, group) ->
@@ -84,7 +84,7 @@ fun dishStats(placeLogs: List<DiningLog>, menu: List<Dish>): List<DishStats> {
         DishStats(
             dishId = dish?.id,
             nameOriginal = dish?.nameOriginal ?: group.first().name,
-            nameTranslated = dish?.nameTranslated ?: group.first().name,
+            nameTranslated = dish?.nameTranslated ?: group.first().let { it.translated ?: it.name },
             timesOrdered = group.sumOf { it.qty },
             averageRating = if (ratings.isEmpty()) null else ratings.average(),
             isDrink = dish?.let { isDrinkCategory(it.category) } ?: false,

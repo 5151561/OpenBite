@@ -17,7 +17,6 @@ import io.ktor.http.content.TextContent
 import io.ktor.utils.io.readLine
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -27,10 +26,7 @@ import kotlinx.serialization.json.putJsonObject
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-/**
- * Anthropic 的模型 id 都放在这里，别处不要写死。
- * 注意：Claude 5.5 的正式 API id 需要对照 Anthropic 文档确认。
- */
+/** Anthropic 的模型 id 都放在这里，别处不要写死（已确认 claude-haiku-5-5 / claude-sonnet-5-5）。 */
 object AnthropicModels {
     const val HAIKU = "claude-haiku-5-5"
     const val SONNET = "claude-sonnet-5-5"
@@ -52,7 +48,7 @@ fun createVisionHttpClient(engine: HttpClientEngine, extra: HttpClientConfig<*>.
         extra()
     }
 
-/** Claude 视觉识别：Messages API + stream=true，图片 base64 JPEG，输出 NDJSON。 */
+/** Claude 视觉识别：Messages API + stream=true，图片 base64 JPEG。菜单输出 NDJSON，小票输出一个 JSON 对象。 */
 class ClaudeVisionModel(
     private val client: HttpClient,
     override val id: String,
@@ -60,14 +56,36 @@ class ClaudeVisionModel(
     private val url: String = AnthropicModels.API_URL,
 ) : VisionModel {
 
-    @OptIn(ExperimentalEncodingApi::class)
     override fun scanMenu(request: MenuScanRequest): Flow<ScanEvent> = flow {
-        val apiKey = request.apiKey?.takeIf { it.isNotBlank() } ?: throw VisionException.Unauthorized(401)
+        val parser = NdjsonMenuParser()
+        streamText(request.jpegBytes, request.apiKey, MenuPrompt.system(request.targetLang), MenuPrompt.user(request.targetLang)) { text ->
+            parser.feed(text).forEach { emit(it) }
+        }
+        parser.finish().forEach { emit(it) }
+        emit(ScanEvent.Finished(parser.rawOutput))
+    }
+
+    override suspend fun readReceipt(request: ReceiptReadRequest): ScannedReceipt {
+        val text = StringBuilder()
+        streamText(request.jpegBytes, request.apiKey, ReceiptPrompt.system(request.targetLang), ReceiptPrompt.USER) { text.append(it) }
+        return parseReceipt(text.toString()) ?: throw VisionException.StreamError("unreadable_receipt", null)
+    }
+
+    /** 发一张图和两段提示词，流式收文本增量。出错抛 [VisionException]。 */
+    @OptIn(ExperimentalEncodingApi::class)
+    private suspend fun streamText(
+        jpegBytes: ByteArray,
+        apiKeyOrNull: String?,
+        system: String,
+        user: String,
+        onText: suspend (String) -> Unit,
+    ) {
+        val apiKey = apiKeyOrNull?.takeIf { it.isNotBlank() } ?: throw VisionException.Unauthorized(401)
         val body = buildJsonObject {
             put("model", id)
             put("max_tokens", maxTokens)
             put("stream", true)
-            put("system", MenuPrompt.system(request.targetLang))
+            put("system", system)
             putJsonArray("messages") {
                 addJsonObject {
                     put("role", "user")
@@ -77,19 +95,18 @@ class ClaudeVisionModel(
                             putJsonObject("source") {
                                 put("type", "base64")
                                 put("media_type", "image/jpeg")
-                                put("data", Base64.encode(request.jpegBytes))
+                                put("data", Base64.encode(jpegBytes))
                             }
                         }
                         addJsonObject {
                             put("type", "text")
-                            put("text", MenuPrompt.user(request.targetLang))
+                            put("text", user)
                         }
                     }
                 }
             }
         }.toString()
 
-        val parser = NdjsonMenuParser()
         try {
             client.preparePost(url) {
                 header("x-api-key", apiKey)
@@ -108,9 +125,9 @@ class ClaudeVisionModel(
                 while (true) {
                     val line = channel.readLine() ?: break
                     val event = sse.feedLine(line) ?: continue
-                    if (handle(event, parser)) return@execute
+                    if (handle(event, onText)) return@execute
                 }
-                sse.flush()?.let { handle(it, parser) }
+                sse.flush()?.let { handle(it, onText) }
             }
         } catch (e: CancellationException) {
             throw e
@@ -125,15 +142,13 @@ class ClaudeVisionModel(
         } catch (e: Exception) {
             throw VisionException.Network(e)
         }
-        parser.finish().forEach { emit(it) }
-        emit(ScanEvent.Finished(parser.rawOutput))
     }
 
     /** 处理一条 SSE；返回 true 表示流结束。 */
-    private suspend fun FlowCollector<ScanEvent>.handle(event: SseEvent, parser: NdjsonMenuParser): Boolean =
+    private suspend fun handle(event: SseEvent, onText: suspend (String) -> Unit): Boolean =
         when (val part = parseAnthropicEvent(event)) {
             is AnthropicStreamPart.TextDelta -> {
-                parser.feed(part.text).forEach { emit(it) }
+                onText(part.text)
                 false
             }
             is AnthropicStreamPart.Error -> throw when (part.type) {

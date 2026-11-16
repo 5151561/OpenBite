@@ -16,7 +16,37 @@ interface VisionModel {
      * 最后发 [ScanEvent.Finished]，带上模型的原始输出。出错时抛 [VisionException]。
      */
     fun scanMenu(request: MenuScanRequest): Flow<ScanEvent>
+
+    /** 读店家的纸质小票：明细、小计、税、合计、币种。出错抛 [VisionException]。 */
+    suspend fun readReceipt(request: ReceiptReadRequest): ScannedReceipt
 }
+
+class ReceiptReadRequest(
+    val jpegBytes: ByteArray,
+    /** 明细译名用的语言。 */
+    val targetLang: String,
+    val apiKey: String?,
+)
+
+/** 小票上的一行。[amountMinor] 是这一行的金额（单价 × 数量）。 */
+@Serializable
+data class ReceiptLineItem(
+    val name: String,
+    val nameTranslated: String? = null,
+    val qty: Int = 1,
+    val amountMinor: Long? = null,
+)
+
+/** 模型读出来的小票。金额都是最小货币单位。 */
+@Serializable
+data class ScannedReceipt(
+    val placeName: String? = null,
+    val items: List<ReceiptLineItem> = emptyList(),
+    val subtotalMinor: Long? = null,
+    val taxMinor: Long? = null,
+    val totalMinor: Long? = null,
+    val currency: String? = null,
+)
 
 class MenuScanRequest(
     val jpegBytes: ByteArray,

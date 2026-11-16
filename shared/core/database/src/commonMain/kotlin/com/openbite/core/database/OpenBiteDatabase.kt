@@ -6,6 +6,7 @@ import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
 import com.openbite.core.database.dao.DiningLogDao
 import com.openbite.core.database.dao.DraftDao
+import com.openbite.core.database.dao.MealDao
 import com.openbite.core.database.dao.MaintenanceDao
 import com.openbite.core.database.dao.MilestoneDao
 import com.openbite.core.database.dao.PlaceDao
@@ -41,7 +42,7 @@ const val DATABASE_NAME = "openbite.db"
         DiningLogPersonEntity::class,
         PhotoEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 @ConstructedBy(OpenBiteDatabaseConstructor::class)
@@ -53,6 +54,7 @@ abstract class OpenBiteDatabase : RoomDatabase() {
     abstract fun maintenanceDao(): MaintenanceDao
     abstract fun scanDao(): ScanDao
     abstract fun draftDao(): DraftDao
+    abstract fun mealDao(): MealDao
 }
 
 // Room 编译器为每个平台生成 actual 实现。
@@ -63,4 +65,6 @@ expect object OpenBiteDatabaseConstructor : RoomDatabaseConstructor<OpenBiteData
 
 /** 两端共用的收尾配置；平台只负责给出 Builder（文件路径、驱动）。 */
 fun RoomDatabase.Builder<OpenBiteDatabase>.buildOpenBite(): OpenBiteDatabase =
-    setQueryCoroutineContext(Dispatchers.IO).build()
+    addMigrations(MIGRATION_1_2)
+        .setQueryCoroutineContext(Dispatchers.IO)
+        .build()

@@ -1,5 +1,6 @@
 package com.openbite.core.database.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
@@ -126,6 +127,12 @@ data class DiningLogEntity(
     val createdBy: String,
     val createdAt: Long,
     val updatedAt: Long,
+    /** 这一餐的总评分 1-5（v2）。为空时界面退回菜品评分的平均值。 */
+    val rating: Int? = null,
+    /** 小票上的实付金额，最小货币单位（v2）。 */
+    val totalMinor: Long? = null,
+    /** ISO 4217（v2）。 */
+    val currency: String? = null,
 )
 
 @Entity(
@@ -140,6 +147,7 @@ data class DiningLogItemEntity(
     @PrimaryKey val id: String,
     val logId: String,
     val dishId: String?,
+    /** 菜单原文的菜名快照（v2 起；v1 存的是译名，迁移时改过来）。 */
     val nameSnapshot: String,
     val priceMinorSnapshot: Long?,
     val currencySnapshot: String?,
@@ -147,6 +155,8 @@ data class DiningLogItemEntity(
     /** 1-5 */
     val rating: Int?,
     val comment: String?,
+    /** 译名快照（v2）。 */
+    val nameTranslatedSnapshot: String? = null,
 )
 
 @Entity(
@@ -171,4 +181,7 @@ data class PhotoEntity(
     /** 相对 App 私有目录的路径，iOS 沙盒绝对路径会变。 */
     val path: String,
     val takenAt: Long?,
+    /** "meal"（合影、菜）| "receipt"（店家的纸质小票）（v2）。 */
+    @ColumnInfo(defaultValue = "'meal'")
+    val kind: String = "meal",
 )

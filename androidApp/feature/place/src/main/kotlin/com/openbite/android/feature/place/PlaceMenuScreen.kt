@@ -66,6 +66,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.openbite.android.core.designsystem.component.GlyphAvatar
+import com.openbite.android.core.designsystem.component.PhotoLoad
+import com.openbite.android.core.designsystem.component.rememberLocalPhoto
 import com.openbite.android.core.designsystem.component.SegmentedListItem
 import com.openbite.android.core.designsystem.component.segmentShape
 import com.openbite.android.core.designsystem.icon.OpenBiteIcons
@@ -296,7 +298,7 @@ private fun PhotoMenu(menu: PlaceMenu, index: Int, currentYear: Int, onSelectPho
 
 @Composable
 private fun PhotoContent(photo: MenuPhoto, index: Int, scale: ContentScale, modifier: Modifier) {
-    val load by rememberMenuPhoto(photo.scan.photoPath)
+    val load by rememberLocalPhoto(photo.scan.photoPath)
     when (val current = load) {
         PhotoLoad.Loading -> CircularProgressIndicator(color = MaterialTheme.colorScheme.inverseOnSurface)
         PhotoLoad.Failed -> Text(

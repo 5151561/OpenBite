@@ -43,7 +43,10 @@ fun milestoneGlyph(milestone: Milestone): Glyph = when {
     else -> Glyph(milestone.title.firstOrNull()?.toString() ?: "?", GlyphTone.NEUTRAL)
 }
 
-/** 一顿饭的评分：菜品评分的平均值。 */
+/** 一顿饭的评分：有总评分用总评分，否则用菜品评分的平均值。 */
+fun mealRating(log: DiningLog): Double? = log.rating?.toDouble() ?: averageRating(log)
+
+/** 菜品评分的平均值。 */
 fun averageRating(log: DiningLog): Double? {
     val ratings = log.items.mapNotNull { it.rating }
     return if (ratings.isEmpty()) null else ratings.average()
@@ -79,11 +82,11 @@ fun summarize(logs: List<DiningLog>, today: LocalDate): List<MemorySummary> {
             isToday = log.localDate == today,
             isDraft = log.status == DiningStatus.DRAFT,
             dishCount = log.items.sumOf { it.qty },
-            dishNames = log.items.map { it.name },
+            dishNames = log.items.map { it.displayName },
             visitNumber = visitNumbers.getValue(log.id),
             companions = log.companions.map { it.displayName },
-            rating = averageRating(log),
-            total = totalOf(log),
+            rating = mealRating(log),
+            total = log.paidTotal ?: totalOf(log),
             milestoneId = log.milestoneId,
             note = log.note,
         )

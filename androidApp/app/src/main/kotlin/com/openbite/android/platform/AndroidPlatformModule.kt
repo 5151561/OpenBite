@@ -6,7 +6,9 @@ import com.openbite.core.data.platform.ImageProcessor
 import com.openbite.core.data.platform.LocationProvider
 import com.openbite.core.data.platform.PhotoStore
 import com.openbite.core.data.platform.PreferencesStore
+import com.openbite.core.data.platform.ReminderScheduler
 import com.openbite.core.data.platform.SecretStore
+import com.openbite.android.reminders.WorkManagerReminderScheduler
 import com.openbite.core.data.platform.SeedSource
 import com.openbite.core.network.createVisionHttpClient
 import io.ktor.client.HttpClient
@@ -18,7 +20,7 @@ import kotlinx.coroutines.withContext
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
-/** 共享内核需要的 Android 实现。提醒在 U4 加进来。 */
+/** 共享内核需要的 Android 实现。 */
 val androidPlatformModule = module {
     single<RoomDatabase.Builder<OpenBiteDatabase>> { openBiteDatabaseBuilder(androidContext()) }
     single<SeedSource> { AssetSeedSource(androidContext()) }
@@ -28,6 +30,7 @@ val androidPlatformModule = module {
     single<PhotoStore> { FilePhotoStore(androidContext()) }
     single<SecretStore> { KeystoreSecretStore(androidContext()) }
     single<PreferencesStore> { DataStorePreferencesStore(androidContext()) }
+    single<ReminderScheduler> { WorkManagerReminderScheduler(androidContext()) }
 }
 
 private class AssetSeedSource(private val context: Context) : SeedSource {

@@ -57,11 +57,29 @@ enum class LogSource { USER, ASSISTANT }
 data class DiningLogItem(
     val id: String,
     val dishId: String?,
+    /** 菜单原文的菜名快照。 */
     val name: String,
     val price: Money?,
     val qty: Int,
     val rating: Int?,
     val comment: String?,
+    /** 译名快照。 */
+    val nameTranslated: String? = null,
+) {
+    /** 列表里用的名字：有译名用译名。 */
+    val displayName: String get() = nameTranslated?.takeIf { it.isNotBlank() } ?: name
+}
+
+@Serializable
+enum class PhotoKind { MEAL, RECEIPT }
+
+/** 一餐的照片。[path] 是 App 私有目录下的相对路径。 */
+@Serializable
+data class Photo(
+    val id: String,
+    val path: String,
+    val kind: PhotoKind,
+    val takenAt: Long?,
 )
 
 @Serializable
@@ -81,6 +99,11 @@ data class DiningLog(
     val items: List<DiningLogItem>,
     /** 同行人。 */
     val companions: List<Person> = emptyList(),
+    /** 这一餐的总评分 1-5；null 时界面用菜品评分的平均值。 */
+    val rating: Int? = null,
+    /** 小票上的实付金额。 */
+    val paidTotal: Money? = null,
+    val photos: List<Photo> = emptyList(),
 )
 
 @Serializable

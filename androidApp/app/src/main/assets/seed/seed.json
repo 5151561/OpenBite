@@ -720,28 +720,32 @@
       "items": [
         {
           "dishId": "tori-moriawase",
-          "name": "烤鸡肉串拼盘",
+          "name": "焼き鳥盛り合わせ",
+          "nameTranslated": "烤鸡肉串拼盘",
           "priceMinor": 980,
           "currency": "JPY",
           "qty": 1
         },
         {
           "dishId": "tori-dashimaki",
-          "name": "高汤煎蛋卷",
+          "name": "だし巻き玉子",
+          "nameTranslated": "高汤煎蛋卷",
           "priceMinor": 580,
           "currency": "JPY",
           "qty": 1
         },
         {
           "dishId": "tori-ebiten",
-          "name": "炸虾天妇罗",
+          "name": "海老の天ぷら",
+          "nameTranslated": "炸虾天妇罗",
           "priceMinor": 1200,
           "currency": "JPY",
           "qty": 1
         },
         {
           "dishId": "tori-beer",
-          "name": "生啤",
+          "name": "生ビール",
+          "nameTranslated": "生啤",
           "priceMinor": 550,
           "currency": "JPY",
           "qty": 2
@@ -758,7 +762,8 @@
       "items": [
         {
           "dishId": "komorebi-jelly",
-          "name": "果冻苏打",
+          "name": "ゼリーソーダ",
+          "nameTranslated": "果冻苏打",
           "priceMinor": 650,
           "currency": "JPY",
           "qty": 1,
@@ -767,7 +772,8 @@
         },
         {
           "dishId": "komorebi-pudding",
-          "name": "布丁",
+          "name": "固めプリン",
+          "nameTranslated": "布丁",
           "priceMinor": 550,
           "currency": "JPY",
           "qty": 1,
@@ -786,7 +792,8 @@
       "items": [
         {
           "dishId": "hinata-black",
-          "name": "黑酱油拉面",
+          "name": "黒醤油らーめん",
+          "nameTranslated": "黑酱油拉面",
           "priceMinor": 900,
           "currency": "JPY",
           "qty": 1,
@@ -805,7 +812,8 @@
       "items": [
         {
           "dishId": "tsubame-omurice",
-          "name": "蛋包饭",
+          "name": "オムライス",
+          "nameTranslated": "蛋包饭",
           "priceMinor": 1200,
           "currency": "JPY",
           "qty": 1,
@@ -813,7 +821,8 @@
         },
         {
           "dishId": "tsubame-kakifry",
-          "name": "炸牡蛎",
+          "name": "カキフライ",
+          "nameTranslated": "炸牡蛎",
           "priceMinor": 1400,
           "currency": "JPY",
           "qty": 1,
@@ -835,7 +844,8 @@
       "items": [
         {
           "dishId": "minato-uni",
-          "name": "海胆茶碗蒸",
+          "name": "うに茶碗蒸し",
+          "nameTranslated": "海胆茶碗蒸",
           "priceMinor": 2800,
           "currency": "JPY",
           "qty": 1,
@@ -843,7 +853,8 @@
         },
         {
           "dishId": "minato-saikyo",
-          "name": "西京烧鲅鱼",
+          "name": "鰆の西京焼き",
+          "nameTranslated": "西京烧鲅鱼",
           "priceMinor": 3600,
           "currency": "JPY",
           "qty": 1,
@@ -851,7 +862,8 @@
         },
         {
           "dishId": "minato-tempura",
-          "name": "时令天妇罗",
+          "name": "季節の天ぷら",
+          "nameTranslated": "时令天妇罗",
           "priceMinor": 2200,
           "currency": "JPY",
           "qty": 1,
@@ -859,13 +871,15 @@
         },
         {
           "dishId": "minato-warabi",
-          "name": "蕨饼",
+          "name": "わらび餅",
+          "nameTranslated": "蕨饼",
           "priceMinor": 600,
           "currency": "JPY",
           "qty": 1,
           "rating": 5
         }
-      ]
+      ],
+      "rating": 5
     },
     {
       "id": "log-2026-09-05-hinata",
@@ -877,7 +891,8 @@
       "items": [
         {
           "dishId": "hinata-paitan",
-          "name": "鸡白汤拉面",
+          "name": "鶏白湯らーめん",
+          "nameTranslated": "鸡白汤拉面",
           "priceMinor": 950,
           "currency": "JPY",
           "qty": 1,
@@ -885,7 +900,8 @@
         },
         {
           "dishId": "hinata-gyoza",
-          "name": "煎饺",
+          "name": "餃子",
+          "nameTranslated": "煎饺",
           "priceMinor": 400,
           "currency": "JPY",
           "qty": 1,
@@ -903,7 +919,8 @@
       "items": [
         {
           "dishId": "hinata-black",
-          "name": "黑酱油拉面",
+          "name": "黒醤油らーめん",
+          "nameTranslated": "黑酱油拉面",
           "priceMinor": 900,
           "currency": "JPY",
           "qty": 1,
@@ -912,7 +929,8 @@
         },
         {
           "dishId": "hinata-ajitama",
-          "name": "溏心蛋",
+          "name": "味玉",
+          "nameTranslated": "溏心蛋",
           "priceMinor": 150,
           "currency": "JPY",
           "qty": 1,
@@ -934,7 +952,8 @@
       "items": [
         {
           "dishId": "minato-goma",
-          "name": "胡麻豆腐",
+          "name": "ごま豆腐",
+          "nameTranslated": "胡麻豆腐",
           "priceMinor": 1600,
           "currency": "JPY",
           "qty": 1,
@@ -942,7 +961,8 @@
         },
         {
           "dishId": "minato-uni",
-          "name": "海胆茶碗蒸",
+          "name": "うに茶碗蒸し",
+          "nameTranslated": "海胆茶碗蒸",
           "priceMinor": 2800,
           "currency": "JPY",
           "qty": 1,
@@ -951,7 +971,8 @@
         },
         {
           "dishId": "minato-tsukuri",
-          "name": "刺身拼盘",
+          "name": "お造り盛り合わせ",
+          "nameTranslated": "刺身拼盘",
           "priceMinor": 4200,
           "currency": "JPY",
           "qty": 1,
@@ -959,7 +980,8 @@
         },
         {
           "dishId": "minato-saikyo",
-          "name": "西京烧鲅鱼",
+          "name": "鰆の西京焼き",
+          "nameTranslated": "西京烧鲅鱼",
           "priceMinor": 3600,
           "currency": "JPY",
           "qty": 1,
@@ -967,7 +989,8 @@
         },
         {
           "dishId": "minato-takiawase",
-          "name": "时蔬炖煮",
+          "name": "炊き合わせ",
+          "nameTranslated": "时蔬炖煮",
           "priceMinor": 2400,
           "currency": "JPY",
           "qty": 1,
@@ -975,13 +998,15 @@
         },
         {
           "dishId": "minato-donabe",
-          "name": "砂锅饭",
+          "name": "土鍋ご飯",
+          "nameTranslated": "砂锅饭",
           "priceMinor": 3800,
           "currency": "JPY",
           "qty": 1,
           "rating": 5
         }
-      ]
+      ],
+      "rating": 5
     }
   ]
 }

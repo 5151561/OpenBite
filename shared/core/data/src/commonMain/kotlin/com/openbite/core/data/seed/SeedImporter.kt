@@ -92,6 +92,7 @@ class SeedImporter(
                     createdBy = "user",
                     createdAt = now,
                     updatedAt = now,
+                    rating = it.rating,
                 )
             },
             logItems = seed.logs.flatMap { log ->
@@ -106,6 +107,7 @@ class SeedImporter(
                         qty = item.qty,
                         rating = item.rating,
                         comment = item.comment,
+                        nameTranslatedSnapshot = item.nameTranslated,
                     )
                 }
             },
@@ -191,12 +193,16 @@ internal data class SeedLog(
     val note: String? = null,
     val personIds: List<String> = emptyList(),
     val items: List<SeedLogItem> = emptyList(),
+    /** 这一餐的总评分 1-5。 */
+    val rating: Int? = null,
 )
 
 @Serializable
 internal data class SeedLogItem(
     val dishId: String? = null,
+    /** 菜单原文。 */
     val name: String,
+    val nameTranslated: String? = null,
     val priceMinor: Long? = null,
     val currency: String? = null,
     val qty: Int = 1,

@@ -118,12 +118,20 @@ class OrderTest {
         }
     }
 
+    private class FakeReminders : com.openbite.core.data.platform.ReminderScheduler {
+        val meals = mutableListOf<Pair<String, Int>>()
+        override fun scheduleMealFollowUp(logId: String, delayMinutes: Int) { meals += logId to delayMinutes }
+        override fun scheduleMilestoneCheck() = Unit
+    }
+
+    private val reminders = FakeReminders()
+
     private fun placeOrder(drafts: FakeDrafts): PlaceOrderUseCase {
         var n = 0
         val tokyo = TimeZone.of("Asia/Tokyo")
         // 2026-11-17 23:30 东京 = 14:30 UTC：当地日期必须是东京的 17 号。
         val at = LocalDateTime.parse("2026-11-17T23:30").toInstant(tokyo).toEpochMilliseconds()
-        return PlaceOrderUseCase(drafts, { "id-${++n}" }, { at }, { tokyo })
+        return PlaceOrderUseCase(drafts, { "id-${++n}" }, { at }, { tokyo }, reminders)
     }
 
     private fun readyMenu(placeId: String?) = OrderMenu(
@@ -146,7 +154,9 @@ class OrderTest {
         assertEquals("p", log.placeId)
         assertEquals("Asia/Tokyo", log.timezone)
         assertEquals("2026-11-17", log.localDate)
-        assertEquals(listOf("生啤", "冷奴"), log.items.map { it.name })
+        assertEquals(listOf("生ビール", "冷奴"), log.items.map { it.name })
+        assertEquals(listOf("生啤", null), log.items.map { it.nameTranslated })
+        assertEquals(listOf(logId to MEAL_FOLLOW_UP_MINUTES), reminders.meals)
         assertEquals(listOf("d-beer", null), log.items.map { it.dishId })
         assertEquals(listOf(2, 1), log.items.map { it.qty })
         assertEquals(Money(550, "JPY"), log.items[0].price)

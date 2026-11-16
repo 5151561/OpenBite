@@ -25,4 +25,6 @@ data class DiningLogWithDetails(
         associateBy = Junction(DiningLogPersonEntity::class, parentColumn = "logId", entityColumn = "personId"),
     )
     val persons: List<PersonEntity>,
+    @Relation(parentColumn = "id", entityColumn = "logId")
+    val photos: List<PhotoEntity>,
 )

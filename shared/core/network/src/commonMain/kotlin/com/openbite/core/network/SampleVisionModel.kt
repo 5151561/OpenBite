@@ -28,8 +28,22 @@ class SampleVisionModel(
         emit(ScanEvent.Finished(parser.rawOutput))
     }
 
+    /** 不看照片，过一会儿返回一张打包好的小票（设计稿 19 的とり松）。 */
+    override suspend fun readReceipt(request: ReceiptReadRequest): ScannedReceipt {
+        delay(startDelayMillis)
+        return checkNotNull(parseReceipt(SAMPLE_RECEIPT))
+    }
+
     companion object {
         const val ID = "sample"
+
+        val SAMPLE_RECEIPT: String =
+            """{"placeName":"炭火焼鳥 とり松","items":[""" +
+                """{"name":"焼き鳥盛り合わせ","nameTranslated":"烤鸡肉串拼盘","qty":1,"amountMinor":980},""" +
+                """{"name":"だし巻き玉子","nameTranslated":"高汤煎蛋卷","qty":1,"amountMinor":580},""" +
+                """{"name":"海老の天ぷら","nameTranslated":"炸虾天妇罗","qty":1,"amountMinor":1200},""" +
+                """{"name":"生ビール","nameTranslated":"生啤","qty":2,"amountMinor":1100}""" +
+                """],"subtotalMinor":3860,"taxMinor":386,"totalMinor":4246,"currency":"JPY"}"""
 
         /** 一家京都的おばんざい店，和种子数据里的店不重名。 */
         val SAMPLE_OUTPUT: String = """

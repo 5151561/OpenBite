@@ -23,9 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,7 +64,15 @@ fun MilestonesRoute(
     viewModel: MilestonesViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    MilestonesScreen(state, onOpenPlace, onEditReminder, onAddMilestone)
+    val reminders by viewModel.reminders.collectAsStateWithLifecycle()
+    MilestonesScreen(
+        state,
+        onOpenPlace,
+        onEditReminder,
+        onAddMilestone,
+        notificationsOn = reminders?.milestones ?: true,
+        onNotifications = viewModel::setMilestoneReminders,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,6 +82,8 @@ fun MilestonesScreen(
     onOpenPlace: (String) -> Unit = {},
     onEditReminder: () -> Unit = {},
     onAddMilestone: () -> Unit = {},
+    notificationsOn: Boolean = true,
+    onNotifications: (Boolean) -> Unit = {},
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.milestone_title)) }) },
@@ -123,7 +130,7 @@ fun MilestonesScreen(
                     )
                 }
             }
-            item { ReminderSection(state.remindDaysBefore, onEditReminder) }
+            item { ReminderSection(state.remindDaysBefore, onEditReminder, notificationsOn, onNotifications) }
         }
     }
 }
@@ -197,9 +204,7 @@ private fun NextMilestoneCard(highlight: MilestoneHighlight, onOpenPlace: (Strin
 }
 
 @Composable
-private fun ReminderSection(remindDaysBefore: Int, onEditReminder: () -> Unit) {
-    // TODO(U4): 系统通知开关接 DataStore 和 WorkManager，现在只是界面状态。
-    var notify by rememberSaveable { mutableStateOf(true) }
+private fun ReminderSection(remindDaysBefore: Int, onEditReminder: () -> Unit, notify: Boolean, onNotify: (Boolean) -> Unit) {
     Column {
         SectionHeader(stringResource(R.string.milestone_reminders))
         SegmentedList {
@@ -217,8 +222,8 @@ private fun ReminderSection(remindDaysBefore: Int, onEditReminder: () -> Unit) {
             SegmentedListItem(
                 headline = stringResource(R.string.milestone_notifications),
                 shape = segmentShape(1, 2),
-                trailing = { Switch(checked = notify, onCheckedChange = { notify = it }) },
-                onClick = { notify = !notify },
+                trailing = { Switch(checked = notify, onCheckedChange = onNotify) },
+                onClick = { onNotify(!notify) },
             )
         }
         Text(

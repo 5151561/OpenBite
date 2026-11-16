@@ -16,7 +16,10 @@ import androidx.core.location.LocationManagerCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
+import com.openbite.core.data.platform.ReminderSettings
 import androidx.datastore.preferences.preferencesDataStore
 import com.openbite.core.data.platform.LocationProvider
 import com.openbite.core.data.platform.PhotoStore
@@ -65,7 +68,27 @@ internal class DataStorePreferencesStore(context: Context) : PreferencesStore {
         store.edit { it[tasteProfile] = json.encodeToString(profile) }
     }
 
+    override fun observeReminderSettings(): Flow<ReminderSettings> = store.data.map { prefs ->
+        ReminderSettings(mealFollowUp = prefs[mealReminders] ?: true, milestones = prefs[milestoneReminders] ?: true)
+    }
+
+    override suspend fun setReminderSettings(settings: ReminderSettings) {
+        store.edit {
+            it[mealReminders] = settings.mealFollowUp
+            it[milestoneReminders] = settings.milestones
+        }
+    }
+
+    override suspend fun sentMilestoneReminders(): Set<String> = store.data.first()[sentMilestones].orEmpty()
+
+    override suspend fun markMilestoneRemindersSent(keys: Set<String>) {
+        store.edit { it[sentMilestones] = it[sentMilestones].orEmpty() + keys }
+    }
+
     private companion object {
+        val mealReminders = booleanPreferencesKey("reminder_meal")
+        val milestoneReminders = booleanPreferencesKey("reminder_milestone")
+        val sentMilestones = stringSetPreferencesKey("milestone_reminders_sent")
         val tasteProfile = stringPreferencesKey("taste_profile")
         val json = Json { ignoreUnknownKeys = true }
     }

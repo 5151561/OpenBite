@@ -53,6 +53,7 @@ import com.openbite.android.core.designsystem.component.segmentShape
 import com.openbite.android.core.designsystem.icon.OpenBiteIcons
 import com.openbite.android.core.designsystem.theme.OpenBiteTheme
 import com.openbite.android.core.designsystem.theme.Spacing
+import com.openbite.core.data.platform.ReminderSettings
 import com.openbite.core.domain.VisionSettings
 import com.openbite.core.model.VisionModelChoice
 import com.openbite.feature.settings.SettingsMessage
@@ -73,10 +74,13 @@ fun SettingsRoute(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val vision by viewModel.vision.collectAsStateWithLifecycle()
     val tasteSummary by viewModel.tasteSummary.collectAsStateWithLifecycle()
+    val reminders by viewModel.reminders.collectAsStateWithLifecycle()
     SettingsScreen(
         state = state,
         vision = vision,
         tasteSummary = tasteSummary,
+        reminders = reminders,
+        onReminders = viewModel::setReminders,
         onBack = onBack,
         onOpenTaste = onOpenTaste,
         onChooseModel = viewModel::chooseModel,
@@ -96,6 +100,8 @@ fun SettingsScreen(
     state: SettingsUiState,
     vision: VisionSettings? = null,
     tasteSummary: String? = null,
+    reminders: ReminderSettings? = null,
+    onReminders: (meal: Boolean, milestones: Boolean) -> Unit = { _, _ -> },
     onBack: () -> Unit = {},
     onOpenTaste: () -> Unit = {},
     onChooseModel: (VisionModelChoice) -> Unit = {},
@@ -193,16 +199,32 @@ fun SettingsScreen(
                 SegmentedListItem(
                     headline = stringResource(R.string.settings_appfunctions),
                     supporting = stringResource(R.string.settings_appfunctions_hint),
-                    shape = segmentShape(0, 2),
+                    shape = segmentShape(0, 1),
                     trailing = { TrailingText(stringResource(R.string.settings_appfunctions_count)) },
-                )
-                SegmentedListItem(
-                    headline = stringResource(R.string.settings_reminders),
-                    supporting = stringResource(R.string.settings_reminders_hint),
-                    shape = segmentShape(1, 2),
                 )
             }
             Note(stringResource(R.string.settings_assistant_note))
+
+            SectionHeader(stringResource(R.string.settings_reminders), color = MaterialTheme.colorScheme.primary)
+            SegmentedList {
+                val meal = reminders?.mealFollowUp ?: true
+                val milestones = reminders?.milestones ?: true
+                SegmentedListItem(
+                    headline = stringResource(R.string.settings_reminder_meal),
+                    supporting = stringResource(R.string.settings_reminder_meal_hint),
+                    shape = segmentShape(0, 2),
+                    trailing = { Switch(checked = meal, onCheckedChange = { onReminders(it, milestones) }, enabled = reminders != null) },
+                    onClick = { onReminders(!meal, milestones) },
+                )
+                SegmentedListItem(
+                    headline = stringResource(R.string.settings_reminder_milestone),
+                    supporting = stringResource(R.string.settings_reminder_milestone_hint),
+                    shape = segmentShape(1, 2),
+                    trailing = { Switch(checked = milestones, onCheckedChange = { onReminders(meal, it) }, enabled = reminders != null) },
+                    onClick = { onReminders(meal, !milestones) },
+                )
+            }
+            Note(stringResource(R.string.settings_reminders_hint))
 
             Row(
                 modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m),

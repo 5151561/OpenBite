@@ -41,9 +41,15 @@ interface SecretStore {
 
 /** 本地提醒：饭后补记录、纪念日提前提醒。 */
 interface ReminderScheduler {
+    /** 同一条记录重复调用会替换掉之前排的提醒。 */
     fun scheduleMealFollowUp(logId: String, delayMinutes: Int = 90)
+
+    /** 每天检查一次纪念日；已经排过就不重复排。 */
     fun scheduleMilestoneCheck()
 }
+
+/** 两类提醒的开关。 */
+data class ReminderSettings(val mealFollowUp: Boolean = true, val milestones: Boolean = true)
 
 /** 照片文件存 App 私有目录：`photos/<id>.jpg`，返回相对路径。 */
 interface PhotoStore {
@@ -63,6 +69,13 @@ interface PreferencesStore {
     /** 我的口味；没设过或读不出来时发 [TasteProfile.EMPTY]。 */
     fun observeTasteProfile(): Flow<TasteProfile>
     suspend fun setTasteProfile(profile: TasteProfile)
+
+    fun observeReminderSettings(): Flow<ReminderSettings>
+    suspend fun setReminderSettings(settings: ReminderSettings)
+
+    /** 已经发过的纪念日提醒，键是 "<milestoneId>:<年份>"。 */
+    suspend fun sentMilestoneReminders(): Set<String>
+    suspend fun markMilestoneRemindersSent(keys: Set<String>)
 }
 
 /** SecretStore 里的键名。 */

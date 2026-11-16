@@ -1,4 +1,4 @@
-package com.openbite.android.feature.place
+package com.openbite.android.core.designsystem.component
 
 import android.content.Context
 import android.graphics.BitmapFactory
@@ -22,9 +22,9 @@ sealed interface PhotoLoad {
 /** `seed/` 开头的示例图打包在 assets 里；其余是 App 私有目录（filesDir）下的相对路径。 */
 private const val SEED_PREFIX = "seed/"
 
-/** 在 IO 线程解码原照片。图片已在拍摄时压到 1568px 长边以内，这里不再缩放。 */
+/** 在 IO 线程解码 App 里的照片（菜单原照片、饭菜照片、小票）。图片已在拍摄时压到 1568px 长边以内，这里不再缩放。 */
 @Composable
-fun rememberMenuPhoto(photoPath: String): State<PhotoLoad> {
+fun rememberLocalPhoto(photoPath: String): State<PhotoLoad> {
     val context = LocalContext.current.applicationContext
     return produceState<PhotoLoad>(PhotoLoad.Loading, photoPath) {
         value = withContext(Dispatchers.IO) { decode(context, photoPath) }

@@ -9,6 +9,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -17,6 +18,9 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.openbite.android.R
 import com.openbite.android.feature.home.HomeRoute
+import com.openbite.android.feature.meal.MealRoute
+import com.openbite.android.feature.meal.MemoryEditRoute
+import com.openbite.android.feature.meal.ReceiptArchiveRoute
 import com.openbite.android.feature.memories.MemoriesRoute
 import com.openbite.android.feature.milestone.MilestonesRoute
 import com.openbite.android.feature.order.OrderRoute
@@ -32,14 +36,29 @@ private val tabs = TopLevelDestination.entries.toList()
 
 /** App 外壳：底部导航 + 每个 Tab 自己的返回栈。 */
 @Composable
-fun OpenBiteApp() {
+fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) {
     val state = rememberNavigationState(tabs)
     val navigator = remember(state) { Navigator(state) }
 
-    // 以下回调的目标页面在 U4–U6 才做，现在什么都不做。
+    // 从通知点进来：饭后提醒 -> 今天 Tab 上开补记忆；纪念日 -> 纪念日 Tab（有去年的记录就打开它）。
+    LaunchedEffect(deepLink) {
+        when (deepLink) {
+            is DeepLink.EditMeal -> navigator.openFresh(TopLevelDestination.TODAY, MemoryEditKey(deepLink.logId))
+            is DeepLink.Milestones -> navigator.openFresh(TopLevelDestination.MILESTONES, deepLink.logId?.let { MealKey(it) })
+            null -> return@LaunchedEffect
+        }
+        onDeepLinkHandled()
+    }
+
+    // 以下回调的目标页面在 U5–U6 或之后才做，现在什么都不做。
     val notYet: () -> Unit = {}
 
     val openPlace: (String) -> Unit = { navigator.navigate(PlaceKey(it)) }
+
+    /** 草稿直接进补记忆；已完成的先看只读页。 */
+    val openMemory: (String, Boolean) -> Unit = { logId, isDraft ->
+        navigator.navigate(if (isDraft) MemoryEditKey(logId) else MealKey(logId))
+    }
 
     val entryProvider = entryProvider {
         entry<HomeKey> {
@@ -49,16 +68,14 @@ fun OpenBiteApp() {
                 onOpenMemories = { navigator.navigate(MemoriesKey) },
                 onScanMenu = { navigator.navigate(ScanKey()) },
                 onPickPhoto = { navigator.navigate(ScanKey(fromGallery = true)) },
-                // TODO(U4): 改成打开这条记录（补记忆 / 看记录）；在那之前先进店铺页。
-                onOpenMemory = { _, placeId -> openPlace(placeId) },
+                onOpenMemory = openMemory,
             )
         }
         entry<MemoriesKey> {
             MemoriesRoute(
                 onSearch = notYet, // TODO: 搜索记忆（设计稿未定）
                 onScanMenu = { navigator.navigate(ScanKey()) },
-                // TODO(U4): 改成打开这条记录；在那之前先进店铺页。
-                onOpenMemory = { _, placeId -> openPlace(placeId) },
+                onOpenMemory = openMemory,
             )
         }
         entry<PlacesKey> {
@@ -72,7 +89,7 @@ fun OpenBiteApp() {
         entry<MilestonesKey> {
             MilestonesRoute(
                 onOpenPlace = openPlace,
-                onEditReminder = notYet, // TODO(U4): 提醒设置
+                onEditReminder = notYet, // TODO: 每个纪念日的提前天数（纪念日管理页一起做）
                 onAddMilestone = notYet, // TODO: 纪念日管理页（11/27）
             )
         }
@@ -103,11 +120,26 @@ fun OpenBiteApp() {
             ReceiptRoute(
                 sessionId = key.sessionId,
                 onBack = navigator::goBack,
-                // 草稿出现在“今天”的最近记忆里，补记忆（U4）从那里进。
+                // 草稿出现在“今天”的最近记忆里，点它进补记忆。
                 onPlaced = { navigator.finishTo(TopLevelDestination.TODAY) },
             )
         }
         entry<TasteKey> { TasteRoute(onBack = navigator::goBack) }
+        entry<MemoryEditKey> { key ->
+            MemoryEditRoute(
+                logId = key.logId,
+                onDone = navigator::goBack,
+                onOpenReceipt = { navigator.navigate(ReceiptArchiveKey(key.logId)) },
+            )
+        }
+        entry<MealKey> { key ->
+            MealRoute(
+                logId = key.logId,
+                onBack = navigator::goBack,
+                onEdit = { navigator.navigate(MemoryEditKey(key.logId)) },
+            )
+        }
+        entry<ReceiptArchiveKey> { key -> ReceiptArchiveRoute(logId = key.logId, onBack = navigator::goBack) }
         entry<PlaceKey> { key ->
             PlaceDetailRoute(
                 placeId = key.placeId,
@@ -116,6 +148,7 @@ fun OpenBiteApp() {
                 onShare = notYet, // TODO(U6): 分享店铺
                 onAddTag = notYet, // TODO(U5): 标签编辑
                 onScanMenu = { navigator.navigate(ScanKey(placeId = key.placeId)) },
+                onOpenMeal = { logId, isDraft -> openMemory(logId, isDraft) },
             )
         }
         entry<PlaceMenuKey> { key ->
@@ -125,7 +158,7 @@ fun OpenBiteApp() {
                 onBack = navigator::goBack,
                 onOrder = { navigator.navigate(OrderKey(placeId = key.placeId)) },
                 onRescan = { navigator.navigate(ScanKey(placeId = key.placeId)) },
-                onEditDish = notYet, // TODO(U4): 改译名或价格
+                onEditDish = notYet, // TODO: 改译名或价格（还没排期）
             )
         }
     }

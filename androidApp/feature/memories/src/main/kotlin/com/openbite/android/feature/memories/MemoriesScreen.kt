@@ -48,7 +48,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun MemoriesRoute(
     onSearch: () -> Unit,
     onScanMenu: () -> Unit,
-    onOpenMemory: (logId: String, placeId: String) -> Unit,
+    onOpenMemory: (logId: String, isDraft: Boolean) -> Unit,
     viewModel: MemoriesViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -68,7 +68,7 @@ fun MemoriesScreen(
     onSelectFilter: (MemoryFilter) -> Unit = {},
     onSearch: () -> Unit = {},
     onScanMenu: () -> Unit = {},
-    onOpenMemory: (logId: String, placeId: String) -> Unit = { _, _ -> },
+    onOpenMemory: (logId: String, isDraft: Boolean) -> Unit = { _, _ -> },
 ) {
     Scaffold(
         topBar = {
@@ -139,7 +139,7 @@ fun MemoriesScreen(
                         currentYear = state.currentYear,
                         shape = segmentShape(index, group.items.size),
                         modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.xxs / 2),
-                        onClick = { onOpenMemory(memory.logId, memory.placeId) },
+                        onClick = { onOpenMemory(memory.logId, memory.isDraft) },
                     )
                 }
             }

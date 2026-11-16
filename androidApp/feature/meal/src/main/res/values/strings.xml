@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 补记忆（05） -->
+    <string name="edit_title">补记忆</string>
+    <string name="edit_title_done">编辑记忆</string>
+    <string name="edit_close">关闭</string>
+    <string name="edit_later">稍后</string>
+    <string name="edit_save_done">存入记忆</string>
+    <string name="edit_save">保存</string>
+    <string name="edit_prefilled">已自动预填</string>
+    <string name="edit_meal_rating">这一餐的总评分</string>
+    <string name="edit_star">%1$d 星</string>
+    <string name="edit_tap_to_rate">点一下打分</string>
+    <string name="edit_note">短评</string>
+    <string name="edit_item_comment">这道菜的短评</string>
+    <string name="edit_qty">×%1$d</string>
+    <string name="edit_decrease">少一份</string>
+    <string name="edit_increase">多一份</string>
+    <string name="edit_remove_item">删掉这道菜</string>
+    <string name="edit_photos">照片</string>
+    <string name="edit_add_photo">加照片</string>
+    <string name="edit_take_photo">拍一张</string>
+    <string name="edit_pick_photo">从相册选</string>
+    <string name="edit_remove_photo">删掉这张照片</string>
+    <string name="edit_receipt">存小票</string>
+    <string name="edit_receipt_saved">小票 %1$s</string>
+    <string name="edit_milestone">纪念日</string>
+    <string name="edit_companions">同行人</string>
+    <string name="edit_add_person">添加</string>
+    <string name="edit_add_person_title">添加同行人</string>
+    <string name="edit_add_person_hint">怎么称呼，比如“老婆”</string>
+    <string name="edit_add_person_confirm">添加</string>
+    <string name="edit_cancel">取消</string>
+    <string name="edit_discard_title">放弃这次的修改？</string>
+    <string name="edit_discard_text">还没保存的打分、短评和照片都会丢掉。</string>
+    <string name="edit_discard">放弃</string>
+    <string name="edit_keep">继续编辑</string>
+    <string name="edit_missing">这条记录已经不在了。</string>
+    <string name="edit_photo_failed">这张照片读不出来，换一张试试。</string>
+    <string name="edit_no_camera">没有找到相机应用。</string>
+
+    <!-- 一餐（只读） -->
+    <string name="meal_back">返回</string>
+    <string name="meal_edit">编辑</string>
+    <string name="meal_items">点了什么</string>
+    <string name="meal_photos">照片</string>
+    <string name="meal_paid">小票实付 %1$s</string>
+    <string name="meal_ordered">按菜单合计 %1$s</string>
+    <string name="meal_with">和%1$s</string>
+    <string name="meal_no_rating">还没打分</string>
+    <string name="meal_draft_hint">这是草稿，还没补完。</string>
+
+    <!-- 小票存档（19） -->
+    <string name="receipt_title">小票存档</string>
+    <string name="receipt_back">返回补记忆</string>
+    <string name="receipt_photo_description">拍下的店家小票照片</string>
+    <string name="receipt_empty">拍一张店家给的纸质小票，金额会自动读出来。</string>
+    <string name="receipt_take">拍小票</string>
+    <string name="receipt_pick">从相册选</string>
+    <string name="receipt_retake">重拍</string>
+    <string name="receipt_processing">正在处理照片…</string>
+    <string name="receipt_reading">正在读小票…</string>
+    <string name="receipt_read_by">由 %1$s 读出</string>
+    <string name="receipt_read_failed">没读出来，可以重试，或者直接填实付金额。</string>
+    <string name="receipt_retry">重新读</string>
+    <string name="receipt_lines">小票明细</string>
+    <string name="receipt_subtotal">小计</string>
+    <string name="receipt_tax">税</string>
+    <string name="receipt_total">合计</string>
+    <string name="receipt_paid">实付</string>
+    <string name="receipt_paid_hint">金额（%1$s）</string>
+    <string name="receipt_paid_invalid">金额格式不对</string>
+    <string name="receipt_extra">比点单多</string>
+    <string name="receipt_extra_value">%1$s · 多半是税或服务费</string>
+    <string name="receipt_less_value">%1$s · 比点单少</string>
+    <string name="receipt_note">金额是从小票上读出来的，可以改。照片只存在本机，和这一餐的记录放在一起；不拍照、只记金额也行。</string>
+    <string name="receipt_save">存到这一餐</string>
+    <string name="receipt_missing">这条记录已经不在了。</string>
+</resources>

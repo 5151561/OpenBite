@@ -4,7 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.openbite.core.domain.ClearAllDataUseCase
 import com.openbite.core.domain.ClearApiKeyUseCase
+import com.openbite.core.data.platform.ReminderSettings
+import com.openbite.core.domain.ObserveReminderSettingsUseCase
 import com.openbite.core.domain.ObserveTasteProfileUseCase
+import com.openbite.core.domain.SetReminderSettingsUseCase
 import com.openbite.core.domain.ObserveVisionSettingsUseCase
 import com.openbite.core.domain.TastePhrases
 import com.openbite.core.domain.SaveApiKeyUseCase
@@ -39,7 +42,17 @@ class SettingsViewModel(
     private val saveApiKey: SaveApiKeyUseCase,
     private val clearApiKey: ClearApiKeyUseCase,
     observeTaste: ObserveTasteProfileUseCase,
+    observeReminders: ObserveReminderSettingsUseCase,
+    private val setReminderSettings: SetReminderSettingsUseCase,
 ) : ViewModel() {
+
+    /** 两个提醒开关；加载完之前为 null。 */
+    val reminders: StateFlow<ReminderSettings?> = observeReminders()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    fun setReminders(meal: Boolean, milestones: Boolean) {
+        viewModelScope.launch { setReminderSettings(ReminderSettings(meal, milestones)) }
+    }
 
     /** “我的口味”那一行的摘要；没设过为 null。加载完之前也是 null。 */
     val tasteSummary: StateFlow<String?> = observeTaste()

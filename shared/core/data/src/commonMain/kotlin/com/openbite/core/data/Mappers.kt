@@ -4,6 +4,7 @@ import com.openbite.core.database.entity.DiningLogItemEntity
 import com.openbite.core.database.entity.DiningLogWithDetails
 import com.openbite.core.database.entity.DishEntity
 import com.openbite.core.database.entity.MenuScanEntity
+import com.openbite.core.database.entity.PhotoEntity
 import com.openbite.core.database.entity.PlaceEntity
 import com.openbite.core.database.entity.MilestoneEntity
 import com.openbite.core.database.entity.PlaceWithTags
@@ -17,6 +18,8 @@ import com.openbite.core.model.Milestone
 import com.openbite.core.model.MilestoneType
 import com.openbite.core.model.Money
 import com.openbite.core.model.Person
+import com.openbite.core.model.Photo
+import com.openbite.core.model.PhotoKind
 import com.openbite.core.model.Place
 import com.openbite.core.model.Recurrence
 import kotlinx.datetime.LocalDate
@@ -39,6 +42,7 @@ internal fun DiningLogItemEntity.toModel() = DiningLogItem(
     qty = qty,
     rating = rating,
     comment = comment,
+    nameTranslated = nameTranslatedSnapshot,
 )
 
 internal fun DiningLogWithDetails.toModel() = DiningLog(
@@ -53,6 +57,16 @@ internal fun DiningLogWithDetails.toModel() = DiningLog(
     source = LogSource.valueOf(log.createdBy.uppercase()),
     items = items.map { it.toModel() },
     companions = persons.map { Person(it.id, it.displayName) },
+    rating = log.rating,
+    paidTotal = log.totalMinor?.let { amount -> log.currency?.let { Money(amount, it) } },
+    photos = photos.sortedBy { it.takenAt ?: 0L }.map { it.toModel() },
+)
+
+internal fun PhotoEntity.toModel() = Photo(
+    id = id,
+    path = path,
+    kind = if (kind == "receipt") PhotoKind.RECEIPT else PhotoKind.MEAL,
+    takenAt = takenAt,
 )
 
 internal fun MilestoneEntity.toModel() = Milestone(

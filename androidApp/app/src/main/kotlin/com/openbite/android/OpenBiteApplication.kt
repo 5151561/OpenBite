@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import androidx.core.content.edit
 import com.openbite.android.feature.home.homeFeatureModule
+import com.openbite.android.feature.meal.mealFeatureModule
 import com.openbite.android.feature.memories.memoriesFeatureModule
 import com.openbite.android.feature.milestone.milestoneFeatureModule
 import com.openbite.android.feature.order.orderFeatureModule
@@ -11,6 +12,8 @@ import com.openbite.android.feature.place.placeFeatureModule
 import com.openbite.android.feature.scan.scanFeatureModule
 import com.openbite.android.feature.settings.settingsFeatureModule
 import com.openbite.android.platform.androidPlatformModule
+import com.openbite.android.reminders.Notifications
+import com.openbite.core.data.platform.ReminderScheduler
 import com.openbite.core.data.seed.SeedImporter
 import com.openbite.core.domain.di.sharedCoreModule
 import kotlinx.coroutines.CoroutineScope
@@ -34,6 +37,7 @@ class OpenBiteApplication : Application() {
                 sharedCoreModule,
                 homeFeatureModule,
                 memoriesFeatureModule,
+                mealFeatureModule,
                 milestoneFeatureModule,
                 orderFeatureModule,
                 placeFeatureModule,
@@ -41,6 +45,9 @@ class OpenBiteApplication : Application() {
                 settingsFeatureModule,
             )
         }
+        // 通知渠道随时可建；纪念日每天检查一次（已经排过就不重复排，开关在 Worker 里判断）。
+        Notifications.createChannels(this)
+        get<ReminderScheduler>().scheduleMilestoneCheck()
         // 清掉一小时前系统相机留下的临时照片（处理后的照片已存进 filesDir/photos）。
         appScope.launch(Dispatchers.IO) {
             val cutoff = System.currentTimeMillis() - 60 * 60 * 1000L

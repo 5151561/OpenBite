@@ -4,6 +4,7 @@ import com.openbite.core.data.DraftRepository
 import com.openbite.core.data.NewDraftItem
 import com.openbite.core.data.NewDraftLog
 import com.openbite.core.data.platform.PreferencesStore
+import com.openbite.core.data.platform.ReminderScheduler
 import com.openbite.core.model.Money
 import com.openbite.core.model.Place
 import com.openbite.core.model.PlaceMenu
@@ -202,14 +203,19 @@ class SystemTimeZoneProvider : TimeZoneProvider {
  * “已下单”：生成一条草稿记录（status=draft、createdBy=user）。
  * - 店铺还没存（新店且识别失败）时一起建店；
  * - [linkDishes] 为 false 或菜还没有 dishId 时只存名字和价格快照；
- * - 名字快照用译名（没有译名用原名），和种子数据一致。
+ * - 名字快照存菜单原文，译名另存一份；
+ * - 下单后排一个 90 分钟后的饭后提醒。
  * 返回新记录 id。
  */
+/** 下单后多久提醒补记忆。 */
+const val MEAL_FOLLOW_UP_MINUTES = 90
+
 class PlaceOrderUseCase(
     private val drafts: DraftRepository,
     private val ids: IdGenerator,
     private val now: NowProvider,
     private val zones: TimeZoneProvider,
+    private val reminders: ReminderScheduler,
 ) {
     @OptIn(ExperimentalTime::class)
     suspend operator fun invoke(menu: OrderMenu, lines: List<OrderLine>, linkDishes: Boolean): String {
@@ -235,7 +241,8 @@ class PlaceOrderUseCase(
                     NewDraftItem(
                         id = ids.newId(),
                         dishId = if (linkDishes) line.dish.dishId else null,
-                        name = line.dish.nameTranslated.ifBlank { line.dish.nameOriginal },
+                        name = line.dish.nameOriginal,
+                        nameTranslated = line.dish.nameTranslated.takeIf { it.isNotBlank() },
                         price = line.dish.price,
                         qty = line.qty,
                     )
@@ -243,6 +250,7 @@ class PlaceOrderUseCase(
                 createdAt = at,
             ),
         )
+        reminders.scheduleMealFollowUp(logId, MEAL_FOLLOW_UP_MINUTES)
         return logId
     }
 }

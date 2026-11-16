@@ -5,4 +5,22 @@
     <string name="tab_memories">记忆</string>
     <string name="tab_places">店铺</string>
     <string name="tab_milestones">纪念日</string>
+
+    <!-- 通知（11） -->
+    <string name="channel_meal">饭后补记忆</string>
+    <string name="channel_meal_description">点完菜一个半小时后，提醒你给这一餐打分、加照片。</string>
+    <string name="channel_milestone">纪念日</string>
+    <string name="channel_milestone_description">纪念日快到时提醒，附上去年那顿饭。</string>
+    <string name="notify_meal_title_tonight">今晚的 %1$s，补一下记忆</string>
+    <string name="notify_meal_title_today">刚才的 %1$s，补一下记忆</string>
+    <string name="notify_meal_text">%1$d 道菜已经记好了。打个分、加张合影，一分钟就行。</string>
+    <string name="notify_meal_open">补记忆</string>
+    <string name="notify_meal_snooze">一小时后提醒</string>
+    <string name="notify_milestone_today">今天是%1$s</string>
+    <string name="notify_milestone_tomorrow">明天是%1$s</string>
+    <string name="notify_milestone_days">%1$d 天后（%2$s）是%3$s</string>
+    <string name="notify_milestone_text">去年在 %1$s。要不要看看当时吃了什么？</string>
+    <string name="notify_milestone_text_note">去年在 %1$s，「%2$s」要不要看看当时吃了什么？</string>
+    <string name="notify_milestone_text_first">第一次过这个纪念日，找家好店吧。</string>
+    <string name="notify_milestone_open">看去年的记录</string>
 </resources>
