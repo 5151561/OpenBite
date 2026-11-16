@@ -77,6 +77,11 @@ val sharedCoreModule: Module = module {
     factory { SetReminderSettingsUseCase(get(), get()) }
     factory { MealFollowUpUseCase(get(), get()) }
     factory { MilestoneRemindersUseCase(get(), get()) }
+    factory { com.openbite.core.domain.ObserveMapUseCase(get(), get(), get(), get(), get()) }
+    factory { com.openbite.core.domain.SetPlaceLocationUseCase(get()) }
+    factory { com.openbite.core.domain.AddPlaceTagUseCase(get()) }
+    factory { com.openbite.core.domain.RemovePlaceTagUseCase(get()) }
+    factory { com.openbite.core.domain.ObserveAllTagsUseCase(get()) }
     factory { ObserveTasteProfileUseCase(get()) }
     factory { SaveTasteProfileUseCase(get()) }
 }

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 地图与时间胶囊（06） -->
+    <string name="map_search_hint">搜索店铺、标签</string>
+    <string name="map_list">切换到店铺列表</string>
+    <string name="map_clear_search">清除搜索</string>
+    <string name="map_filter_group">筛选店铺</string>
+    <string name="map_filter_all">全部 %1$d</string>
+    <string name="map_filter_milestone">纪念日 %1$d</string>
+    <string name="map_filter_date">适合约会 %1$d</string>
+    <string name="map_filter_late_night">深夜食堂 %1$d</string>
+    <string name="map_capsule_upcoming">时间胶囊 · %1$s前的纪念日</string>
+    <string name="map_capsule_one_year">一年</string>
+    <string name="map_capsule_years">%1$d 年</string>
+    <string name="map_capsule_place_milestone">时间胶囊 · 在这里过的纪念日</string>
+    <string name="map_capsule_recent">上次来这里</string>
+    <string name="map_visits">来过 %1$d 次</string>
+    <string name="map_dishes">%1$d 道菜</string>
+    <string name="map_draft">草稿</string>
+    <string name="map_open_meal">看记录</string>
+    <string name="map_no_capsule">点一个图钉，看看那家店的回忆。</string>
+    <string name="map_no_pins">还没有带位置的店。拍菜单时开着定位，或在店铺页“设置位置”。</string>
+    <string name="map_missing_locations">另有 %1$d 家店还没有位置</string>
+    <string name="map_pin_description">%1$s</string>
+
+    <!-- 设置位置 -->
+    <string name="pick_title">设置位置</string>
+    <string name="pick_back">返回</string>
+    <string name="pick_hint">拖动地图，让十字对准 %1$s；也可以长按地图上的那个点。</string>
+    <string name="pick_confirm">设为这里</string>
+</resources>

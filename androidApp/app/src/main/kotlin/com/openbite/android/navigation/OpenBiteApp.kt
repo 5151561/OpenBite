@@ -18,6 +18,8 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.openbite.android.R
 import com.openbite.android.feature.home.HomeRoute
+import com.openbite.android.feature.map.MapRoute
+import com.openbite.android.feature.map.PickLocationRoute
 import com.openbite.android.feature.meal.MealRoute
 import com.openbite.android.feature.meal.MemoryEditRoute
 import com.openbite.android.feature.meal.ReceiptArchiveRoute
@@ -82,7 +84,7 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
             PlacesRoute(
                 onOpenPlace = openPlace,
                 onSearch = notYet, // TODO: 搜索店铺（设计稿未定）
-                onOpenMap = notYet, // TODO(U5): 地图
+                onOpenMap = { navigator.navigate(MapKey()) },
                 onScanMenu = { navigator.navigate(ScanKey()) },
             )
         }
@@ -139,6 +141,15 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
                 onEdit = { navigator.navigate(MemoryEditKey(key.logId)) },
             )
         }
+        entry<MapKey> { key ->
+            MapRoute(
+                focusPlaceId = key.focusPlaceId,
+                onBackToList = navigator::goBack,
+                onOpenPlace = openPlace,
+                onOpenMeal = openMemory,
+            )
+        }
+        entry<PickLocationKey> { key -> PickLocationRoute(placeId = key.placeId, onDone = navigator::goBack) }
         entry<ReceiptArchiveKey> { key -> ReceiptArchiveRoute(logId = key.logId, onBack = navigator::goBack) }
         entry<PlaceKey> { key ->
             PlaceDetailRoute(
@@ -146,9 +157,10 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
                 onBack = navigator::goBack,
                 onOpenMenu = { navigator.navigate(PlaceMenuKey(key.placeId)) },
                 onShare = notYet, // TODO(U6): 分享店铺
-                onAddTag = notYet, // TODO(U5): 标签编辑
                 onScanMenu = { navigator.navigate(ScanKey(placeId = key.placeId)) },
                 onOpenMeal = { logId, isDraft -> openMemory(logId, isDraft) },
+                onOpenMap = { navigator.navigate(MapKey(focusPlaceId = key.placeId)) },
+                onPickLocation = { navigator.navigate(PickLocationKey(key.placeId)) },
             )
         }
         entry<PlaceMenuKey> { key ->
@@ -166,7 +178,7 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
     Scaffold(
         contentWindowInsets = WindowInsets(0.dp),
         bottomBar = {
-            if (state.isAtTabRoot) {
+            if (state.showsBottomBar) {
                 NavigationBar {
                     tabs.forEach { tab ->
                         val selected = tab == state.currentTab

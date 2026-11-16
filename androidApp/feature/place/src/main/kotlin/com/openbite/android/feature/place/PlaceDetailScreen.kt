@@ -32,6 +32,17 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
+import com.openbite.core.domain.normalizeTag
+import com.openbite.core.domain.MAX_TAG_LENGTH
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.InputChipDefaults
+import androidx.compose.material3.InputChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -67,20 +78,32 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import com.openbite.android.core.designsystem.R as DsR
 
-/** 店铺详情（设计稿 08）。分享（U6）、加标签、拍菜单（U3）现在由 app 传空实现。 */
+/** 店铺详情（设计稿 08）。分享（U6）现在由 app 传空实现；加标签、删标签在这里直接做。 */
 @Composable
 fun PlaceDetailRoute(
     placeId: String,
     onBack: () -> Unit,
     onOpenMenu: () -> Unit,
     onShare: () -> Unit,
-    onAddTag: () -> Unit,
     onScanMenu: () -> Unit,
     onOpenMeal: (logId: String, isDraft: Boolean) -> Unit,
+    onOpenMap: () -> Unit,
+    onPickLocation: () -> Unit,
     viewModel: PlaceDetailViewModel = koinViewModel(parameters = { parametersOf(placeId) }),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    PlaceDetailScreen(state, onBack, onOpenMenu, onShare, onAddTag, onScanMenu, onOpenMeal)
+    PlaceDetailScreen(
+        state = state,
+        onBack = onBack,
+        onOpenMenu = onOpenMenu,
+        onShare = onShare,
+        onAddTag = { tag -> viewModel.addTag(tag) },
+        onRemoveTag = viewModel::removeTag,
+        onScanMenu = onScanMenu,
+        onOpenMeal = onOpenMeal,
+        onOpenMap = onOpenMap,
+        onPickLocation = onPickLocation,
+    )
 }
 
 @Composable
@@ -89,11 +112,26 @@ fun PlaceDetailScreen(
     onBack: () -> Unit = {},
     onOpenMenu: () -> Unit = {},
     onShare: () -> Unit = {},
-    onAddTag: () -> Unit = {},
+    onAddTag: (String) -> Unit = {},
+    onRemoveTag: (String) -> Unit = {},
     onScanMenu: () -> Unit = {},
     onOpenMeal: (String, Boolean) -> Unit = { _, _ -> },
+    onOpenMap: () -> Unit = {},
+    onPickLocation: () -> Unit = {},
 ) {
     val detail = state.detail
+    var addingTag by rememberSaveable { mutableStateOf(false) }
+    if (addingTag && detail != null) {
+        AddTagDialog(
+            suggestions = state.tagSuggestions,
+            onAdd = {
+                onAddTag(it)
+                addingTag = false
+            },
+            onDismiss = { addingTag = false },
+        )
+    }
+    val tagActions = TagActions(onAdd = { addingTag = true }, onRemove = onRemoveTag, onOpenMap = onOpenMap, onPickLocation = onPickLocation)
     Scaffold(
         // 头部颜色铺到状态栏下面，所以这里只让出导航栏。
         contentWindowInsets = WindowInsets.navigationBars,
@@ -121,7 +159,7 @@ fun PlaceDetailScreen(
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }
-            else -> PlaceDetailContent(detail, padding, onBack, onOpenMenu, onShare, onAddTag, onOpenMeal)
+            else -> PlaceDetailContent(detail, padding, onBack, onOpenMenu, onShare, tagActions, onOpenMeal)
         }
     }
 }
@@ -133,14 +171,14 @@ private fun PlaceDetailContent(
     onBack: () -> Unit,
     onOpenMenu: () -> Unit,
     onShare: () -> Unit,
-    onAddTag: () -> Unit,
+    tagActions: TagActions,
     onOpenMeal: (String, Boolean) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = padding.calculateBottomPadding() + 88.dp),
     ) {
-        item(key = "header") { Header(detail, onBack, onShare, onAddTag) }
+        item(key = "header") { Header(detail, onBack, onShare, tagActions) }
         item(key = "history") { SectionHeader(stringResource(R.string.place_history), Modifier.padding(top = Spacing.xs)) }
         if (detail.visits.isEmpty()) {
             item(key = "no-visits") { Note(stringResource(R.string.place_no_visits)) }
@@ -172,7 +210,7 @@ internal fun timesOrdered(stats: DishStats): String =
 
 /** 彩色头部：大号淡色单字、返回和分享、店名、来过几次、标签。 */
 @Composable
-private fun Header(detail: PlaceDetail, onBack: () -> Unit, onShare: () -> Unit, onAddTag: () -> Unit) {
+private fun Header(detail: PlaceDetail, onBack: () -> Unit, onShare: () -> Unit, actions: TagActions) {
     val scheme = MaterialTheme.colorScheme
     Box(
         modifier = Modifier
@@ -211,16 +249,35 @@ private fun Header(detail: PlaceDetail, onBack: () -> Unit, onShare: () -> Unit,
                 val meta = listOfNotNull(stringResource(R.string.place_visits, detail.visitCount), detail.area)
                     .joinToString(stringResource(DsR.string.ds_separator))
                 Text(meta, style = MaterialTheme.typography.bodyMedium, color = scheme.onPrimaryContainer)
+                val hasLocation = detail.place.lat != null && detail.place.lon != null
+                AssistChip(
+                    onClick = if (hasLocation) actions.onOpenMap else actions.onPickLocation,
+                    label = { Text(stringResource(if (hasLocation) R.string.place_on_map else R.string.place_set_location)) },
+                    leadingIcon = {
+                        Icon(OpenBiteIcons.LocationOn, contentDescription = null, modifier = Modifier.size(AssistChipDefaults.IconSize), tint = scheme.primary)
+                    },
+                    colors = AssistChipDefaults.assistChipColors(containerColor = scheme.surfaceContainerLowest),
+                )
                 Row(
                     modifier = Modifier.padding(top = Spacing.xs).horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(Spacing.s),
                 ) {
-                    // TODO: 标签筛选和编辑（地图页 U5 一起做），现在点了不做事。
                     detail.place.tags.forEach { tag ->
-                        SuggestionChip(onClick = {}, label = { Text(tag) })
+                        InputChip(
+                            selected = false,
+                            onClick = { actions.onRemove(tag) },
+                            label = { Text(tag) },
+                            trailingIcon = {
+                                Icon(
+                                    OpenBiteIcons.Close,
+                                    contentDescription = stringResource(R.string.place_remove_tag, tag),
+                                    modifier = Modifier.size(InputChipDefaults.IconSize),
+                                )
+                            },
+                        )
                     }
                     AssistChip(
-                        onClick = onAddTag,
+                        onClick = actions.onAdd,
                         label = { Text(stringResource(R.string.place_add_tag)) },
                         leadingIcon = { Icon(OpenBiteIcons.Add, contentDescription = null, modifier = Modifier.size(AssistChipDefaults.IconSize)) },
                     )
@@ -228,6 +285,45 @@ private fun Header(detail: PlaceDetail, onBack: () -> Unit, onShare: () -> Unit,
             }
         }
     }
+}
+
+/** 头部标签和位置的操作。 */
+private class TagActions(
+    val onAdd: () -> Unit,
+    val onRemove: (String) -> Unit,
+    val onOpenMap: () -> Unit,
+    val onPickLocation: () -> Unit,
+)
+
+/** 加标签：输入或点一个建议。 */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AddTagDialog(suggestions: List<String>, onAdd: (String) -> Unit, onDismiss: () -> Unit) {
+    var text by rememberSaveable { mutableStateOf("") }
+    val valid = normalizeTag(text) != null
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.place_add_tag)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    singleLine = true,
+                    placeholder = { Text(stringResource(R.string.place_tag_hint)) },
+                    supportingText = { Text(stringResource(R.string.place_tag_limit, MAX_TAG_LENGTH)) },
+                    isError = text.isNotBlank() && !valid,
+                )
+                if (suggestions.isNotEmpty()) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                        suggestions.forEach { tag -> SuggestionChip(onClick = { onAdd(tag) }, label = { Text(tag) }) }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = { onAdd(text) }, enabled = valid) { Text(stringResource(R.string.place_tag_add)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.place_tag_cancel)) } },
+    )
 }
 
 @Composable

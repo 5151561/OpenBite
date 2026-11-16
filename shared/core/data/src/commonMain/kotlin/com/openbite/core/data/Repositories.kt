@@ -38,6 +38,13 @@ interface PlaceRepository {
     fun observeCounts(): Flow<Map<String, PlaceCounts>>
 
     suspend fun rename(placeId: String, name: String)
+
+    suspend fun setLocation(placeId: String, lat: Double, lon: Double)
+    suspend fun addTag(placeId: String, tag: String)
+    suspend fun removeTag(placeId: String, tag: String)
+
+    /** 所有用过的标签，常用的在前。 */
+    fun observeAllTags(): Flow<List<String>>
 }
 
 /** 一次识别要写进 menu_scan 的内容。 */
@@ -138,6 +145,15 @@ internal class RoomPlaceRepository(private val db: OpenBiteDatabase) : PlaceRepo
         }
 
     override suspend fun rename(placeId: String, name: String) = db.placeDao().rename(placeId, name)
+
+    override suspend fun setLocation(placeId: String, lat: Double, lon: Double) = db.placeDao().setLocation(placeId, lat, lon)
+
+    override suspend fun addTag(placeId: String, tag: String) =
+        db.placeDao().upsertTags(listOf(com.openbite.core.database.entity.PlaceTagEntity(placeId, tag)))
+
+    override suspend fun removeTag(placeId: String, tag: String) = db.placeDao().deleteTag(placeId, tag)
+
+    override fun observeAllTags(): Flow<List<String>> = db.placeDao().observeAllTags()
 }
 
 internal class RoomMilestoneRepository(private val db: OpenBiteDatabase) : MilestoneRepository {

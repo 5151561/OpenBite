@@ -39,6 +39,14 @@ data class ReceiptKey(val sessionId: String) : NavKey
 @Serializable
 data object TasteKey : NavKey
 
+/** 地图与时间胶囊（06）：压在当前 Tab 上，底部导航照常显示。[focusPlaceId] 是先选中的店。 */
+@Serializable
+data class MapKey(val focusPlaceId: String? = null) : NavKey
+
+/** 给店铺在地图上选位置。 */
+@Serializable
+data class PickLocationKey(val placeId: String) : NavKey
+
 /** 补记忆（05）。 */
 @Serializable
 data class MemoryEditKey(val logId: String) : NavKey

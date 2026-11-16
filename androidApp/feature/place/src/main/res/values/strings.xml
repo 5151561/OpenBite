@@ -17,6 +17,13 @@
     <string name="place_share">分享这家店</string>
     <string name="place_visits">来过 %1$d 次</string>
     <string name="place_add_tag">加标签</string>
+    <string name="place_remove_tag">删掉标签 %1$s</string>
+    <string name="place_tag_hint">比如“适合约会”</string>
+    <string name="place_tag_limit">最多 %1$d 个字</string>
+    <string name="place_tag_add">添加</string>
+    <string name="place_tag_cancel">取消</string>
+    <string name="place_on_map">在地图上看</string>
+    <string name="place_set_location">设置位置</string>
     <string name="place_history">历次记录</string>
     <string name="place_no_visits">还没来吃过。</string>
     <string name="place_visit_dishes">%1$d 道菜</string>

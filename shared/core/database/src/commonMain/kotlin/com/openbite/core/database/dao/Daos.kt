@@ -63,6 +63,16 @@ interface PlaceDao {
     @Query("UPDATE place SET name = :name WHERE id = :placeId")
     suspend fun rename(placeId: String, name: String)
 
+    @Query("UPDATE place SET lat = :lat, lon = :lon WHERE id = :placeId")
+    suspend fun setLocation(placeId: String, lat: Double, lon: Double)
+
+    @Query("DELETE FROM place_tag WHERE placeId = :placeId AND tag = :tag")
+    suspend fun deleteTag(placeId: String, tag: String)
+
+    /** 所有店铺用过的标签，按用得多的在前（加标签时给建议）。 */
+    @Query("SELECT tag FROM place_tag GROUP BY tag ORDER BY COUNT(*) DESC, tag")
+    fun observeAllTags(): Flow<List<String>>
+
     @Query("SELECT placeId, COUNT(*) AS count FROM dish GROUP BY placeId")
     fun observeDishCounts(): Flow<List<PlaceCount>>
 

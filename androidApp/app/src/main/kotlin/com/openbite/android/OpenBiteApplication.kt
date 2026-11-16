@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import androidx.core.content.edit
 import com.openbite.android.feature.home.homeFeatureModule
+import com.openbite.android.feature.map.mapFeatureModule
 import com.openbite.android.feature.meal.mealFeatureModule
 import com.openbite.android.feature.memories.memoriesFeatureModule
 import com.openbite.android.feature.milestone.milestoneFeatureModule
@@ -38,6 +39,7 @@ class OpenBiteApplication : Application() {
                 homeFeatureModule,
                 memoriesFeatureModule,
                 mealFeatureModule,
+                mapFeatureModule,
                 milestoneFeatureModule,
                 orderFeatureModule,
                 placeFeatureModule,

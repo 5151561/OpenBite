@@ -36,6 +36,7 @@ dependencies {
     implementation(project(":androidApp:feature:memories"))
     implementation(project(":androidApp:feature:milestone"))
     implementation(project(":androidApp:feature:meal"))
+    implementation(project(":androidApp:feature:map"))
     implementation(project(":androidApp:feature:order"))
     implementation(project(":androidApp:feature:place"))
     implementation(project(":androidApp:feature:scan"))

@@ -33,6 +33,9 @@ class NavigationState(
     /** 当前页是不是某个 Tab 的根页面；只有根页面显示底部导航。 */
     val isAtTabRoot: Boolean get() = currentStack.lastOrNull() == currentTab.key
 
+    /** 底部导航：Tab 根页面和地图（设计稿 06 带底部导航）显示，其余页面藏起来。 */
+    val showsBottomBar: Boolean get() = isAtTabRoot || currentStack.lastOrNull() is MapKey
+
     fun selectTab(tab: TopLevelDestination) = setSelectedIndex(tabs.indexOf(tab))
 
     /** 退出路径固定是“当前 Tab → 今天 → 退出 App”。 */
