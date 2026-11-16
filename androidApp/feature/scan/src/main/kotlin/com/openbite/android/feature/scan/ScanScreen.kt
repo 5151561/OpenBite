@@ -92,7 +92,7 @@ fun ScanScreen(
     onUseSample: () -> Unit = {},
     onRetake: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
-    onOpenMenu: () -> Unit = {},
+    onOrder: () -> Unit = {},
     onRename: (String) -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -122,7 +122,7 @@ fun ScanScreen(
             color = scheme.surfaceContainerLow,
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         ) {
-            Sheet(state, onBack, onRetry, onUseSample, onRetake, onOpenSettings, onOpenMenu, onRename)
+            Sheet(state, onBack, onRetry, onUseSample, onRetake, onOpenSettings, onOrder, onRename)
         }
     }
 }
@@ -178,7 +178,7 @@ private fun Sheet(
     onUseSample: () -> Unit,
     onRetake: () -> Unit,
     onOpenSettings: () -> Unit,
-    onOpenMenu: () -> Unit,
+    onOrder: () -> Unit,
     onRename: (String) -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -202,7 +202,7 @@ private fun Sheet(
             state.model?.let { InfoChip(visionModelLabel(it), check = false) }
         }
         DishList(state, Modifier.weight(1f))
-        Actions(state, onBack, onRetry, onUseSample, onRetake, onOpenSettings, onOpenMenu, onRename)
+        Actions(state, onBack, onRetry, onUseSample, onRetake, onOpenSettings, onOrder, onRename)
     }
 }
 
@@ -318,7 +318,7 @@ private fun Actions(
     onUseSample: () -> Unit,
     onRetake: () -> Unit,
     onOpenSettings: () -> Unit,
-    onOpenMenu: () -> Unit,
+    onOrder: () -> Unit,
     onRename: (String) -> Unit,
 ) {
     Column(
@@ -333,11 +333,9 @@ private fun Actions(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                // TODO(U3b): 改成“边识别边点单”，去点单页。
-                Button(onClick = onOpenMenu, modifier = Modifier.fillMaxWidth().height(48.dp)) {
-                    Text(stringResource(R.string.scan_open_menu), style = MaterialTheme.typography.titleMedium)
-                }
+                OrderButton(onOrder)
             }
+            ScanPhase.READING, ScanPhase.SAVING -> OrderButton(onOrder)
             ScanPhase.FAILED -> {
                 val error = state.error ?: ScanError.UNKNOWN
                 Text(stringResource(error.message()), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
@@ -353,6 +351,12 @@ private fun Actions(
                     ScanError.PLACE_MISSING -> listOf(R.string.scan_back to onBack)
                     else -> listOf(retry, retake)
                 }
+                if (state.dishes.isNotEmpty()) {
+                    // 识别没完成也能用已经认出的菜点单，下单时只存名字和价格。
+                    TextButton(onClick = onOrder) {
+                        Text(stringResource(R.string.scan_order_partial, state.dishes.size))
+                    }
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
                     actions.forEachIndexed { index, (label, action) ->
                         val modifier = Modifier.weight(1f).height(48.dp)
@@ -366,6 +370,14 @@ private fun Actions(
             }
             else -> Unit
         }
+    }
+}
+
+/** 设计稿 02 的“边识别边点单”：识别中就能进点单页，菜会接着一道道出来。 */
+@Composable
+private fun OrderButton(onOrder: () -> Unit) {
+    Button(onClick = onOrder, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+        Text(stringResource(R.string.scan_order), style = MaterialTheme.typography.titleMedium)
     }
 }
 

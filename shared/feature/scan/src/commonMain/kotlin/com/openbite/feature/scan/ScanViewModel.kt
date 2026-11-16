@@ -2,7 +2,13 @@ package com.openbite.feature.scan
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.openbite.core.domain.MenuStatus
+import com.openbite.core.domain.OrderMenu
+import com.openbite.core.domain.OrderSession
+import com.openbite.core.domain.OrderSessions
 import com.openbite.core.domain.RenamePlaceUseCase
+import com.openbite.core.domain.apply
+import com.openbite.core.domain.fail
 import com.openbite.core.domain.ScanMenuRequest
 import com.openbite.core.domain.ScanMenuUseCase
 import com.openbite.core.domain.ScanResult
@@ -57,27 +63,37 @@ class ScanViewModel(
     private val placeId: String?,
     private val scanMenu: ScanMenuUseCase,
     private val renamePlace: RenamePlaceUseCase,
+    private val sessions: OrderSessions,
 ) : ViewModel() {
     private val state = MutableStateFlow(ScanUiState())
     val uiState: StateFlow<ScanUiState> = state.asStateFlow()
+
+    /** 这次识别对应的点单会话，点单页和小票页用它（边识别边点单）。识别页销毁时一起移除。 */
+    private val session: OrderSession = sessions.create(
+        OrderMenu(placeId, placeName = "", location = null, sourceLang = null, currency = null, dishes = emptyList(), status = MenuStatus.SCANNING),
+    ).also { it.retryHandler = { retry() } }
+
+    val sessionId: String get() = session.id
 
     private var job: Job? = null
     private var permissionAnswer: CompletableDeferred<Boolean>? = null
     private var lastRequest: ScanMenuRequest? = null
 
-    fun onPhoto(sourceUri: String, defaultPlaceName: String) {
+    fun onPhoto(sourceUri: String, defaultPlaceName: String, targetLang: String = "zh-CN") {
         if (state.value.phase != ScanPhase.WAITING_PHOTO) return
-        start(ScanMenuRequest(sourceUri, placeId, defaultPlaceName))
+        session.updateMenu { if (it.placeName.isEmpty()) it.copy(placeName = defaultPlaceName) else it }
+        start(ScanMenuRequest(sourceUri, placeId, defaultPlaceName, targetLang))
     }
 
     /** 重试；[useSample] 为 true 时这次改用示例菜单（没 Key / Key 无效 / 额度用完时给的出路）。 */
-    fun retry(useSample: Boolean = false) {
-        val request = lastRequest ?: return
-        if (state.value.isWorking) return
+    fun retry(useSample: Boolean = false): Boolean {
+        val request = lastRequest ?: return false
+        if (state.value.isWorking) return false
         val photo = state.value.photo
         start(request.copy(modelOverride = if (useSample) VisionModelChoice.SAMPLE else request.modelOverride))
         // 重试时先把上次的照片放回去，界面不闪空。
         if (photo != null) state.update { it.copy(photo = photo) }
+        return true
     }
 
     /** 重新拍：回到等照片的状态。 */
@@ -87,6 +103,7 @@ class ScanViewModel(
         permissionAnswer = null
         lastRequest = null
         state.value = ScanUiState()
+        session.resetForNewPhoto()
     }
 
     fun onLocationPermissionResult(granted: Boolean) {
@@ -101,6 +118,7 @@ class ScanViewModel(
         viewModelScope.launch {
             if (renamePlace(result.placeId, name)) {
                 state.update { it.copy(result = result.copy(placeName = name.trim())) }
+                session.updateMenu { it.copy(placeName = name.trim()) }
             }
         }
     }
@@ -109,6 +127,7 @@ class ScanViewModel(
         lastRequest = request
         job?.cancel()
         state.value = ScanUiState(phase = ScanPhase.PREPARING)
+        session.updateMenu { it.copy(status = MenuStatus.SCANNING, error = null) }
         job = viewModelScope.launch {
             try {
                 scanMenu(request, ::askLocationPermission).collect(::apply)
@@ -129,7 +148,12 @@ class ScanViewModel(
         return answer.await()
     }
 
-    private fun apply(update: ScanUpdate) = state.update { s ->
+    private fun apply(update: ScanUpdate) {
+        session.apply(update)
+        applyToScreen(update)
+    }
+
+    private fun applyToScreen(update: ScanUpdate) = state.update { s ->
         when (update) {
             is ScanUpdate.Started -> s.copy(model = update.model)
             is ScanUpdate.PhotoReady -> s.copy(photo = update.jpegBytes)
@@ -142,7 +166,13 @@ class ScanViewModel(
         }
     }
 
-    private fun fail(error: ScanError) = state.update {
-        it.copy(phase = ScanPhase.FAILED, error = error, pendingName = null, askingLocationPermission = false)
+    private fun fail(error: ScanError) {
+        session.fail(error)
+        state.update { it.copy(phase = ScanPhase.FAILED, error = error, pendingName = null, askingLocationPermission = false) }
+    }
+
+    override fun onCleared() {
+        session.retryHandler = null
+        sessions.remove(session.id)
     }
 }

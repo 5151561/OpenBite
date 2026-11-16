@@ -2,10 +2,13 @@ package com.openbite.core.data
 
 import com.openbite.core.data.seed.SeedImporter
 import com.openbite.core.database.OpenBiteDatabase
+import com.openbite.core.database.entity.DiningLogEntity
+import com.openbite.core.database.entity.DiningLogItemEntity
 import com.openbite.core.database.entity.MenuScanEntity
 import com.openbite.core.model.DiningLog
 import com.openbite.core.model.Dish
 import com.openbite.core.model.MenuScan
+import com.openbite.core.model.Money
 import com.openbite.core.model.Milestone
 import com.openbite.core.model.Place
 import kotlinx.coroutines.flow.Flow
@@ -135,4 +138,64 @@ internal class RoomPlaceRepository(private val db: OpenBiteDatabase) : PlaceRepo
 
 internal class RoomMilestoneRepository(private val db: OpenBiteDatabase) : MilestoneRepository {
     override fun observeMilestones() = db.milestoneDao().observeAll().map { rows -> rows.map { it.toModel() } }
+}
+
+/** 草稿记录里的一道菜（名字和价格是快照）。 */
+data class NewDraftItem(
+    val id: String,
+    /** 没关联到菜单时为 null。 */
+    val dishId: String?,
+    val name: String,
+    val price: Money?,
+    val qty: Int,
+)
+
+data class NewDraftLog(
+    val id: String,
+    val placeId: String,
+    val visitedAt: Long,
+    val timezone: String,
+    /** 当地日期 "2026-11-17"。 */
+    val localDate: String,
+    val items: List<NewDraftItem>,
+    val createdAt: Long,
+)
+
+interface DraftRepository {
+    /** 一个事务：[newPlace] 不为 null 时先建店，再写草稿记录和菜品。 */
+    suspend fun createDraft(newPlace: Place?, log: NewDraftLog)
+}
+
+internal class RoomDraftRepository(private val db: OpenBiteDatabase) : DraftRepository {
+    override suspend fun createDraft(newPlace: Place?, log: NewDraftLog) {
+        db.draftDao().insert(
+            newPlace = newPlace?.toEntity(log.createdAt),
+            log = DiningLogEntity(
+                id = log.id,
+                placeId = log.placeId,
+                visitedAt = log.visitedAt,
+                timezone = log.timezone,
+                localDate = log.localDate,
+                status = "draft",
+                milestoneId = null,
+                note = null,
+                createdBy = "user",
+                createdAt = log.createdAt,
+                updatedAt = log.createdAt,
+            ),
+            items = log.items.map {
+                DiningLogItemEntity(
+                    id = it.id,
+                    logId = log.id,
+                    dishId = it.dishId,
+                    nameSnapshot = it.name,
+                    priceMinorSnapshot = it.price?.amountMinor,
+                    currencySnapshot = it.price?.currency,
+                    qty = it.qty,
+                    rating = null,
+                    comment = null,
+                )
+            },
+        )
+    }
 }

@@ -6,6 +6,7 @@ import androidx.core.content.edit
 import com.openbite.android.feature.home.homeFeatureModule
 import com.openbite.android.feature.memories.memoriesFeatureModule
 import com.openbite.android.feature.milestone.milestoneFeatureModule
+import com.openbite.android.feature.order.orderFeatureModule
 import com.openbite.android.feature.place.placeFeatureModule
 import com.openbite.android.feature.scan.scanFeatureModule
 import com.openbite.android.feature.settings.settingsFeatureModule
@@ -34,6 +35,7 @@ class OpenBiteApplication : Application() {
                 homeFeatureModule,
                 memoriesFeatureModule,
                 milestoneFeatureModule,
+                orderFeatureModule,
                 placeFeatureModule,
                 scanFeatureModule,
                 settingsFeatureModule,

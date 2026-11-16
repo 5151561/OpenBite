@@ -1,5 +1,6 @@
 package com.openbite.core.data.platform
 
+import com.openbite.core.model.TasteProfile
 import com.openbite.core.model.VisionModelChoice
 import kotlinx.coroutines.flow.Flow
 
@@ -58,6 +59,10 @@ interface PreferencesStore {
     /** 用户选的识别模型；没选过发 null。 */
     fun observeVisionModel(): Flow<VisionModelChoice?>
     suspend fun setVisionModel(choice: VisionModelChoice)
+
+    /** 我的口味；没设过或读不出来时发 [TasteProfile.EMPTY]。 */
+    fun observeTasteProfile(): Flow<TasteProfile>
+    suspend fun setTasteProfile(profile: TasteProfile)
 }
 
 /** SecretStore 里的键名。 */

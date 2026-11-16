@@ -3,7 +3,9 @@ package com.openbite.core.data.di
 import com.openbite.core.data.DiningLogRepository
 import com.openbite.core.data.MilestoneRepository
 import com.openbite.core.data.PlaceRepository
+import com.openbite.core.data.DraftRepository
 import com.openbite.core.data.MenuScanRepository
+import com.openbite.core.data.RoomDraftRepository
 import com.openbite.core.data.RoomDiningLogRepository
 import com.openbite.core.data.RoomMenuScanRepository
 import com.openbite.core.data.RoomMilestoneRepository
@@ -32,5 +34,6 @@ val dataModule: Module = module {
     single { SeedImporter(get(), get()) }
     single<SampleDataRepository> { RoomSampleDataRepository(get(), get()) }
     single<MenuScanRepository> { RoomMenuScanRepository(get()) }
+    single<DraftRepository> { RoomDraftRepository(get()) }
     single { VisionModelRegistry(get<HttpClient>()) }
 }

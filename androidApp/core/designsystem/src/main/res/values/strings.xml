@@ -58,4 +58,36 @@
     <string name="ds_model_claude_haiku">Claude Haiku 5.5</string>
     <string name="ds_model_claude_sonnet">Claude Sonnet 5.5</string>
     <string name="ds_model_sample">示例菜单（不调用模型）</string>
+
+    <!-- 我的口味：选项名。小票上的句子在共享代码 TastePhrases 里，这里只是界面上的按钮。 -->
+    <string name="ds_taste_allergens">过敏</string>
+    <string name="ds_taste_avoids">不吃、不要</string>
+    <string name="ds_taste_spice">辣度</string>
+    <string-array name="ds_allergen_names">
+        <item>花生</item>
+        <item>虾蟹</item>
+        <item>蛋</item>
+        <item>乳制品</item>
+        <item>小麦</item>
+        <item>大豆</item>
+        <item>鱼</item>
+        <item>坚果</item>
+        <item>芝麻</item>
+        <item>荞麦</item>
+    </string-array>
+    <string-array name="ds_avoid_names">
+        <item>葱</item>
+        <item>香菜</item>
+        <item>内脏</item>
+        <item>生食</item>
+        <item>牛肉</item>
+        <item>猪肉</item>
+    </string-array>
+    <string-array name="ds_spice_names">
+        <item>不辣</item>
+        <item>微辣</item>
+        <item>中辣</item>
+        <item>特辣</item>
+    </string-array>
+    <string name="ds_may_contain">可能含 %1$s</string>
 </resources>

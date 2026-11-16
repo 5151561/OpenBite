@@ -2,6 +2,12 @@ package com.openbite.core.domain.di
 
 import com.openbite.core.data.di.dataModule
 import com.openbite.core.domain.ClearAllDataUseCase
+import com.openbite.core.domain.ObserveTasteProfileUseCase
+import com.openbite.core.domain.OrderSessions
+import com.openbite.core.domain.PlaceOrderUseCase
+import com.openbite.core.domain.SaveTasteProfileUseCase
+import com.openbite.core.domain.SystemTimeZoneProvider
+import com.openbite.core.domain.TimeZoneProvider
 import com.openbite.core.domain.ClearApiKeyUseCase
 import com.openbite.core.domain.IdGenerator
 import com.openbite.core.domain.NowProvider
@@ -46,4 +52,9 @@ val sharedCoreModule: Module = module {
     factory { SaveApiKeyUseCase(get()) }
     factory { ClearApiKeyUseCase(get()) }
     factory { RenamePlaceUseCase(get()) }
+    single<TimeZoneProvider> { SystemTimeZoneProvider() }
+    single { OrderSessions(get()) }
+    factory { PlaceOrderUseCase(get(), get(), get(), get()) }
+    factory { ObserveTasteProfileUseCase(get()) }
+    factory { SaveTasteProfileUseCase(get()) }
 }

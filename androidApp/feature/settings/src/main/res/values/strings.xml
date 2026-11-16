@@ -4,7 +4,15 @@
     <string name="settings_back">返回首页</string>
 
     <string name="settings_taste">我的口味</string>
-    <string name="settings_taste_hint">过敏原、忌口和辣度</string>
+    <string name="settings_taste_hint">还没设置：过敏原、忌口和辣度</string>
+
+    <!-- 我的口味（15） -->
+    <string name="taste_title">我的口味</string>
+    <string name="taste_back">返回设置</string>
+    <string name="taste_auto_apply">每次点单自动带上</string>
+    <string name="taste_preview">小票上会这样写</string>
+    <string name="taste_preview_empty">还没选，小票上不写口味。</string>
+    <string name="taste_note">设一次就一直用。点单时还能临时改，只影响当次。档案只存在本机。</string>
 
     <string name="settings_model_section">识别模型</string>
     <string name="settings_model">模型</string>

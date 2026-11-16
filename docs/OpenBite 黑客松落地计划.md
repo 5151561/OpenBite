@@ -105,13 +105,13 @@ Hackathon-kiroween/
 │   ├── core/network/                # VisionModel：Claude（SSE 流式）+ 示例菜单  ✅ U3a
 │   ├── core/data/                   # Repository、种子导入、平台接口        ✅ 已建
 │   ├── core/domain/                 # 用例、纪念日计算（含单元测试）         ✅ 已建
-│   └── feature/                     # 各页 ViewModel：home / memories / milestone / settings ✅ U1，place ✅ U2，scan ✅ U3a
-│       （order / map 按阶段加）
+│   └── feature/                     # 各页 ViewModel：home / memories / milestone / settings ✅ U1，place ✅ U2，scan ✅ U3a，order ✅ U3b
+│       （map 按阶段加）
 ├── androidApp/
 │   ├── app/                         # Application、Koin 装配、Navigation 3 外壳、种子 JSON  ✅ 已建
 │   ├── core/designsystem/           # Compose 主题、通用组件、图标           ✅ U1
-│   ├── feature/                     # 各页 Compose：home / memories / milestone / settings ✅ U1，place ✅ U2，scan ✅ U3a
-│   │   （order / map 按阶段加）
+│   ├── feature/                     # 各页 Compose：home / memories / milestone / settings ✅ U1，place ✅ U2，scan ✅ U3a，order ✅ U3b
+│   │   （map 按阶段加）
 │   └── assistant/                   # AppFunctions，只调 AssistantApi       主线之后
 ├── iosApp/                          # 后半段
 ├── tools/seed/                      # 示例菜单原照片的生成脚本（draw_menus.py）
@@ -218,7 +218,7 @@ erDiagram
 
 | 数据 | 存哪里 |
 | --- | --- |
-| 默认模型、目标语言、提醒开关 | DataStore Preferences |
+| 默认模型、我的口味（一个 JSON 值）、提醒开关 | DataStore Preferences（目标语言跟手机系统语言） |
 | 视觉模型 API Key | Android Keystore 加密，不进数据库、不进日志 |
 | 种子数据 | `androidApp/app/src/main/assets/seed/seed.json`，首次启动由 `SeedImporter` 导入 |
 

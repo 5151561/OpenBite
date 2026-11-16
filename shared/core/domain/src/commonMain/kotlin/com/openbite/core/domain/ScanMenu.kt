@@ -70,17 +70,27 @@ data class ScanResult(
     val dishCount: Int,
     val added: Int,
     val updated: Int,
+    /** 原名（[normalizeDishName]）-> 存进数据库的菜品 id，点单页用它把内存里的菜对上数据库。 */
+    val dishIds: Map<String, String> = emptyMap(),
 )
 
 sealed interface ScanUpdate {
-    data class Started(val model: VisionModelChoice) : ScanUpdate
+    /** [placeName]：从店铺页发起时是这家店的名字，新店为 null。 */
+    data class Started(val model: VisionModelChoice, val placeName: String? = null) : ScanUpdate
 
     /** 处理好的照片（已去 EXIF、压缩），界面直接显示它，和发给模型的是同一张。 */
     class PhotoReady(val jpegBytes: ByteArray) : ScanUpdate
 
     /** 照片已去 EXIF、压缩好。[hasLocation]：店铺有没有位置（照片 GPS、当前定位或已有店铺的位置）。 */
-    data class Prepared(val hasLocation: Boolean) : ScanUpdate
-    data class Header(val placeName: String?, val estimatedDishCount: Int?) : ScanUpdate
+    data class Prepared(val location: Pair<Double, Double>?) : ScanUpdate {
+        val hasLocation: Boolean get() = location != null
+    }
+    data class Header(
+        val placeName: String?,
+        val estimatedDishCount: Int?,
+        val currency: String? = null,
+        val sourceLang: String? = null,
+    ) : ScanUpdate
     data class DishStarted(val nameOriginal: String) : ScanUpdate
     data class DishFound(val dish: ScannedDish) : ScanUpdate
     data object Saving : ScanUpdate
@@ -114,9 +124,8 @@ class ScanMenuUseCase(
         val choice = request.modelOverride
             ?: effectiveVisionModel(preferences.observeVisionModel().first() ?: VisionModelChoice.DEFAULT, apiKey != null)
         if (choice.needsApiKey && apiKey == null) throw ScanException(ScanError.NO_API_KEY)
-        emit(ScanUpdate.Started(choice))
-
         val existingPlace = request.placeId?.let { scans.place(it) ?: throw ScanException(ScanError.PLACE_MISSING) }
+        emit(ScanUpdate.Started(choice, existingPlace?.name))
 
         val image = try {
             imageProcessor.process(request.sourceUri)
@@ -135,7 +144,7 @@ class ScanMenuUseCase(
             ensureLocationPermission() -> runCatching { locationProvider.currentLocation() }.getOrNull()
             else -> null
         }
-        emit(ScanUpdate.Prepared(hasLocation = location != null))
+        emit(ScanUpdate.Prepared(location))
 
         val model = models.modelFor(choice)
         val dishes = mutableListOf<ScannedDish>()
@@ -146,7 +155,7 @@ class ScanMenuUseCase(
                 when (event) {
                     is ScanEvent.Header -> {
                         header = event
-                        emit(ScanUpdate.Header(event.placeName, event.estimatedDishCount))
+                        emit(ScanUpdate.Header(event.placeName, event.estimatedDishCount, event.currency, event.sourceLang))
                     }
                     is ScanEvent.DishStarted -> emit(ScanUpdate.DishStarted(event.nameOriginal))
                     is ScanEvent.DishScanned -> {
@@ -214,6 +223,7 @@ class ScanMenuUseCase(
                     dishCount = merge.upserts.size,
                     added = merge.added,
                     updated = merge.updated,
+                    dishIds = merge.upserts.associate { normalizeDishName(it.nameOriginal) to it.id },
                 ),
             ),
         )

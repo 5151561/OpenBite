@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.openbite.core.domain.ClearAllDataUseCase
 import com.openbite.core.domain.ClearApiKeyUseCase
+import com.openbite.core.domain.ObserveTasteProfileUseCase
 import com.openbite.core.domain.ObserveVisionSettingsUseCase
+import com.openbite.core.domain.TastePhrases
 import com.openbite.core.domain.SaveApiKeyUseCase
 import com.openbite.core.domain.SetVisionModelUseCase
 import com.openbite.core.domain.VisionSettings
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -35,7 +38,14 @@ class SettingsViewModel(
     private val setVisionModel: SetVisionModelUseCase,
     private val saveApiKey: SaveApiKeyUseCase,
     private val clearApiKey: ClearApiKeyUseCase,
+    observeTaste: ObserveTasteProfileUseCase,
 ) : ViewModel() {
+
+    /** “我的口味”那一行的摘要；没设过为 null。加载完之前也是 null。 */
+    val tasteSummary: StateFlow<String?> = observeTaste()
+        .map { TastePhrases.summary(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
 
     private val state = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = state.asStateFlow()

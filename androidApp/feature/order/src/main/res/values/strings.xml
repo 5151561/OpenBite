@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 点单（03） -->
+    <string name="order_back">返回</string>
+    <string name="order_category_group">菜品分类</string>
+    <string name="order_category_all">全部</string>
+    <string name="order_scanning">还在识别 · %1$d 道</string>
+    <string name="order_scanning_estimated">还在识别 · %1$d / 约 %2$d 道</string>
+    <string name="order_saving">正在存进店铺…</string>
+    <string name="order_scan_failed">识别没完成，只能用已认出的菜点单</string>
+    <string name="order_waiting_dishes">菜单正在识别，菜会一道道出来。</string>
+    <string name="order_decrease">减一份 %1$s</string>
+    <string name="order_increase">加一份 %1$s</string>
+    <string name="order_badge">×%1$d</string>
+    <string name="order_taste_applied">已带上我的口味</string>
+    <string name="order_taste_overridden">这次的口味</string>
+    <string name="order_taste_none">没带口味</string>
+    <string name="order_taste_none_hint">过敏、忌口和辣度都不写</string>
+    <string name="order_taste_change">这次改一下</string>
+    <string name="order_allergen_note">过敏原由模型推测，仅供参考，请向店员确认。</string>
+    <string name="order_count">%1$d 件</string>
+    <string name="order_total_unknown">—</string>
+    <string name="order_show_staff">给店员看</string>
+    <string name="order_unavailable">这次点单已经失效了（App 被系统关掉过），请重新拍菜单。</string>
+    <string name="order_sheet_title">这次改一下</string>
+    <string name="order_sheet_hint">只影响这一单，不改“我的口味”。</string>
+    <string name="order_sheet_apply">用这次的</string>
+    <string name="order_sheet_reset">恢复我的口味</string>
+
+    <!-- 给店员看（04） -->
+    <string name="receipt_title">给店员看</string>
+    <string name="receipt_back">返回点单</string>
+    <string name="receipt_placed">已下单</string>
+    <string name="receipt_edit">返回修改</string>
+    <string name="receipt_waiting">菜单还在识别和保存，存好就下单…</string>
+    <string name="receipt_placing">正在记下这一餐…</string>
+    <string name="receipt_failed">没记下来，请再点一次“已下单”。</string>
+    <string name="receipt_decision_title">菜单没存好</string>
+    <string name="receipt_decision_text">识别或保存失败了。可以重试，存好后这一餐会关联到店铺菜单；也可以只记下菜名和价格。</string>
+    <string name="receipt_retry">重试保存</string>
+    <string name="receipt_without_menu">只记菜名和价格</string>
+    <string name="receipt_cancel">取消</string>
+    <string name="receipt_qty">×%1$d</string>
+</resources>

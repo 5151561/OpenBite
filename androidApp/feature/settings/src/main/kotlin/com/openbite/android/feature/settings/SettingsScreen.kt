@@ -62,7 +62,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * 设置页。U1 只做静态部分和两个数据操作：
- * 口味在 U3b 做；隐私开关现在固定为开。
+ * 隐私开关现在固定为开。
  */
 @Composable
 fun SettingsRoute(
@@ -72,9 +72,11 @@ fun SettingsRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val vision by viewModel.vision.collectAsStateWithLifecycle()
+    val tasteSummary by viewModel.tasteSummary.collectAsStateWithLifecycle()
     SettingsScreen(
         state = state,
         vision = vision,
+        tasteSummary = tasteSummary,
         onBack = onBack,
         onOpenTaste = onOpenTaste,
         onChooseModel = viewModel::chooseModel,
@@ -93,6 +95,7 @@ fun SettingsRoute(
 fun SettingsScreen(
     state: SettingsUiState,
     vision: VisionSettings? = null,
+    tasteSummary: String? = null,
     onBack: () -> Unit = {},
     onOpenTaste: () -> Unit = {},
     onChooseModel: (VisionModelChoice) -> Unit = {},
@@ -156,10 +159,9 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = Spacing.xxl),
         ) {
-            // TODO(U3): 口味档案页（15 我的口味）。
             SegmentedListItem(
                 headline = stringResource(R.string.settings_taste),
-                supporting = stringResource(R.string.settings_taste_hint),
+                supporting = tasteSummary ?: stringResource(R.string.settings_taste_hint),
                 shape = MaterialTheme.shapes.large,
                 modifier = Modifier.padding(horizontal = Spacing.l),
                 leading = { Icon(OpenBiteIcons.Mood, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },

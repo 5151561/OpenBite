@@ -71,15 +71,11 @@ class Navigator(private val state: NavigationState) {
         if (tab != null) state.selectTab(tab) else state.currentStack.add(key)
     }
 
-    /** 把栈顶换成 [key]；如果下面一层已经是 [key]，直接退回去（比如从电子菜单点了补拍）。 */
-    fun replaceTop(key: NavKey) {
+    /** 走完一段流程（比如点完菜）：清掉当前 Tab 上面的页面，回到 [tab] 的根页面。 */
+    fun finishTo(tab: TopLevelDestination) {
         val stack = state.currentStack
-        if (stack.size > 1 && stack[stack.size - 2] == key) {
-            stack.removeLastOrNull()
-        } else {
-            stack.removeLastOrNull()
-            stack.add(key)
-        }
+        while (stack.size > 1) stack.removeLastOrNull()
+        state.selectTab(tab)
     }
 
     fun goBack() {

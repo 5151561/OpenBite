@@ -19,11 +19,14 @@ import com.openbite.android.R
 import com.openbite.android.feature.home.HomeRoute
 import com.openbite.android.feature.memories.MemoriesRoute
 import com.openbite.android.feature.milestone.MilestonesRoute
+import com.openbite.android.feature.order.OrderRoute
+import com.openbite.android.feature.order.ReceiptRoute
 import com.openbite.android.feature.place.PlaceDetailRoute
 import com.openbite.android.feature.place.PlaceMenuRoute
 import com.openbite.android.feature.place.PlacesRoute
 import com.openbite.android.feature.scan.ScanRoute
 import com.openbite.android.feature.settings.SettingsRoute
+import com.openbite.android.feature.settings.TasteRoute
 
 private val tabs = TopLevelDestination.entries.toList()
 
@@ -33,7 +36,7 @@ fun OpenBiteApp() {
     val state = rememberNavigationState(tabs)
     val navigator = remember(state) { Navigator(state) }
 
-    // 以下回调的目标页面在 U3b–U6 才做，现在什么都不做。
+    // 以下回调的目标页面在 U4–U6 才做，现在什么都不做。
     val notYet: () -> Unit = {}
 
     val openPlace: (String) -> Unit = { navigator.navigate(PlaceKey(it)) }
@@ -76,7 +79,7 @@ fun OpenBiteApp() {
         entry<SettingsKey> {
             SettingsRoute(
                 onBack = navigator::goBack,
-                onOpenTaste = notYet, // TODO(U3b): 我的口味
+                onOpenTaste = { navigator.navigate(TasteKey) },
             )
         }
         entry<ScanKey> { key ->
@@ -84,11 +87,27 @@ fun OpenBiteApp() {
                 placeId = key.placeId,
                 fromGallery = key.fromGallery,
                 onBack = navigator::goBack,
-                // TODO(U3b): 识别完改去点单页。
-                onOpenMenu = { placeId -> navigator.replaceTop(PlaceMenuKey(placeId)) },
+                onOrder = { sessionId -> navigator.navigate(OrderKey(sessionId = sessionId)) },
                 onOpenSettings = { navigator.navigate(SettingsKey) },
             )
         }
+        entry<OrderKey> { key ->
+            OrderRoute(
+                sessionId = key.sessionId,
+                placeId = key.placeId,
+                onBack = navigator::goBack,
+                onShowStaff = { navigator.navigate(ReceiptKey(it)) },
+            )
+        }
+        entry<ReceiptKey> { key ->
+            ReceiptRoute(
+                sessionId = key.sessionId,
+                onBack = navigator::goBack,
+                // 草稿出现在“今天”的最近记忆里，补记忆（U4）从那里进。
+                onPlaced = { navigator.finishTo(TopLevelDestination.TODAY) },
+            )
+        }
+        entry<TasteKey> { TasteRoute(onBack = navigator::goBack) }
         entry<PlaceKey> { key ->
             PlaceDetailRoute(
                 placeId = key.placeId,
@@ -104,9 +123,9 @@ fun OpenBiteApp() {
                 placeId = key.placeId,
                 showPhotos = key.showPhotos,
                 onBack = navigator::goBack,
-                onOrder = notYet, // TODO(U3b): 用这份菜单点单
+                onOrder = { navigator.navigate(OrderKey(placeId = key.placeId)) },
                 onRescan = { navigator.navigate(ScanKey(placeId = key.placeId)) },
-                onEditDish = notYet, // TODO(U3b): 改译名或价格
+                onEditDish = notYet, // TODO(U4): 改译名或价格
             )
         }
     }

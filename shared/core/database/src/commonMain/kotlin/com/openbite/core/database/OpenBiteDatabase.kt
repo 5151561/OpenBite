@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
 import com.openbite.core.database.dao.DiningLogDao
+import com.openbite.core.database.dao.DraftDao
 import com.openbite.core.database.dao.MaintenanceDao
 import com.openbite.core.database.dao.MilestoneDao
 import com.openbite.core.database.dao.PlaceDao
@@ -51,6 +52,7 @@ abstract class OpenBiteDatabase : RoomDatabase() {
     abstract fun seedDao(): SeedDao
     abstract fun maintenanceDao(): MaintenanceDao
     abstract fun scanDao(): ScanDao
+    abstract fun draftDao(): DraftDao
 }
 
 // Room 编译器为每个平台生成 actual 实现。

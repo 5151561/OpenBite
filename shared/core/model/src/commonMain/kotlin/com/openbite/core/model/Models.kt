@@ -43,6 +43,8 @@ data class MenuScan(
     val photoPath: String,
     /** 拍摄时间，UTC 毫秒。 */
     val takenAt: Long,
+    /** 菜单原文语言（BCP 47），识别时模型给出。 */
+    val sourceLang: String? = null,
 )
 
 @Serializable

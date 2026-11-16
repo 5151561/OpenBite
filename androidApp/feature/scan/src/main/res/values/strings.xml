@@ -23,7 +23,8 @@
     <string name="scan_rename_title">店名</string>
     <string name="scan_rename_confirm">保存</string>
     <string name="scan_cancel">取消</string>
-    <string name="scan_open_menu">查看电子菜单</string>
+    <string name="scan_order">边识别边点单</string>
+    <string name="scan_order_partial">用已认出的 %1$d 道菜点单</string>
     <string name="scan_allergens_note">过敏原是模型推测，仅供参考，请向店员确认。</string>
 
     <string name="scan_retry">重试</string>

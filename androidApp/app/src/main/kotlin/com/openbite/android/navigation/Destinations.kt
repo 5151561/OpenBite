@@ -28,6 +28,17 @@ data object SettingsKey : NavKey
 @Serializable
 data class ScanKey(val placeId: String? = null, val fromGallery: Boolean = false) : NavKey
 
+/** 点单。[sessionId] 来自识别页（边识别边点单）；为 null 时用 [placeId] 店铺里存好的菜单。 */
+@Serializable
+data class OrderKey(val sessionId: String? = null, val placeId: String? = null) : NavKey
+
+/** 给店员看的小票。 */
+@Serializable
+data class ReceiptKey(val sessionId: String) : NavKey
+
+@Serializable
+data object TasteKey : NavKey
+
 /** 店铺详情，压在当前 Tab 的返回栈上。 */
 @Serializable
 data class PlaceKey(val placeId: String) : NavKey

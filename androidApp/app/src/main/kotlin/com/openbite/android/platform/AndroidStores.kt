@@ -22,7 +22,9 @@ import com.openbite.core.data.platform.LocationProvider
 import com.openbite.core.data.platform.PhotoStore
 import com.openbite.core.data.platform.PreferencesStore
 import com.openbite.core.data.platform.SecretStore
+import com.openbite.core.model.TasteProfile
 import com.openbite.core.model.VisionModelChoice
+import kotlinx.serialization.json.Json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -53,6 +55,19 @@ internal class DataStorePreferencesStore(context: Context) : PreferencesStore {
 
     override suspend fun setVisionModel(choice: VisionModelChoice) {
         store.edit { it[visionModel] = choice.name }
+    }
+
+    override fun observeTasteProfile(): Flow<TasteProfile> = store.data.map { prefs ->
+        prefs[tasteProfile]?.let { runCatching { json.decodeFromString<TasteProfile>(it) }.getOrNull() } ?: TasteProfile.EMPTY
+    }
+
+    override suspend fun setTasteProfile(profile: TasteProfile) {
+        store.edit { it[tasteProfile] = json.encodeToString(profile) }
+    }
+
+    private companion object {
+        val tasteProfile = stringPreferencesKey("taste_profile")
+        val json = Json { ignoreUnknownKeys = true }
     }
 }
 

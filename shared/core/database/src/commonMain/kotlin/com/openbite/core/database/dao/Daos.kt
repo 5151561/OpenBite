@@ -214,3 +214,23 @@ abstract class ScanDao {
         upsertDishes(dishes)
     }
 }
+
+/** 点完菜（“已下单”）生成的草稿记录，整批写入：新店铺（可选）、记录、菜品快照。 */
+@Dao
+abstract class DraftDao {
+    @Insert
+    protected abstract suspend fun insertPlace(place: PlaceEntity)
+
+    @Insert
+    protected abstract suspend fun insertLog(log: DiningLogEntity)
+
+    @Insert
+    protected abstract suspend fun insertItems(items: List<DiningLogItemEntity>)
+
+    @Transaction
+    open suspend fun insert(newPlace: PlaceEntity?, log: DiningLogEntity, items: List<DiningLogItemEntity>) {
+        newPlace?.let { insertPlace(it) }
+        insertLog(log)
+        insertItems(items)
+    }
+}

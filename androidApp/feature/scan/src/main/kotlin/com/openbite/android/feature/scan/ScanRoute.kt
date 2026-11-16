@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -27,6 +28,7 @@ import kotlinx.datetime.todayIn
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import java.io.File
+import java.util.Locale
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -41,7 +43,7 @@ fun ScanRoute(
     placeId: String?,
     fromGallery: Boolean,
     onBack: () -> Unit,
-    onOpenMenu: (placeId: String) -> Unit,
+    onOrder: (sessionId: String) -> Unit,
     onOpenSettings: () -> Unit,
     viewModel: ScanViewModel = koinViewModel(parameters = { parametersOf(placeId) }),
 ) {
@@ -98,7 +100,8 @@ fun ScanRoute(
         }
     }
     // ViewModel 只在等照片时接受；进程重建后这里会把同一张照片再交一次。
-    LaunchedEffect(photoUri) { photoUri?.let { viewModel.onPhoto(it, defaultName) } }
+    val targetLang = remember { phoneLanguageTag() }
+    LaunchedEffect(photoUri) { photoUri?.let { viewModel.onPhoto(it, defaultName, targetLang) } }
     LaunchedEffect(state.askingLocationPermission) {
         if (!state.askingLocationPermission) return@LaunchedEffect
         if (context.isGranted(Manifest.permission.ACCESS_COARSE_LOCATION) || context.isGranted(Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -119,10 +122,14 @@ fun ScanRoute(
             launchSource()
         },
         onOpenSettings = onOpenSettings,
-        onOpenMenu = { state.result?.let { onOpenMenu(it.placeId) } },
+        onOrder = { onOrder(viewModel.sessionId) },
         onRename = viewModel::rename,
     )
 }
+
+/** 译名语言跟着手机：取系统首选语言，拿不到就用简体中文。 */
+private fun phoneLanguageTag(): String =
+    Locale.getDefault().toLanguageTag().takeIf { it.isNotBlank() && it != "und" } ?: "zh-CN"
 
 private fun Context.isGranted(permission: String) =
     ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED

@@ -82,6 +82,7 @@ internal fun MenuScanEntity.toModel() = MenuScan(
     placeId = placeId,
     photoPath = photoPath,
     takenAt = createdAt,
+    sourceLang = sourceLang,
 )
 
 internal fun Dish.toEntity() = DishEntity(

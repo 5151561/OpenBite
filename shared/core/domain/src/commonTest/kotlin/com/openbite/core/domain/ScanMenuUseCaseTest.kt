@@ -14,6 +14,7 @@ import com.openbite.core.model.Money
 import com.openbite.core.model.Place
 import com.openbite.core.model.ScanError
 import com.openbite.core.model.ScanException
+import com.openbite.core.model.TasteProfile
 import com.openbite.core.model.VisionModelChoice
 import com.openbite.core.model.maskApiKey
 import com.openbite.core.network.SampleVisionModel
@@ -48,6 +49,9 @@ class ScanMenuUseCaseTest {
         val value = MutableStateFlow(initial)
         override fun observeVisionModel() = value
         override suspend fun setVisionModel(choice: VisionModelChoice) { value.value = choice }
+        val taste = MutableStateFlow(TasteProfile.EMPTY)
+        override fun observeTasteProfile() = taste
+        override suspend fun setTasteProfile(profile: TasteProfile) { taste.value = profile }
     }
 
     private class FakeRepo(val places: MutableMap<String, Place> = mutableMapOf(), val menus: Map<String, List<Dish>> = emptyMap()) :
@@ -104,13 +108,14 @@ class ScanMenuUseCaseTest {
         val updates = useCase(repo, photos, gps = 35.01 to 135.77).invoke(request()) { asked = true; true }.toList()
 
         assertEquals(ScanUpdate.Started(VisionModelChoice.SAMPLE), updates.first())
-        assertEquals(ScanUpdate.Prepared(hasLocation = true), updates.filterIsInstance<ScanUpdate.Prepared>().single())
+        assertTrue(updates.filterIsInstance<ScanUpdate.Prepared>().single().hasLocation)
         assertFalse(asked, "照片有 GPS 时不该要定位权限")
         assertEquals(7, updates.filterIsInstance<ScanUpdate.DishFound>().size)
         val saved = assertIs<ScanUpdate.Saved>(updates.last()).result
         assertTrue(saved.isNewPlace)
         assertEquals("おばんざい 小春", saved.placeName)
         assertEquals(7, saved.added)
+        assertEquals(saved.dishIds.getValue("湯葉刺し"), repo.saved!!.third.first { it.nameOriginal == "湯葉刺し" }.id)
 
         val (place, scan, dishes) = repo.saved!!
         assertEquals(35.01, place!!.lat)
@@ -128,7 +133,7 @@ class ScanMenuUseCaseTest {
         var asked = 0
         val updates = useCase(repo, current = 34.99 to 135.75).invoke(request()) { asked++; true }.toList()
         assertEquals(1, asked)
-        assertEquals(ScanUpdate.Prepared(hasLocation = true), updates.filterIsInstance<ScanUpdate.Prepared>().single())
+        assertTrue(updates.filterIsInstance<ScanUpdate.Prepared>().single().hasLocation)
         assertEquals(34.99, repo.saved!!.first!!.lat)
     }
 
@@ -136,7 +141,7 @@ class ScanMenuUseCaseTest {
     fun deniedPermissionMeansNoLocation() = runTest {
         val repo = FakeRepo()
         val updates = useCase(repo).invoke(request()) { false }.toList()
-        assertEquals(ScanUpdate.Prepared(hasLocation = false), updates.filterIsInstance<ScanUpdate.Prepared>().single())
+        assertFalse(updates.filterIsInstance<ScanUpdate.Prepared>().single().hasLocation)
         assertEquals(null, repo.saved!!.first!!.lat)
     }
 
@@ -150,6 +155,8 @@ class ScanMenuUseCaseTest {
         assertFalse(asked)
         val result = assertIs<ScanUpdate.Saved>(updates.last()).result
         assertFalse(result.isNewPlace)
+        assertEquals("おばんざい 小春", assertIs<ScanUpdate.Started>(updates.first()).placeName)
+        assertEquals("d-old", result.dishIds["湯葉刺し"])
         assertEquals("p", result.placeId)
         assertEquals(1, result.updated)
         assertEquals(6, result.added)
