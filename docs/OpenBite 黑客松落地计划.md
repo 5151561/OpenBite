@@ -157,7 +157,27 @@ Hackathon-kiroween/
 ./gradlew :androidApp:app:assembleDebug   # 打 debug APK
 ./gradlew :androidApp:app:installDebug    # 装到连着的手机
 ./gradlew test                            # 跑全部 JVM 单元测试
+./gradlew :androidApp:app:assembleRelease # 打 release APK（R8 + 资源压缩，只含 arm64-v8a）
+./gradlew :androidApp:app:installRelease  # 装 release（包名 com.openbite.android，和 debug 的 .debug 并存）
 ```
+
+**Release 构建（H1）：**
+
+- 输出：`androidApp/app/build/outputs/apk/release/app-release.apk`；R8 映射 `androidApp/app/build/outputs/mapping/release/mapping.txt`（看线上崩溃堆栈要用，和 APK 一起留档）。
+- ABI：release 用 `ndk.abiFilters` 只留 `arm64-v8a`，出一个 APK；debug 保留全部 ABI（模拟器能用）。上架时改出 AAB，由商店按设备分发。
+- R8 规则：用到的库（kotlinx.serialization、Room、WorkManager、Koin、Ktor、OkHttp、MapLibre、androidx.appfunctions）都自带规则，`androidApp/app/proguard-rules.pro` 里没有额外的 keep。所有 JSON 都用编译期生成的序列化器。
+- 签名：从环境变量或 `local.properties`（不进 git）读下面四项，四项都有才用正式签名：
+
+  | 变量 | 含义 |
+  | --- | --- |
+  | `RELEASE_STORE_FILE` | keystore 路径（相对路径按仓库根目录算） |
+  | `RELEASE_STORE_PASSWORD` | keystore 密码 |
+  | `RELEASE_KEY_ALIAS` | key 别名 |
+  | `RELEASE_KEY_PASSWORD` | key 密码 |
+
+  缺任何一项就用本机 debug keystore 签，Gradle 打印“release 用的是 debug keystore 签名……不能发布”的警告。这样的包只能自己装来测试。密码不会出现在日志里；keystore 文件（`*.jks` / `*.keystore`）已在 `.gitignore`。
+
+**用 adb 调 AppFunctions：** `adb shell cmd app_function list-app-functions` 列出手机上全部 App 的函数（这台 Android 16 手机上这个命令没有 `--package`，只有 `--user`），在输出里找 `com.openbite.android`。调用用 `execute-app-function --package <包名> --function 'com.openbite.android.assistant.BaseOpenBiteAppFunctionService#<函数名>' --parameters '<json>'`，debug 包名是 `com.openbite.android.debug`，release 是 `com.openbite.android`。
 
 **视觉模型：** `VisionModel` 接口很薄：输入图片和目标语言，输出菜品流。默认接 Claude：开发测试用 Haiku 5.5 控制成本，效果不够再切 Sonnet 5.5。11/20 用测试集各跑一遍，按识别准确率定默认值。
 
