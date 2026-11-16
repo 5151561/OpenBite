@@ -15,6 +15,8 @@ work = "2.12.0"
 # 地图（U5）：MapLibre Native，底图用 OpenFreeMap，不需要 Key。
 maplibre = "13.7.1"
 sqliteJdbc = "3.41.2.2"
+# 系统助手接口（F3）：AppFunctions 运行库和 KSP 编译器，同一版本。
+appfunctions = "1.0.0-rc01"
 coroutines = "1.10.2"
 kotlinxSerialization = "1.9.0"
 kotlinxDatetime = "0.8.0"
@@ -68,6 +70,8 @@ koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmo
 # 只在数据库迁移测试里用：JVM 上的 SQLite 驱动。
 sqlite-jdbc = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqliteJdbc" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-appfunctions = { group = "androidx.appfunctions", name = "appfunctions", version.ref = "appfunctions" }
+androidx-appfunctions-compiler = { group = "androidx.appfunctions", name = "appfunctions-compiler", version.ref = "appfunctions" }
 
 # ---- build-logic 编译用（compileOnly）----
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }

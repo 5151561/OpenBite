@@ -37,6 +37,7 @@ include(":shared:feature:share")
 
 // ---- Android 原生界面 ----
 include(":androidApp:app")
+include(":androidApp:assistant")
 include(":androidApp:core:designsystem")
 include(":androidApp:feature:home")
 include(":androidApp:feature:map")

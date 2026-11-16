@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 系统助手设置里给用户看的一句话：助手能用 OpenBite 做什么。 -->
+    <string name="assistant_display_description">查看纪念日、用餐记录、店铺和菜单，并新建用餐记录草稿（不读照片和小票）</string>
+</resources>

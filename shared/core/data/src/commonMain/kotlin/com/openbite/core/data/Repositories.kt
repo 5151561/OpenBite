@@ -224,6 +224,10 @@ data class NewDraftLog(
     val localDate: String,
     val items: List<NewDraftItem>,
     val createdAt: Long,
+    val milestoneId: String? = null,
+    val note: String? = null,
+    /** 手机助手（AppFunctions）写的记录为 true，界面上标“助手记录”。 */
+    val byAssistant: Boolean = false,
 )
 
 interface DraftRepository {
@@ -242,9 +246,9 @@ internal class RoomDraftRepository(private val db: OpenBiteDatabase) : DraftRepo
                 timezone = log.timezone,
                 localDate = log.localDate,
                 status = "draft",
-                milestoneId = null,
-                note = null,
-                createdBy = "user",
+                milestoneId = log.milestoneId,
+                note = log.note,
+                createdBy = if (log.byAssistant) "assistant" else "user",
                 createdAt = log.createdAt,
                 updatedAt = log.createdAt,
             ),

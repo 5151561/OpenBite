@@ -26,6 +26,7 @@
     <string name="ds_memory_visit_number">第 %1$d 次来</string>
     <string name="ds_memory_with">和%1$s</string>
     <string name="ds_memory_draft">草稿</string>
+    <string name="ds_assistant_mark">助手记录</string>
     <string name="ds_rating_description">%1$s 分</string>
 
     <!-- 纪念日 -->

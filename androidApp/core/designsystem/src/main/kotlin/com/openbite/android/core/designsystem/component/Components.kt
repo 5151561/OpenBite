@@ -219,13 +219,31 @@ fun MemoryListItem(
         modifier = modifier,
         leading = { GlyphAvatar(memory.glyph) },
         trailing = {
-            if (memory.isDraft) {
-                TrailingText(stringResource(R.string.ds_memory_draft))
-            } else {
-                memory.rating?.let { RatingDisplay(formatRating(it)) }
+            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                if (memory.byAssistant) AssistantMark()
+                if (memory.isDraft) {
+                    TrailingText(stringResource(R.string.ds_memory_draft))
+                } else {
+                    memory.rating?.let { RatingDisplay(formatRating(it)) }
+                }
             }
         },
         onClick = onClick,
+    )
+}
+
+/** 小标记“助手记录”：这条记录是手机助手通过 AppFunctions 写的。列表和这一餐页面共用。 */
+@Composable
+fun AssistantMark(modifier: Modifier = Modifier) {
+    Text(
+        text = stringResource(R.string.ds_assistant_mark),
+        modifier = modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .padding(horizontal = 6.dp, vertical = 2.dp),
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSecondaryContainer,
+        maxLines = 1,
     )
 }
 

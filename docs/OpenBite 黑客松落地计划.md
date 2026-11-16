@@ -105,12 +105,12 @@ Hackathon-kiroween/
 │   ├── core/network/                # VisionModel：Claude（SSE 流式）+ 示例菜单  ✅ U3a
 │   ├── core/data/                   # Repository、种子导入、平台接口        ✅ 已建
 │   ├── core/domain/                 # 用例、纪念日计算（含单元测试）         ✅ 已建
-│   └── feature/                     # 各页 ViewModel：home / memories / milestone / settings ✅ U1，place ✅ U2，scan ✅ U3a，order ✅ U3b，meal ✅ U4，map ✅ U5，share ✅ U6
+│   └── feature/                     # 各页 ViewModel：home / memories / milestone / settings ✅ U1，place ✅ U2，scan ✅ U3a，order ✅ U3b，meal ✅ U4，map ✅ U5，share ✅ U6，search ✅ F2
 ├── androidApp/
 │   ├── app/                         # Application、Koin 装配、Navigation 3 外壳、种子 JSON  ✅ 已建
 │   ├── core/designsystem/           # Compose 主题、通用组件、图标           ✅ U1
-│   ├── feature/                     # 各页 Compose：home / memories / milestone / settings ✅ U1，place ✅ U2，scan ✅ U3a，order ✅ U3b，meal ✅ U4，map ✅ U5，share ✅ U6
-│   └── assistant/                   # AppFunctions，只调 AssistantApi       主线之后
+│   ├── feature/                     # 各页 Compose：home / memories / milestone / settings ✅ U1，place ✅ U2，scan ✅ U3a，order ✅ U3b，meal ✅ U4，map ✅ U5，share ✅ U6，search ✅ F2
+│   └── assistant/                   # AppFunctions 服务入口 + 元数据，只调 AssistantApi  ✅ F3
 ├── iosApp/                          # 后半段
 ├── tools/seed/                      # 示例菜单原照片的生成脚本（draw_menus.py）
 └── .kiro/                           # specs、steering、hooks
@@ -149,7 +149,7 @@ Hackathon-kiroween/
 | 时间 / 序列化 | kotlinx-datetime 0.8.0 / kotlinx.serialization 1.9.0 |
 | 网络（11/19 加） | Ktor 3.6.1 |
 | 地图 | MapLibre Native 13.7.1 + OpenFreeMap liberty 样式，不需要 Key ✅ U5 |
-| 助手接口（主线后加） | `androidx.appfunctions` 1.0.0-beta01 起 |
+| 助手接口 | `androidx.appfunctions` 1.0.0-rc01（运行库 + KSP 编译器，服务入口架构） ✅ F3 |
 
 常用命令：
 
@@ -220,19 +220,21 @@ erDiagram
 | 视觉模型 API Key | Android Keystore 加密，不进数据库、不进日志 |
 | 种子数据 | `androidApp/app/src/main/assets/seed/seed.json`，首次启动由 `SeedImporter` 导入 |
 
-## 系统助手接口（主线之后）
+## 系统助手接口 ✅ F3
 
-原方案的 MCP Server 改为 Android AppFunctions。5 个函数的逻辑写在共享的 `AssistantApi` 里，AppFunctions 只做一层薄包装。以后 iOS 的 App Intents 复用同一个 `AssistantApi`。
+原方案的 MCP Server 改为 Android AppFunctions。5 个函数的逻辑写在共享的 `AssistantApi`（`:shared:core:domain` 的 commonMain）里，`:androidApp:assistant` 只做类型转换和错误映射。以后 iOS 的 App Intents 复用同一个 `AssistantApi`。
 
 | 函数 | 参数 | 返回 |
 | --- | --- | --- |
-| `upcomingMilestones` | `daysAhead` | 即将到来的纪念日 + 往年同日的用餐记录 |
-| `queryDiningLogs` | `milestoneId?` / `personName?` / `dateFrom?` / `dateTo?` | 用餐记录，含菜品、评分、短评 |
-| `searchPlaces` | `lat?`, `lon?`, `radiusKm?`, `tags?` | 打过标签的店铺 |
-| `getPlaceMenu` | `placeId` | 结构化菜单 + 历史评分 |
-| `createDiningLog` | `placeId`, `items`, `milestoneId?`, `note?` | 新记录 id |
+| `upcomingMilestones` | `daysAhead`（1–366，0 按 30） | 即将到来的纪念日、关于谁，每个带最多 5 顿以前为它吃的饭 |
+| `queryDiningLogs` | `milestoneId?` / `personName?` / `dateFrom?` / `dateTo?` | 用餐记录，含菜品、评分、短评、菜单价合计；最新在前，最多 50 条 |
+| `searchPlaces` | `lat?`, `lon?`, `radiusKm?`（默认 2，最多 50）, `tags`（全部满足） | 店铺，给了位置按距离排；最多 50 家 |
+| `getPlaceMenu` | `placeId` | 菜单（最多 300 道）+ 每道点过几份、平均分 |
+| `createDiningLog` | `placeId`, `items`（1–30 道，每道 `dishId` 或 `name`，1–20 份）, `milestoneId?`, `note?`（≤ 500 字） | 新记录 id（草稿，时间是现在） |
 
-**权限边界：** 4 个只读，1 个只追加。助手不能修改或删除已有数据。助手写入的记录标 `createdBy = "assistant"`。返回结果不含照片文件和 API Key。
+**权限边界：** 4 个只读，1 个只追加。助手不能修改或删除已有数据，也不能新建店铺。助手写入的记录标 `createdBy = "assistant"`，列表、这一餐和补记忆页上显示「助手记录」。返回结果不含照片、文件路径、小票（照片和实付金额）和 API Key。所有输入都校验，错误映射为 `AppFunctionInvalidArgumentException` / `AppFunctionElementNotFoundException`。
+
+**实现：** `@AppFunctionServiceEntryPoint` 抽象类 `BaseOpenBiteAppFunctionService`，KSP 生成 `OpenBiteAppFunctionService` 和 `assets/openbite_app_function_service.xml`。函数 id 是 `com.openbite.android.assistant.BaseOpenBiteAppFunctionService#<函数名>`。App 说明在 `res/xml/app_metadata.xml` 的 `appfn:instructions`。依赖用 Koin `by inject()`。
 
 **谁能调用：** AppFunctions 需要 Android 16+。Gemini 集成截至 2026 年 5 月还是受信测试者预览（[Android 官方文档](https://developer.android.com/ai/appfunctions)），我们暂不申请。开发和 Demo 用 `adb shell cmd app_function` 验证调用。
 

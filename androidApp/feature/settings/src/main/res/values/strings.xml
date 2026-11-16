@@ -43,7 +43,7 @@
     <string name="settings_reminder_meal_hint">点完菜一个半小时后提醒打分、加照片</string>
     <string name="settings_reminder_milestone">纪念日</string>
     <string name="settings_reminder_milestone_hint">提前几天提醒，附上去年那顿饭</string>
-    <string name="settings_assistant_note">手机上的 AI 助手通过 AppFunctions 查询和新增用餐记录，不能修改或删除。</string>
+    <string name="settings_assistant_note">手机上的 AI 助手通过 AppFunctions 查看纪念日、用餐记录、店铺和菜单，也能新建用餐记录草稿（列表里标「助手记录」）。它不能修改或删除任何记录，也读不到照片、小票和 API Key。</string>
 
     <string name="settings_load_sample">载入示例数据</string>
     <string name="settings_clear_all">清空全部记忆</string>

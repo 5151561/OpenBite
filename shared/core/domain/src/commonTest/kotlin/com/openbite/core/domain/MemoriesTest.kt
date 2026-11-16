@@ -136,4 +136,13 @@ class MemoriesTest {
         assertEquals(215, upcoming.single().daysUntil)
         assertEquals("聚", milestoneGlyph(reunion).char)
     }
+
+    @Test
+    fun assistantLogsAreMarked() {
+        val user = log("a", minato, "2026-11-01T19:00")
+        val assistant = log("b", tori, "2026-11-02T19:00", status = DiningStatus.DRAFT).copy(source = LogSource.ASSISTANT)
+        val byId = summarize(listOf(user, assistant), today).associateBy { it.logId }
+        assertEquals(false, byId.getValue("a").byAssistant)
+        assertEquals(true, byId.getValue("b").byAssistant)
+    }
 }

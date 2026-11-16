@@ -28,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.openbite.android.core.designsystem.component.AssistantMark
 import com.openbite.android.core.designsystem.component.GlyphAvatar
 import com.openbite.android.core.designsystem.component.SectionHeader
 import com.openbite.android.core.designsystem.component.segmentShape
@@ -41,6 +42,7 @@ import com.openbite.core.domain.mealRating
 import com.openbite.core.domain.placeGlyph
 import com.openbite.core.domain.totalOf
 import com.openbite.core.model.DiningStatus
+import com.openbite.core.model.LogSource
 import com.openbite.core.model.PhotoKind
 import com.openbite.core.model.formatMoney
 import com.openbite.core.model.formatRating
@@ -120,6 +122,7 @@ private fun MealContent(detail: MealDetail, currentYear: Int, modifier: Modifier
                         Text(it.joinToString(separator), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
                     }
                 }
+                if (log.source == LogSource.ASSISTANT) AssistantMark()
             }
             val rating = mealRating(log)
             if (rating != null) {

@@ -89,6 +89,7 @@ fun summarize(logs: List<DiningLog>, today: LocalDate): List<MemorySummary> {
             total = log.paidTotal ?: totalOf(log),
             milestoneId = log.milestoneId,
             note = log.note,
+            byAssistant = log.source == com.openbite.core.model.LogSource.ASSISTANT,
         )
     }
 }

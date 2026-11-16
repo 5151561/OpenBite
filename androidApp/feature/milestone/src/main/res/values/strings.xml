@@ -9,7 +9,7 @@
     <string name="milestone_previous_rating">%1$s · %2$s 分</string>
     <string name="milestone_add">新建纪念日</string>
     <string name="milestone_empty">还没有纪念日。</string>
-    <string name="milestone_footer">提醒是手机本地通知，每天检查一次。Android 16 起，手机上的 AI 助手可以通过 AppFunctions 读到去年的记录。</string>
+    <string name="milestone_footer">提醒是手机本地通知，每天检查一次。Android 16 及以上，手机上的 AI 助手可以通过 AppFunctions 查看即将到来的纪念日，以及以前为它吃的饭。</string>
     <string name="milestone_past">已经过去</string>
     <string name="milestone_edit">编辑纪念日</string>
     <string name="milestone_remind_days_none">当天</string>

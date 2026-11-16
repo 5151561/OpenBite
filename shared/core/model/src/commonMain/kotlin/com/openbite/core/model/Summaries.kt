@@ -31,6 +31,8 @@ data class MemorySummary(
     val total: Money?,
     val milestoneId: String?,
     val note: String?,
+    /** 手机助手（AppFunctions）记的，列表里标“助手记录”。 */
+    val byAssistant: Boolean = false,
 )
 
 /** 一个即将到来的纪念日，以及上一次为它吃的那顿饭。 */

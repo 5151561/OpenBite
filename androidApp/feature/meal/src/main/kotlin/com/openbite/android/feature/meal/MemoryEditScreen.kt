@@ -255,7 +255,9 @@ private fun HeaderCard(detail: MealDetail, editor: MealEditor, currentYear: Int,
                     .joinToString(stringResource(DsR.string.ds_separator))
                 Text(meta, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
             }
-            if (log.status == DiningStatus.DRAFT && !editor.dirty) {
+            if (log.source == com.openbite.core.model.LogSource.ASSISTANT) {
+                com.openbite.android.core.designsystem.component.AssistantMark()
+            } else if (log.status == DiningStatus.DRAFT && !editor.dirty) {
                 Text(
                     stringResource(R.string.edit_prefilled),
                     modifier = Modifier.background(scheme.secondaryContainer, MaterialTheme.shapes.small).padding(horizontal = Spacing.s, vertical = Spacing.xxs),

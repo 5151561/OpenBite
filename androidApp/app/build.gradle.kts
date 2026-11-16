@@ -43,6 +43,8 @@ dependencies {
     implementation(project(":androidApp:feature:place"))
     implementation(project(":androidApp:feature:scan"))
     implementation(project(":androidApp:feature:settings"))
+    // 系统助手接口（AppFunctions）：Service 和元数据随清单合并进来，App 代码不直接调用。
+    implementation(project(":androidApp:assistant"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
