@@ -56,15 +56,16 @@ fun MealRoute(
     logId: String,
     onBack: () -> Unit,
     onEdit: () -> Unit,
+    onShare: () -> Unit,
     viewModel: MealViewModel = koinViewModel(parameters = { parametersOf(logId) }),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    MealScreen(state, onBack, onEdit)
+    MealScreen(state, onBack, onEdit, onShare)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MealScreen(state: MealUiState, onBack: () -> Unit = {}, onEdit: () -> Unit = {}) {
+fun MealScreen(state: MealUiState, onBack: () -> Unit = {}, onEdit: () -> Unit = {}, onShare: () -> Unit = {}) {
     val detail = state.detail
     Scaffold(
         topBar = {
@@ -75,6 +76,7 @@ fun MealScreen(state: MealUiState, onBack: () -> Unit = {}, onEdit: () -> Unit =
                 },
                 actions = {
                     if (detail != null) {
+                        IconButton(onClick = onShare) { Icon(OpenBiteIcons.Share, contentDescription = stringResource(R.string.meal_share)) }
                         IconButton(onClick = onEdit) { Icon(OpenBiteIcons.Edit, contentDescription = stringResource(R.string.meal_edit)) }
                     }
                 },

@@ -17,6 +17,23 @@ fun interface SeedSource {
 /** 处理菜单照片：先读 GPS，再按 EXIF 方向转正、缩到长边 [maxLongEdgePx]，重新编码成不带 EXIF 的 JPEG。读不出来时抛异常。 */
 interface ImageProcessor {
     suspend fun process(sourceUri: String, maxLongEdgePx: Int = 1568): ProcessedImage
+
+    /** 把外来的 JPEG 解码再重新编码（去掉一切元数据、缩到长边）。解不开就抛异常。导入店铺文件时用。 */
+    suspend fun reencode(jpegBytes: ByteArray, maxLongEdgePx: Int = 1568): ByteArray
+}
+
+/** 别的 App 交给我们的文件（分享、“打开方式”、文件选择器）。 */
+class IncomingFile(
+    val displayName: String?,
+    val mimeType: String?,
+    /** 超过上限时为 null（[tooLarge] 为 true），不会把整个大文件读进内存。 */
+    val bytes: ByteArray?,
+    val tooLarge: Boolean,
+)
+
+/** 按 content:// 地址读文件，最多读 [maxBytes] 字节。读不了抛异常。 */
+fun interface IncomingFileSource {
+    suspend fun read(uri: String, maxBytes: Long): IncomingFile
 }
 
 class ProcessedImage(
@@ -55,6 +72,9 @@ data class ReminderSettings(val mealFollowUp: Boolean = true, val milestones: Bo
 interface PhotoStore {
     suspend fun save(id: String, jpegBytes: ByteArray): String
     suspend fun delete(relativePath: String)
+
+    /** 读出照片文件；`seed/` 开头的读打包的示例图。读不到返回 null。 */
+    suspend fun read(relativePath: String): ByteArray?
 
     /** 清空全部记忆时一起删掉。 */
     suspend fun deleteAll()

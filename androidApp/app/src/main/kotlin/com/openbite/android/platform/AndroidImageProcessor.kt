@@ -58,6 +58,33 @@ internal class AndroidImageProcessor(private val context: Context) : ImageProces
         ProcessedImage(bytes, exif.lat, exif.lon)
     }
 
+    /**
+     * 外来的 JPEG（导入的店铺文件）：只认 JPEG，尺寸离谱的拒绝（防“小文件大图片”），
+     * 解码后缩到长边再重新编码，原文件里的任何元数据都不会留下。
+     */
+    override suspend fun reencode(jpegBytes: ByteArray, maxLongEdgePx: Int): ByteArray = withContext(Dispatchers.IO) {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(jpegBytes, 0, jpegBytes.size, bounds)
+        require(bounds.outMimeType == "image/jpeg") { "not a jpeg" }
+        require(bounds.outWidth in 1..MAX_SIDE && bounds.outHeight in 1..MAX_SIDE) { "bad size" }
+        var sample = 1
+        while (max(bounds.outWidth, bounds.outHeight) / (sample * 2) >= maxLongEdgePx) sample *= 2
+        val decoded = BitmapFactory.decodeByteArray(jpegBytes, 0, jpegBytes.size, BitmapFactory.Options().apply { inSampleSize = sample })
+            ?: error("decode failed")
+        val scale = maxLongEdgePx.toFloat() / max(decoded.width, decoded.height)
+        val output = if (scale < 1f) {
+            Bitmap.createScaledBitmap(decoded, (decoded.width * scale).toInt().coerceAtLeast(1), (decoded.height * scale).toInt().coerceAtLeast(1), true)
+                .also { if (it !== decoded) decoded.recycle() }
+        } else {
+            decoded
+        }
+        ByteArrayOutputStream().use { stream ->
+            output.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, stream)
+            output.recycle()
+            stream.toByteArray()
+        }
+    }
+
     private fun open(uri: Uri): InputStream =
         context.contentResolver.openInputStream(uri) ?: error("cannot open $uri")
 
@@ -102,5 +129,8 @@ internal class AndroidImageProcessor(private val context: Context) : ImageProces
 
     private companion object {
         const val JPEG_QUALITY = 85
+
+        /** 导入的照片单边最多这么多像素。 */
+        const val MAX_SIDE = 12_000
     }
 }

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <!-- 只开放 cache/scan/ 给系统相机写照片。 -->
+    <!-- cache/scan/：系统相机写照片。 -->
     <cache-path name="scan" path="scan/" />
+    <!-- 分享出去的图片和店铺文件，只放在 cache/share/。 -->
+    <cache-path name="share" path="share/" />
 </paths>

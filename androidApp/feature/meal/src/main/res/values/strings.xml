@@ -7,6 +7,7 @@
     <string name="edit_later">稍后</string>
     <string name="edit_save_done">存入记忆</string>
     <string name="edit_save">保存</string>
+    <string name="edit_share">分享这一餐</string>
     <string name="edit_prefilled">已自动预填</string>
     <string name="edit_meal_rating">这一餐的总评分</string>
     <string name="edit_star">%1$d 星</string>
@@ -42,6 +43,7 @@
     <!-- 一餐（只读） -->
     <string name="meal_back">返回</string>
     <string name="meal_edit">编辑</string>
+    <string name="meal_share">分享这一餐</string>
     <string name="meal_items">点了什么</string>
     <string name="meal_photos">照片</string>
     <string name="meal_paid">小票实付 %1$s</string>

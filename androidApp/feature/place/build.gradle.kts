@@ -6,4 +6,6 @@ plugins {
 dependencies {
     implementation(project(":shared:feature:place"))
     implementation(project(":shared:core:domain"))
+    // 导入店铺：系统文件选择器。
+    implementation(libs.androidx.activity.compose)
 }

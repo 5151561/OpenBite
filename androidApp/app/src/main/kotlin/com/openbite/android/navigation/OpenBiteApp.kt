@@ -10,7 +10,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -32,6 +36,9 @@ import com.openbite.android.feature.place.PlaceMenuRoute
 import com.openbite.android.feature.place.PlacesRoute
 import com.openbite.android.feature.scan.ScanRoute
 import com.openbite.android.feature.settings.SettingsRoute
+import com.openbite.android.feature.share.ImportSheetRoute
+import com.openbite.android.feature.share.ShareMealRoute
+import com.openbite.android.feature.share.SharePlaceRoute
 import com.openbite.android.feature.settings.TasteRoute
 
 private val tabs = TopLevelDestination.entries.toList()
@@ -43,8 +50,15 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
     val navigator = remember(state) { Navigator(state) }
 
     // 从通知点进来：饭后提醒 -> 今天 Tab 上开补记忆；纪念日 -> 纪念日 Tab（有去年的记录就打开它）。
+    // 正在导入的店铺文件；导入页盖在店铺列表上（设计稿 18）。
+    var importUri by rememberSaveable { mutableStateOf<String?>(null) }
+
     LaunchedEffect(deepLink) {
         when (deepLink) {
+            is DeepLink.ImportPlace -> {
+                navigator.openFresh(TopLevelDestination.PLACES, null)
+                importUri = deepLink.uri
+            }
             is DeepLink.EditMeal -> navigator.openFresh(TopLevelDestination.TODAY, MemoryEditKey(deepLink.logId))
             is DeepLink.Milestones -> navigator.openFresh(TopLevelDestination.MILESTONES, deepLink.logId?.let { MealKey(it) })
             null -> return@LaunchedEffect
@@ -52,7 +66,7 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
         onDeepLinkHandled()
     }
 
-    // 以下回调的目标页面在 U5–U6 或之后才做，现在什么都不做。
+    // 以下回调的目标页面还没排期（见各行 TODO），现在什么都不做。
     val notYet: () -> Unit = {}
 
     val openPlace: (String) -> Unit = { navigator.navigate(PlaceKey(it)) }
@@ -86,6 +100,7 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
                 onSearch = notYet, // TODO: 搜索店铺（设计稿未定）
                 onOpenMap = { navigator.navigate(MapKey()) },
                 onScanMenu = { navigator.navigate(ScanKey()) },
+                onImportFile = { importUri = it },
             )
         }
         entry<MilestonesKey> {
@@ -132,6 +147,7 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
                 logId = key.logId,
                 onDone = navigator::goBack,
                 onOpenReceipt = { navigator.navigate(ReceiptArchiveKey(key.logId)) },
+                onShare = { navigator.navigate(ShareMealKey(key.logId)) },
             )
         }
         entry<MealKey> { key ->
@@ -139,8 +155,11 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
                 logId = key.logId,
                 onBack = navigator::goBack,
                 onEdit = { navigator.navigate(MemoryEditKey(key.logId)) },
+                onShare = { navigator.navigate(ShareMealKey(key.logId)) },
             )
         }
+        entry<ShareMealKey> { key -> ShareMealRoute(logId = key.logId, onBack = navigator::goBack) }
+        entry<SharePlaceKey> { key -> SharePlaceRoute(placeId = key.placeId, onBack = navigator::goBack) }
         entry<MapKey> { key ->
             MapRoute(
                 focusPlaceId = key.focusPlaceId,
@@ -156,7 +175,7 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
                 placeId = key.placeId,
                 onBack = navigator::goBack,
                 onOpenMenu = { navigator.navigate(PlaceMenuKey(key.placeId)) },
-                onShare = notYet, // TODO(U6): 分享店铺
+                onShare = { navigator.navigate(SharePlaceKey(key.placeId)) },
                 onScanMenu = { navigator.navigate(ScanKey(placeId = key.placeId)) },
                 onOpenMeal = { logId, isDraft -> openMemory(logId, isDraft) },
                 onOpenMap = { navigator.navigate(MapKey(focusPlaceId = key.placeId)) },
@@ -197,6 +216,17 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
             entries = state.toDecoratedEntries(entryProvider),
             onBack = navigator::goBack,
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
+        )
+    }
+
+    importUri?.let { uri ->
+        ImportSheetRoute(
+            uri = uri,
+            onDismiss = { importUri = null },
+            onImported = { placeId ->
+                importUri = null
+                navigator.openFresh(TopLevelDestination.PLACES, PlaceKey(placeId))
+            },
         )
     }
 }

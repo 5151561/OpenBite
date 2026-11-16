@@ -55,7 +55,7 @@ import com.openbite.feature.milestone.MilestonesViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import com.openbite.android.core.designsystem.R as DsR
 
-/** 纪念日 Tab。店铺页、提醒设置和新建纪念日在后面的步骤才做，现在由 app 传空实现。 */
+/** 纪念日 Tab。提前天数设置和新建纪念日还没做（app 传空实现）。 */
 @Composable
 fun MilestonesRoute(
     onOpenPlace: (placeId: String) -> Unit,

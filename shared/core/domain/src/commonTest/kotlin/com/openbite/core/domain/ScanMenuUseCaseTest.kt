@@ -68,11 +68,12 @@ class ScanMenuUseCaseTest {
         override suspend fun save(newPlace: Place?, scan: NewMenuScan, dishes: List<Dish>) { saved = Triple(newPlace, scan, dishes) }
     }
 
-    private class FakePhotos : PhotoStore {
+    internal class FakePhotos : PhotoStore {
         val files = mutableMapOf<String, ByteArray>()
         override suspend fun save(id: String, jpegBytes: ByteArray) = "photos/$id.jpg".also { files[it] = jpegBytes }
         override suspend fun delete(relativePath: String) { files.remove(relativePath) }
         override suspend fun deleteAll() = files.clear()
+        override suspend fun read(relativePath: String) = files[relativePath]
     }
 
     private val noNetwork = HttpClient(MockEngine { respondError(HttpStatusCode.Unauthorized) })
@@ -91,6 +92,8 @@ class ScanMenuUseCaseTest {
             imageProcessor = object : ImageProcessor {
                 override suspend fun process(sourceUri: String, maxLongEdgePx: Int) =
                     ProcessedImage(byteArrayOf(9), gps?.first, gps?.second)
+
+                override suspend fun reencode(jpegBytes: ByteArray, maxLongEdgePx: Int) = jpegBytes
             },
             locationProvider = LocationProvider { current },
             photoStore = photos,

@@ -31,11 +31,16 @@ fun rememberLocalPhoto(photoPath: String): State<PhotoLoad> {
     }
 }
 
+private fun openLocalPhoto(context: Context, photoPath: String) = if (photoPath.startsWith(SEED_PREFIX)) {
+    context.assets.open(photoPath)
+} else {
+    File(context.filesDir, photoPath).inputStream()
+}
+
+/** 读照片的原始字节（分享卡片要自己解码）。读不到返回 null。在 IO 线程调用。 */
+fun readLocalPhotoBytes(context: Context, photoPath: String): ByteArray? =
+    runCatching { openLocalPhoto(context, photoPath).use { it.readBytes() } }.getOrNull()
+
 private fun decode(context: Context, photoPath: String): PhotoLoad = runCatching {
-    val stream = if (photoPath.startsWith(SEED_PREFIX)) {
-        context.assets.open(photoPath)
-    } else {
-        File(context.filesDir, photoPath).inputStream()
-    }
-    stream.use { BitmapFactory.decodeStream(it) }?.asImageBitmap()
+    openLocalPhoto(context, photoPath).use { BitmapFactory.decodeStream(it) }?.asImageBitmap()
 }.getOrNull()?.let { PhotoLoad.Loaded(it) } ?: PhotoLoad.Failed

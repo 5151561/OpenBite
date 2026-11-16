@@ -3,6 +3,7 @@ package com.openbite.android.platform
 import android.content.Context
 import androidx.room.RoomDatabase
 import com.openbite.core.data.platform.ImageProcessor
+import com.openbite.core.data.platform.IncomingFileSource
 import com.openbite.core.data.platform.LocationProvider
 import com.openbite.core.data.platform.PhotoStore
 import com.openbite.core.data.platform.PreferencesStore
@@ -31,6 +32,7 @@ val androidPlatformModule = module {
     single<SecretStore> { KeystoreSecretStore(androidContext()) }
     single<PreferencesStore> { DataStorePreferencesStore(androidContext()) }
     single<ReminderScheduler> { WorkManagerReminderScheduler(androidContext()) }
+    single<IncomingFileSource> { ContentResolverFileSource(androidContext()) }
 }
 
 private class AssetSeedSource(private val context: Context) : SeedSource {

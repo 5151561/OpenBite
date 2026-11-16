@@ -78,7 +78,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import com.openbite.android.core.designsystem.R as DsR
 
-/** 店铺详情（设计稿 08）。分享（U6）现在由 app 传空实现；加标签、删标签在这里直接做。 */
+/** 店铺详情（设计稿 08）。加标签、删标签在这里直接做。 */
 @Composable
 fun PlaceDetailRoute(
     placeId: String,

@@ -294,3 +294,22 @@ internal class RoomMealRepository(private val db: OpenBiteDatabase) : MealReposi
     private fun NewPhoto.toEntity(logId: String) =
         PhotoEntity(id, logId, path, takenAt, if (kind == PhotoKind.RECEIPT) "receipt" else "meal")
 }
+
+/** 导入店铺文件。 */
+interface PlaceImportRepository {
+    /** 一个事务：店铺（含标签）、菜单原照片、菜品。 */
+    suspend fun importPlace(place: Place, scans: List<NewMenuScan>, dishes: List<Dish>, createdAt: Long)
+}
+
+internal class RoomPlaceImportRepository(private val db: OpenBiteDatabase) : PlaceImportRepository {
+    override suspend fun importPlace(place: Place, scans: List<NewMenuScan>, dishes: List<Dish>, createdAt: Long) {
+        db.importDao().insert(
+            place = place.toEntity(createdAt),
+            tags = place.tags.distinct().map { com.openbite.core.database.entity.PlaceTagEntity(place.id, it) },
+            scans = scans.map {
+                MenuScanEntity(it.id, it.placeId, it.photoPath, it.model, it.sourceLang, it.targetLang, it.rawOutput, it.createdAt)
+            },
+            dishes = dishes.map { it.toEntity() },
+        )
+    }
+}

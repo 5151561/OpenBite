@@ -29,6 +29,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -89,6 +90,7 @@ fun MemoryEditRoute(
     logId: String,
     onDone: () -> Unit,
     onOpenReceipt: () -> Unit,
+    onShare: () -> Unit,
     viewModel: MemoryEditViewModel = koinViewModel(parameters = { parametersOf(logId) }),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -122,6 +124,7 @@ fun MemoryEditRoute(
         onRemovePhoto = viewModel::removePhoto,
         onAddCompanion = viewModel::addCompanion,
         onOpenReceipt = onOpenReceipt,
+        onShare = onShare,
     )
     if (confirmDiscard) {
         AlertDialog(
@@ -152,6 +155,7 @@ fun MemoryEditScreen(
     onRemovePhoto: (String) -> Unit = {},
     onAddCompanion: (String) -> Unit = {},
     onOpenReceipt: () -> Unit = {},
+    onShare: () -> Unit = {},
 ) {
     val detail = state.detail
     val editor = state.editor
@@ -173,20 +177,26 @@ fun MemoryEditScreen(
         bottomBar = {
             if (editor != null) {
                 Surface(color = MaterialTheme.colorScheme.surface) {
-                    Button(
-                        onClick = { onSave(true) },
-                        enabled = !state.saving,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .navigationBarsPadding()
-                            .padding(horizontal = Spacing.l, vertical = Spacing.m)
-                            .height(48.dp),
+                    Row(
+                        Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = Spacing.l, vertical = Spacing.m),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
                     ) {
-                        if (state.saving) {
-                            CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
-                            Spacer(Modifier.width(Spacing.s))
+                        Button(
+                            onClick = { onSave(true) },
+                            enabled = !state.saving,
+                            modifier = Modifier.weight(1f).height(48.dp),
+                        ) {
+                            if (state.saving) {
+                                CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
+                                Spacer(Modifier.width(Spacing.s))
+                            }
+                            Text(stringResource(if (isDraft) R.string.edit_save_done else R.string.edit_save), style = MaterialTheme.typography.titleMedium)
                         }
-                        Text(stringResource(if (isDraft) R.string.edit_save_done else R.string.edit_save), style = MaterialTheme.typography.titleMedium)
+                        // 分享用的是已经存下的内容（设计稿 05 右下角）。
+                        FilledTonalIconButton(onClick = onShare, modifier = Modifier.size(48.dp)) {
+                            Icon(OpenBiteIcons.Share, contentDescription = stringResource(R.string.edit_share))
+                        }
                     }
                 }
             }

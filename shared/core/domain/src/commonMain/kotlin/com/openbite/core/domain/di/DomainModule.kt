@@ -82,6 +82,9 @@ val sharedCoreModule: Module = module {
     factory { com.openbite.core.domain.AddPlaceTagUseCase(get()) }
     factory { com.openbite.core.domain.RemovePlaceTagUseCase(get()) }
     factory { com.openbite.core.domain.ObserveAllTagsUseCase(get()) }
+    factory { com.openbite.core.domain.ExportPlaceUseCase(get(), get()) }
+    factory { com.openbite.core.domain.OpenSharedPlaceUseCase(get()) }
+    factory { com.openbite.core.domain.ImportPlaceUseCase(get(), get(), get(), get(), get()) }
     factory { ObserveTasteProfileUseCase(get()) }
     factory { SaveTasteProfileUseCase(get()) }
 }

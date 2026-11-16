@@ -86,7 +86,7 @@ import com.openbite.feature.place.PlaceMenuViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-/** 电子菜单与原照片（设计稿 13 / 14）。点单、补拍、改译名在 U3 才做，现在由 app 传空实现。 */
+/** 电子菜单与原照片（设计稿 13 / 14）。改译名或价格还没做（app 传空实现）。 */
 @Composable
 fun PlaceMenuRoute(
     placeId: String,

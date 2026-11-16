@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 分享这一餐（16） -->
+    <string name="share_meal_title">分享这一餐</string>
+    <string name="share_back">返回</string>
+    <string name="share_preview_description">分享图片预览</string>
+    <string name="share_photo">照片</string>
+    <string name="share_photo_none">不放照片</string>
+    <string name="share_photo_empty">这一餐还没有照片，卡片上就不放照片。</string>
+    <string name="share_color">图片底色</string>
+    <string-array name="share_color_names">
+        <item>深青色</item>
+        <item>浅青色</item>
+        <item>浅蓝色</item>
+        <item>浅灰色</item>
+    </string-array>
+    <string name="share_show_place">显示店名和城市</string>
+    <string name="share_show_amount">显示金额和人数</string>
+    <string name="share_save_image">存为图片</string>
+    <string name="share_send">分享</string>
+    <string name="share_saved">已存到相册的 OpenBite 文件夹</string>
+    <string name="share_save_failed">没存成功，请重试</string>
+    <string name="share_save_old_android">这台手机的系统版本需要存储权限才能存图，直接用“分享”吧。</string>
+    <string name="share_meal_text">在 %1$s 吃的这一顿，用 OpenBite 记下来的。</string>
+    <string name="share_meal_text_no_place">用 OpenBite 记下来的一顿饭。</string>
+    <string name="share_chooser">分享到</string>
+
+    <!-- 画在卡片上的字 -->
+    <string name="card_place_date">%1$s · %2$s</string>
+    <string name="card_more_dishes">等 %1$d 道</string>
+    <string name="card_amount_people">%1$s · %2$d 人</string>
+    <string name="card_brand">OpenBite</string>
+
+    <!-- 分享店铺（17） -->
+    <string name="share_place_title">分享店铺</string>
+    <string name="share_place_menu_chip">电子菜单 %1$d 道</string>
+    <string name="share_place_location_chip">位置</string>
+    <string name="share_place_include">带上什么</string>
+    <string name="share_place_menu">电子菜单</string>
+    <string name="share_place_menu_hint">%1$d 道菜，含译名和价格</string>
+    <string name="share_place_location">位置</string>
+    <string name="share_place_location_hint">%1$s · 导入后会出现在地图上</string>
+    <string name="share_place_no_location">这家店还没有位置</string>
+    <string name="share_place_tags">标签</string>
+    <string name="share_place_no_tags">没有标签</string>
+    <string name="share_place_photos">菜单原照片</string>
+    <string name="share_place_photos_hint">%1$d 张，文件会大一些</string>
+    <string name="share_place_no_photos">没有原照片</string>
+    <string name="share_place_private">我的记录、评分、纪念日</string>
+    <string name="share_place_private_value">不会分享</string>
+    <string name="share_place_note">对方用 OpenBite 打开这个文件就能导入，直接点单，不用再拍一次菜单。</string>
+    <string name="share_place_send">分享店铺文件</string>
+    <string name="share_place_preview">看看对方收到的样子</string>
+    <string name="share_place_text">%1$s 的菜单，用 OpenBite 打开就能直接点单。</string>
+    <string name="share_place_failed">店铺文件没生成出来，请重试</string>
+
+    <!-- 导入店铺（18） -->
+    <string name="import_title">朋友分享了一家店</string>
+    <string name="import_preview_title">对方会看到这个</string>
+    <string name="import_reading">正在读店铺文件…</string>
+    <string name="import_includes">包含</string>
+    <string name="import_excludes">不包含</string>
+    <string name="import_menu">电子菜单</string>
+    <string name="import_menu_count">%1$d 道菜</string>
+    <string name="import_location">位置和标签</string>
+    <string name="import_location_yes">会出现在地图上</string>
+    <string name="import_location_tags_only">只有标签，没有位置</string>
+    <string name="import_photos">菜单原照片</string>
+    <string name="import_photos_count">%1$d 张</string>
+    <string name="import_photos_none">没有附带</string>
+    <string name="import_note">导入后是一家全新的店，不带对方的任何记录。点单时照常带上你自己的口味。</string>
+    <string name="import_cancel">取消</string>
+    <string name="import_confirm">导入到我的店铺</string>
+    <string name="import_close">关闭</string>
+    <string name="import_failed_title">导入不了这个文件</string>
+    <string name="import_error_not_openbite">这不是 OpenBite 的店铺文件。</string>
+    <string name="import_error_too_large">文件太大了（上限 20 MB）。</string>
+    <string name="import_error_damaged">文件坏了，或者不是 OpenBite 生成的。</string>
+    <string name="import_error_unsafe">文件里有不安全的内容，已拒绝。</string>
+    <string name="import_error_version">这个文件来自更新版本的 OpenBite，请先更新 App。</string>
+    <string name="import_error_invalid">文件里的店铺信息不对（名字、位置或价格超出范围）。</string>
+    <string name="import_error_photo">文件里的菜单照片读不出来。</string>
+    <string name="import_error_read">读不了这个文件，请重新分享一次。</string>
+    <string name="import_error_save">没存进去，请重试。</string>
+    <string name="places_import">导入店铺</string>
+    <string name="places_more">更多</string>
+</resources>

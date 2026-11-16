@@ -32,6 +32,7 @@ include(":shared:feature:order")
 include(":shared:feature:place")
 include(":shared:feature:scan")
 include(":shared:feature:settings")
+include(":shared:feature:share")
 
 // ---- Android 原生界面 ----
 include(":androidApp:app")
@@ -45,3 +46,4 @@ include(":androidApp:feature:order")
 include(":androidApp:feature:place")
 include(":androidApp:feature:scan")
 include(":androidApp:feature:settings")
+include(":androidApp:feature:share")

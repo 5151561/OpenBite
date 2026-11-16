@@ -23,7 +23,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -43,17 +50,22 @@ import com.openbite.feature.place.PlacesUiState
 import com.openbite.feature.place.PlacesViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
-/** 店铺 Tab（设计稿 12）。搜索、地图（U5）、拍菜单（U3）现在由 app 传空实现。 */
+/** 店铺 Tab（设计稿 12）。右上角菜单里可以导入朋友分享的店铺文件。 */
 @Composable
 fun PlacesRoute(
     onOpenPlace: (placeId: String) -> Unit,
     onSearch: () -> Unit,
     onOpenMap: () -> Unit,
     onScanMenu: () -> Unit,
+    onImportFile: (uri: String) -> Unit,
     viewModel: PlacesViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    PlacesScreen(state, onOpenPlace, onSearch, onOpenMap, onScanMenu)
+    // “导入店铺”：用系统文件选择器（SAF）选 .openbite；类型很多 App 给不准，所以不限类型，交给导入页校验。
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { onImportFile(it.toString()) }
+    }
+    PlacesScreen(state, onOpenPlace, onSearch, onOpenMap, onScanMenu, onImport = { picker.launch(arrayOf("*/*")) })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,7 +76,9 @@ fun PlacesScreen(
     onSearch: () -> Unit = {},
     onOpenMap: () -> Unit = {},
     onScanMenu: () -> Unit = {},
+    onImport: () -> Unit = {},
 ) {
+    var menuOpen by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -72,6 +86,20 @@ fun PlacesScreen(
                 actions = {
                     IconButton(onClick = onSearch) {
                         Icon(OpenBiteIcons.Search, contentDescription = stringResource(R.string.places_search))
+                    }
+                    Box {
+                        IconButton(onClick = { menuOpen = true }) {
+                            Icon(OpenBiteIcons.MoreVert, contentDescription = stringResource(R.string.places_more))
+                        }
+                        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.places_import)) },
+                                onClick = {
+                                    menuOpen = false
+                                    onImport()
+                                },
+                            )
+                        }
                     }
                 },
             )

@@ -43,7 +43,7 @@ import com.openbite.feature.memories.filterMemories
 import com.openbite.feature.memories.groupByMonth
 import org.koin.compose.viewmodel.koinViewModel
 
-/** 记忆 Tab。搜索、拍菜单、点开记录的目标页面在后面的步骤才做，现在由 app 传空实现。 */
+/** 记忆 Tab。搜索还没做（app 传空实现）。 */
 @Composable
 fun MemoriesRoute(
     onSearch: () -> Unit,

@@ -333,3 +333,27 @@ abstract class MealDao {
         updateTotal(logId, totalMinor, currency, updatedAt)
     }
 }
+
+/** 导入店铺文件：新店铺、标签、菜单原照片、菜品，一个事务。 */
+@Dao
+abstract class ImportDao {
+    @Insert
+    protected abstract suspend fun insertPlace(place: PlaceEntity)
+
+    @Insert
+    protected abstract suspend fun insertTags(tags: List<PlaceTagEntity>)
+
+    @Insert
+    protected abstract suspend fun insertScans(scans: List<MenuScanEntity>)
+
+    @Insert
+    protected abstract suspend fun insertDishes(dishes: List<DishEntity>)
+
+    @Transaction
+    open suspend fun insert(place: PlaceEntity, tags: List<PlaceTagEntity>, scans: List<MenuScanEntity>, dishes: List<DishEntity>) {
+        insertPlace(place)
+        if (tags.isNotEmpty()) insertTags(tags)
+        if (scans.isNotEmpty()) insertScans(scans)
+        if (dishes.isNotEmpty()) insertDishes(dishes)
+    }
+}

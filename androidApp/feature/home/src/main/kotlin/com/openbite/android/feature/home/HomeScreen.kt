@@ -61,7 +61,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import com.openbite.android.core.designsystem.R as DsR
 
 /**
- * 首页（今天）。拍菜单、从相册选、点开记忆的目标页面在 U3/U4 才做，现在由 app 传空实现。
+ * 首页（今天）。跳转都由 app 传进来。
  */
 @Composable
 fun HomeRoute(

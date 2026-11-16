@@ -59,8 +59,19 @@ data class MealKey(val logId: String) : NavKey
 @Serializable
 data class ReceiptArchiveKey(val logId: String) : NavKey
 
-/** 从通知进来要去的地方。 */
+/** 分享这一餐（16）。 */
+@Serializable
+data class ShareMealKey(val logId: String) : NavKey
+
+/** 分享店铺（17）。 */
+@Serializable
+data class SharePlaceKey(val placeId: String) : NavKey
+
+/** 从通知或别的 App 进来要去的地方。 */
 sealed interface DeepLink {
+    /** 收到一个 .openbite 文件（content:// 地址）。 */
+    data class ImportPlace(val uri: String) : DeepLink
+
     data class EditMeal(val logId: String) : DeepLink
 
     /** [logId]：去年那顿饭，有就打开。 */

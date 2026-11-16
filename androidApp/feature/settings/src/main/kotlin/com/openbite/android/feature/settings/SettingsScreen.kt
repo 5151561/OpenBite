@@ -178,7 +178,7 @@ fun SettingsScreen(
             SectionHeader(stringResource(R.string.settings_model_section), color = MaterialTheme.colorScheme.primary)
             if (vision != null) VisionSection(vision, state.isWorking, onChooseModel, onSaveKey, onClearKey)
 
-            // 去 EXIF 是强制的；保留经纬度的开关在 U3 接 DataStore，现在固定为开。
+            // TODO: 去 EXIF 是强制的（开关只是展示）；“保留经纬度”还没接 DataStore，现在固定为开。
             SectionHeader(stringResource(R.string.settings_privacy_section), color = MaterialTheme.colorScheme.primary)
             SegmentedList {
                 SegmentedListItem(

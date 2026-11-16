@@ -159,7 +159,8 @@ internal class KeystoreSecretStore(context: Context) : SecretStore {
 
 /** 菜单原照片存在 filesDir/photos/<id>.jpg，数据库只存相对路径。 */
 internal class FilePhotoStore(context: Context) : PhotoStore {
-    private val root = context.applicationContext.filesDir
+    private val appContext = context.applicationContext
+    private val root = appContext.filesDir
 
     override suspend fun save(id: String, jpegBytes: ByteArray): String = withContext(Dispatchers.IO) {
         require(id.matches(Regex("[A-Za-z0-9-]+"))) { "bad photo id" }
@@ -179,12 +180,24 @@ internal class FilePhotoStore(context: Context) : PhotoStore {
         }
     }
 
+    override suspend fun read(relativePath: String): ByteArray? = withContext(Dispatchers.IO) {
+        runCatching {
+            if (relativePath.startsWith(SEED_PREFIX)) {
+                appContext.assets.open(relativePath).use { it.readBytes() }
+            } else {
+                val file = File(root, relativePath).canonicalFile
+                if (!file.path.startsWith(File(root, DIR).canonicalPath)) null else file.readBytes()
+            }
+        }.getOrNull()
+    }
+
     override suspend fun deleteAll() {
         withContext(Dispatchers.IO) { File(root, DIR).deleteRecursively() }
     }
 
     private companion object {
         const val DIR = "photos"
+        const val SEED_PREFIX = "seed/"
     }
 }
 

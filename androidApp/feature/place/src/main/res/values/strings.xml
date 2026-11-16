@@ -3,6 +3,8 @@
     <!-- 店铺列表（12） -->
     <string name="places_title">店铺</string>
     <string name="places_search">搜索店铺</string>
+    <string name="places_more">更多</string>
+    <string name="places_import">导入店铺</string>
     <string name="places_count">%1$d 家店 · 菜单都留着</string>
     <string name="places_on_map">在地图上看</string>
     <string name="places_meta">菜单 %1$d 道 · 原照片 %2$d 张 · 来过 %3$d 次</string>
