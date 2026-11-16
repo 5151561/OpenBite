@@ -6,6 +6,7 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import com.openbite.android.core.designsystem.R
 import com.openbite.core.model.MemorySummary
+import com.openbite.core.model.Milestone
 import com.openbite.core.model.MilestoneHighlight
 import com.openbite.core.model.MilestoneType
 import com.openbite.core.model.Recurrence
@@ -24,6 +25,12 @@ fun monthDay(date: LocalDate, currentYear: Int? = null): String {
     }
 }
 
+/** 总是带年份：“2026年10月3日”。 */
+@Composable
+@ReadOnlyComposable
+fun fullDate(date: LocalDate): String =
+    stringResource(R.string.ds_year_month_day, date.year, date.month.ordinal + 1, date.day)
+
 /** “11月27日 周五”。 */
 @Composable
 @ReadOnlyComposable
@@ -36,7 +43,7 @@ fun monthDayWeekday(date: LocalDate): String =
 fun monthHeader(year: Int, month: Int, currentYear: Int): String =
     if (year == currentYear) stringResource(R.string.ds_month, month) else stringResource(R.string.ds_year_month, year, month)
 
-private fun LocalTime.hhmm(): String = "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
+fun LocalTime.hhmm(): String = "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
 
 /** 中文计数：2 -> 两，12 -> 十二，21 -> 二十一。只用于“N 周年”。 */
 @Composable
@@ -55,9 +62,13 @@ fun chineseCount(n: Int): String {
 /** “恋爱纪念日”第 2 年显示成“恋爱两周年”；其余纪念日原样显示标题。 */
 @Composable
 @ReadOnlyComposable
-fun milestoneTitle(highlight: MilestoneHighlight): String {
-    val milestone = highlight.upcoming.milestone
-    val years = highlight.upcoming.yearsSince
+fun milestoneTitle(highlight: MilestoneHighlight): String =
+    milestoneTitle(highlight.upcoming.milestone, highlight.upcoming.yearsSince)
+
+/** 某一年的纪念日标题：“恋爱纪念日”第 1 年 -> “恋爱一周年”。 */
+@Composable
+@ReadOnlyComposable
+fun milestoneTitle(milestone: Milestone, years: Int): String {
     val suffix = stringResource(R.string.ds_anniversary_suffix)
     return if (milestone.type == MilestoneType.ANNIVERSARY && years > 0 && milestone.title.endsWith(suffix)) {
         stringResource(R.string.ds_anniversary_title, milestone.title.removeSuffix(suffix), chineseCount(years))

@@ -105,15 +105,16 @@ Hackathon-kiroween/
 │   ├── core/network/                # VisionModel 接口（Claude 实现 11/19）  ✅ 已建接口
 │   ├── core/data/                   # Repository、种子导入、平台接口        ✅ 已建
 │   ├── core/domain/                 # 用例、纪念日计算（含单元测试）         ✅ 已建
-│   └── feature/                     # 各页 ViewModel：home / memories / milestone / settings  ✅ U1
-│       （place / scan / order / map 按阶段加）
+│   └── feature/                     # 各页 ViewModel：home / memories / milestone / settings ✅ U1，place ✅ U2
+│       （scan / order / map 按阶段加）
 ├── androidApp/
 │   ├── app/                         # Application、Koin 装配、Navigation 3 外壳、种子 JSON  ✅ 已建
 │   ├── core/designsystem/           # Compose 主题、通用组件、图标           ✅ U1
-│   ├── feature/                     # 各页 Compose：home / memories / milestone / settings  ✅ U1
-│   │   （place / scan / order / map 按阶段加）
+│   ├── feature/                     # 各页 Compose：home / memories / milestone / settings ✅ U1，place ✅ U2
+│   │   （scan / order / map 按阶段加）
 │   └── assistant/                   # AppFunctions，只调 AssistantApi       主线之后
 ├── iosApp/                          # 后半段
+├── tools/seed/                      # 示例菜单原照片的生成脚本（draw_menus.py）
 └── .kiro/                           # specs、steering、hooks
 ```
 

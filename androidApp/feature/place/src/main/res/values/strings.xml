@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 店铺列表（12） -->
+    <string name="places_title">店铺</string>
+    <string name="places_search">搜索店铺</string>
+    <string name="places_count">%1$d 家店 · 菜单都留着</string>
+    <string name="places_on_map">在地图上看</string>
+    <string name="places_meta">菜单 %1$d 道 · 原照片 %2$d 张 · 来过 %3$d 次</string>
+    <string name="places_badge_tonight">今晚</string>
+    <string name="places_badge_milestone">纪念日</string>
+    <string name="places_footer">菜单拍一次就存在店铺里，原照片和电子菜单都在。下次来直接点，不用重新识别。</string>
+    <string name="places_scan_menu">拍菜单</string>
+    <string name="places_empty">还没有店铺。拍一张菜单，店铺就会出现在这里。</string>
+
+    <!-- 店铺详情（08） -->
+    <string name="place_back">返回</string>
+    <string name="place_share">分享这家店</string>
+    <string name="place_visits">来过 %1$d 次</string>
+    <string name="place_add_tag">加标签</string>
+    <string name="place_history">历次记录</string>
+    <string name="place_no_visits">还没来吃过。</string>
+    <string name="place_visit_dishes">%1$d 道菜</string>
+    <string name="place_ordered_dishes">点过的菜</string>
+    <string name="place_full_menu">完整菜单与原照片</string>
+    <string name="place_times_ordered">点过 %1$d 次</string>
+    <string name="place_cups_ordered">点过 %1$d 杯</string>
+    <string name="place_scan_again">又来了，拍今天的菜单</string>
+    <string name="place_missing">这家店已经不在了。</string>
+
+    <!-- 电子菜单与原照片（13 / 14） -->
+    <string name="menu_back">返回</string>
+    <string name="menu_tab_digital">电子菜单</string>
+    <string name="menu_tab_photo">原照片</string>
+    <string name="menu_header_scanned">%1$s 拍摄 · %2$d 道菜 · 价格以店内为准</string>
+    <string name="menu_header">%1$d 道菜 · 价格以店内为准</string>
+    <string name="menu_not_ordered">还没点过</string>
+    <string name="menu_rating_and_times">%1$s 分 · %2$s</string>
+    <string name="menu_rescan">菜单换了？补拍一页</string>
+    <string name="menu_edit_dish">手动改一道菜的译名或价格</string>
+    <string name="menu_order">用这份菜单点单</string>
+    <string name="menu_empty">这家店还没有电子菜单。</string>
+    <string name="menu_photo_caption">%1$s %2$s 拍摄 · 原图只存在本机，已剥离 EXIF</string>
+    <string name="menu_photo_description">当时拍下的菜单原照片，第 %1$d 页</string>
+    <string name="menu_photo_page">第 %1$d 页</string>
+    <string name="menu_photo_add">补拍</string>
+    <string name="menu_photo_fullscreen">全屏查看原照片</string>
+    <string name="menu_photo_close">关闭</string>
+    <string name="menu_photo_none">没有原照片</string>
+    <string name="menu_photo_none_hint">这份菜单是手动录入的，或原照片已被删除。</string>
+    <string name="menu_photo_unreadable">原照片读不出来</string>
+</resources>

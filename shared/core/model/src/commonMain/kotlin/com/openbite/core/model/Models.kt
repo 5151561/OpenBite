@@ -27,6 +27,22 @@ data class Dish(
     val price: Money?,
     /** 模型推测，界面必须标注“仅供参考”。 */
     val allergens: List<String> = emptyList(),
+    /** 来自哪次识别（哪张菜单照片）。 */
+    val scanId: String? = null,
+)
+
+/** 一次菜单识别：一张已去 EXIF 的原照片。 */
+@Serializable
+data class MenuScan(
+    val id: String,
+    val placeId: String,
+    /**
+     * 照片相对路径。`seed/` 开头的是打包在 App 里的示例图（Android 读 assets），
+     * 其余是 App 私有目录下的文件。
+     */
+    val photoPath: String,
+    /** 拍摄时间，UTC 毫秒。 */
+    val takenAt: Long,
 )
 
 @Serializable

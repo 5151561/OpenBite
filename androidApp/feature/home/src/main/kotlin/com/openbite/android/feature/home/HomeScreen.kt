@@ -70,7 +70,7 @@ fun HomeRoute(
     onOpenMemories: () -> Unit,
     onScanMenu: () -> Unit,
     onPickPhoto: () -> Unit,
-    onOpenMemory: (logId: String) -> Unit,
+    onOpenMemory: (logId: String, placeId: String) -> Unit,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -86,7 +86,7 @@ fun HomeScreen(
     onOpenMemories: () -> Unit = {},
     onScanMenu: () -> Unit = {},
     onPickPhoto: () -> Unit = {},
-    onOpenMemory: (String) -> Unit = {},
+    onOpenMemory: (logId: String, placeId: String) -> Unit = { _, _ -> },
 ) {
     Scaffold(
         topBar = {
@@ -153,7 +153,7 @@ fun HomeScreen(
                     currentYear = currentYear,
                     shape = segmentShape(index, state.recent.size),
                     modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.xxs / 2),
-                    onClick = { onOpenMemory(memory.logId) },
+                    onClick = { onOpenMemory(memory.logId, memory.placeId) },
                 )
             }
         }

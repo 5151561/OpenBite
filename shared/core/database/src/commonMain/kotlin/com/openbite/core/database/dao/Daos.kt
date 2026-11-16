@@ -11,7 +11,9 @@ import com.openbite.core.database.entity.DiningLogPersonEntity
 import com.openbite.core.database.entity.DiningLogWithDetails
 import com.openbite.core.database.entity.DishEntity
 import com.openbite.core.database.entity.MilestoneEntity
+import com.openbite.core.database.entity.MenuScanEntity
 import com.openbite.core.database.entity.MilestonePersonEntity
+import com.openbite.core.database.entity.PlaceCount
 import com.openbite.core.database.entity.PersonEntity
 import com.openbite.core.database.entity.PlaceEntity
 import com.openbite.core.database.entity.PlaceTagEntity
@@ -38,6 +40,23 @@ interface PlaceDao {
 
     @Query("SELECT * FROM dish WHERE placeId = :placeId ORDER BY category, nameOriginal")
     suspend fun dishesOf(placeId: String): List<DishEntity>
+
+    @Transaction
+    @Query("SELECT * FROM place WHERE id = :placeId")
+    fun observeById(placeId: String): Flow<PlaceWithTags?>
+
+    /** 按写入顺序（rowid）返回，保持菜单上的原顺序。 */
+    @Query("SELECT * FROM dish WHERE placeId = :placeId ORDER BY rowid")
+    fun observeDishesOf(placeId: String): Flow<List<DishEntity>>
+
+    @Query("SELECT * FROM menu_scan WHERE placeId = :placeId ORDER BY createdAt, rowid")
+    fun observeScansOf(placeId: String): Flow<List<MenuScanEntity>>
+
+    @Query("SELECT placeId, COUNT(*) AS count FROM dish GROUP BY placeId")
+    fun observeDishCounts(): Flow<List<PlaceCount>>
+
+    @Query("SELECT placeId, COUNT(*) AS count FROM menu_scan GROUP BY placeId")
+    fun observeScanCounts(): Flow<List<PlaceCount>>
 }
 
 @Dao
@@ -94,6 +113,9 @@ abstract class SeedDao {
     protected abstract suspend fun insertPlaceTags(items: List<PlaceTagEntity>)
 
     @Insert
+    protected abstract suspend fun insertMenuScans(items: List<MenuScanEntity>)
+
+    @Insert
     protected abstract suspend fun insertDishes(items: List<DishEntity>)
 
     @Insert
@@ -112,6 +134,7 @@ abstract class SeedDao {
         milestonePersons: List<MilestonePersonEntity>,
         places: List<PlaceEntity>,
         placeTags: List<PlaceTagEntity>,
+        menuScans: List<MenuScanEntity>,
         dishes: List<DishEntity>,
         logs: List<DiningLogEntity>,
         logItems: List<DiningLogItemEntity>,
@@ -122,6 +145,7 @@ abstract class SeedDao {
         insertMilestonePersons(milestonePersons)
         insertPlaces(places)
         insertPlaceTags(placeTags)
+        insertMenuScans(menuScans)
         insertDishes(dishes)
         insertLogs(logs)
         insertLogItems(logItems)

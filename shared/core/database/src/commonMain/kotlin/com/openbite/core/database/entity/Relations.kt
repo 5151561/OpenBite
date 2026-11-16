@@ -4,6 +4,9 @@ import androidx.room.Embedded
 import androidx.room.Junction
 import androidx.room.Relation
 
+/** 按店铺计数的查询结果（菜品数、照片数）。 */
+data class PlaceCount(val placeId: String, val count: Int)
+
 data class PlaceWithTags(
     @Embedded val place: PlaceEntity,
     @Relation(parentColumn = "id", entityColumn = "placeId")

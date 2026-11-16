@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -131,6 +132,9 @@ fun SegmentedListItem(
     trailing: (@Composable () -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    /** 紧跟在标题后面的小标签（如店铺列表的“纪念日”）。 */
+    headlineTrailing: (@Composable () -> Unit)? = null,
+    headlineStyle: TextStyle = MaterialTheme.typography.bodyLarge,
 ) {
     Row(
         modifier = modifier
@@ -144,13 +148,17 @@ fun SegmentedListItem(
     ) {
         leading?.invoke()
         Column(Modifier.weight(1f)) {
-            Text(
-                headline,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                Text(
+                    headline,
+                    modifier = Modifier.weight(1f, fill = false),
+                    style = headlineStyle,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                headlineTrailing?.invoke()
+            }
             if (supporting != null) {
                 Text(
                     supporting,
@@ -178,7 +186,12 @@ fun TrailingText(text: String, modifier: Modifier = Modifier) {
 
 /** 评分：“4.5 ★”。 */
 @Composable
-fun RatingDisplay(rating: String, modifier: Modifier = Modifier, color: Color = MaterialTheme.colorScheme.onSurfaceVariant) {
+fun RatingDisplay(
+    rating: String,
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    starColor: Color = MaterialTheme.colorScheme.primary,
+) {
     val description = stringResource(R.string.ds_rating_description, rating)
     Row(
         modifier = modifier.clearAndSetSemantics { contentDescription = description },
@@ -186,7 +199,7 @@ fun RatingDisplay(rating: String, modifier: Modifier = Modifier, color: Color = 
     ) {
         Text(rating, style = MaterialTheme.typography.labelLarge, color = color)
         Box(Modifier.width(Spacing.xs))
-        Icon(OpenBiteIcons.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+        Icon(OpenBiteIcons.Star, contentDescription = null, tint = starColor, modifier = Modifier.size(18.dp))
     }
 }
 

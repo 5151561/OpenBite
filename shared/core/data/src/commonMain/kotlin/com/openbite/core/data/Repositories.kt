@@ -3,9 +3,12 @@ package com.openbite.core.data
 import com.openbite.core.data.seed.SeedImporter
 import com.openbite.core.database.OpenBiteDatabase
 import com.openbite.core.model.DiningLog
+import com.openbite.core.model.Dish
+import com.openbite.core.model.MenuScan
 import com.openbite.core.model.Milestone
 import com.openbite.core.model.Place
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
 interface DiningLogRepository {
@@ -15,7 +18,19 @@ interface DiningLogRepository {
 
 interface PlaceRepository {
     fun observePlaces(): Flow<List<Place>>
+    fun observePlace(placeId: String): Flow<Place?>
+
+    /** 电子菜单，按菜单上的原顺序。 */
+    fun observeMenu(placeId: String): Flow<List<Dish>>
+
+    /** 菜单原照片，按拍摄时间。 */
+    fun observeScans(placeId: String): Flow<List<MenuScan>>
+
+    /** 每家店的菜品数和原照片数。 */
+    fun observeCounts(): Flow<Map<String, PlaceCounts>>
 }
+
+data class PlaceCounts(val dishes: Int, val photos: Int)
 
 interface MilestoneRepository {
     fun observeMilestones(): Flow<List<Milestone>>
@@ -48,6 +63,21 @@ internal class RoomDiningLogRepository(private val db: OpenBiteDatabase) : Dinin
 
 internal class RoomPlaceRepository(private val db: OpenBiteDatabase) : PlaceRepository {
     override fun observePlaces() = db.placeDao().observeAll().map { rows -> rows.map { it.toModel() } }
+
+    override fun observePlace(placeId: String) = db.placeDao().observeById(placeId).map { it?.toModel() }
+
+    override fun observeMenu(placeId: String) =
+        db.placeDao().observeDishesOf(placeId).map { rows -> rows.map { it.toModel() } }
+
+    override fun observeScans(placeId: String) =
+        db.placeDao().observeScansOf(placeId).map { rows -> rows.map { it.toModel() } }
+
+    override fun observeCounts(): Flow<Map<String, PlaceCounts>> =
+        combine(db.placeDao().observeDishCounts(), db.placeDao().observeScanCounts()) { dishes, scans ->
+            val dishMap = dishes.associate { it.placeId to it.count }
+            val scanMap = scans.associate { it.placeId to it.count }
+            (dishMap.keys + scanMap.keys).associateWith { PlaceCounts(dishMap[it] ?: 0, scanMap[it] ?: 0) }
+        }
 }
 
 internal class RoomMilestoneRepository(private val db: OpenBiteDatabase) : MilestoneRepository {

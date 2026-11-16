@@ -6,6 +6,7 @@ import com.openbite.core.database.entity.DiningLogEntity
 import com.openbite.core.database.entity.DiningLogItemEntity
 import com.openbite.core.database.entity.DiningLogPersonEntity
 import com.openbite.core.database.entity.DishEntity
+import com.openbite.core.database.entity.MenuScanEntity
 import com.openbite.core.database.entity.MilestoneEntity
 import com.openbite.core.database.entity.MilestonePersonEntity
 import com.openbite.core.database.entity.PersonEntity
@@ -46,12 +47,27 @@ class SeedImporter(
             },
             places = seed.places.map { PlaceEntity(it.id, it.name, it.lat, it.lon, it.address, now) },
             placeTags = seed.places.flatMap { p -> p.tags.map { PlaceTagEntity(p.id, it) } },
+            menuScans = seed.places.flatMap { p ->
+                p.scans.map {
+                    MenuScanEntity(
+                        id = it.id,
+                        placeId = p.id,
+                        photoPath = it.photoPath,
+                        model = SEED_MODEL,
+                        sourceLang = it.sourceLang,
+                        targetLang = it.targetLang,
+                        rawJson = "{}",
+                        // createdAt 就是拍摄时间。
+                        createdAt = LocalDateTime.parse(it.takenAtLocal).toInstant(TimeZone.of(it.timezone)).toEpochMilliseconds(),
+                    )
+                }
+            },
             dishes = seed.places.flatMap { p ->
                 p.dishes.map {
                     DishEntity(
                         id = it.id,
                         placeId = p.id,
-                        scanId = null,
+                        scanId = it.scanId,
                         category = it.category,
                         nameOriginal = it.nameOriginal,
                         nameTranslated = it.nameTranslated,
@@ -98,6 +114,9 @@ class SeedImporter(
     }
 }
 
+/** 示例菜单的 model 字段，表示“预先识别好、不是现场调模型”。 */
+private const val SEED_MODEL = "seed"
+
 @Serializable
 internal data class SeedData(
     val persons: List<SeedPerson> = emptyList(),
@@ -128,12 +147,30 @@ internal data class SeedPlace(
     val lon: Double? = null,
     val address: String? = null,
     val tags: List<String> = emptyList(),
+    val scans: List<SeedScan> = emptyList(),
     val dishes: List<SeedDish> = emptyList(),
+)
+
+/**
+ * 一张菜单原照片。[photoPath] 以 `seed/` 开头，指向打包在 App 里的示例图。
+ * 示例图是按设计稿画的手写菜单，不是网上的照片。
+ */
+@Serializable
+internal data class SeedScan(
+    val id: String,
+    val photoPath: String,
+    /** 当地拍摄时间，如 "2026-11-17T19:31"。 */
+    val takenAtLocal: String,
+    val timezone: String = "Asia/Tokyo",
+    val sourceLang: String? = "ja",
+    val targetLang: String = "zh-CN",
 )
 
 @Serializable
 internal data class SeedDish(
     val id: String,
+    /** 来自哪张菜单照片（[SeedScan.id]）。 */
+    val scanId: String? = null,
     val category: String,
     val nameOriginal: String,
     val nameTranslated: String,

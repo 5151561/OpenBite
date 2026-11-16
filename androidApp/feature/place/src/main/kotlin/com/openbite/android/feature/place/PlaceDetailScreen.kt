@@ -1,0 +1,295 @@
+package com.openbite.android.feature.place
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.openbite.android.core.designsystem.component.RatingDisplay
+import com.openbite.android.core.designsystem.component.SectionHeader
+import com.openbite.android.core.designsystem.component.SegmentedListItem
+import com.openbite.android.core.designsystem.component.segmentShape
+import com.openbite.android.core.designsystem.icon.OpenBiteIcons
+import com.openbite.android.core.designsystem.text.fullDate
+import com.openbite.android.core.designsystem.text.milestoneTitle
+import com.openbite.android.core.designsystem.text.quoted
+import com.openbite.android.core.designsystem.theme.OpenBiteTheme
+import com.openbite.android.core.designsystem.theme.Spacing
+import com.openbite.core.model.DishStats
+import com.openbite.core.model.PlaceDetail
+import com.openbite.core.model.PlaceVisit
+import com.openbite.core.model.formatMoney
+import com.openbite.core.model.formatRating
+import com.openbite.feature.place.PlaceDetailUiState
+import com.openbite.feature.place.PlaceDetailViewModel
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
+import com.openbite.android.core.designsystem.R as DsR
+
+/** 店铺详情（设计稿 08）。分享（U6）、加标签、拍菜单（U3）现在由 app 传空实现。 */
+@Composable
+fun PlaceDetailRoute(
+    placeId: String,
+    onBack: () -> Unit,
+    onOpenMenu: () -> Unit,
+    onShare: () -> Unit,
+    onAddTag: () -> Unit,
+    onScanMenu: () -> Unit,
+    viewModel: PlaceDetailViewModel = koinViewModel(parameters = { parametersOf(placeId) }),
+) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    PlaceDetailScreen(state, onBack, onOpenMenu, onShare, onAddTag, onScanMenu)
+}
+
+@Composable
+fun PlaceDetailScreen(
+    state: PlaceDetailUiState,
+    onBack: () -> Unit = {},
+    onOpenMenu: () -> Unit = {},
+    onShare: () -> Unit = {},
+    onAddTag: () -> Unit = {},
+    onScanMenu: () -> Unit = {},
+) {
+    val detail = state.detail
+    Scaffold(
+        // 头部颜色铺到状态栏下面，所以这里只让出导航栏。
+        contentWindowInsets = WindowInsets.navigationBars,
+        floatingActionButton = {
+            if (detail != null) {
+                ExtendedFloatingActionButton(
+                    onClick = onScanMenu,
+                    icon = { Icon(OpenBiteIcons.PhotoCamera, contentDescription = null) },
+                    text = { Text(stringResource(R.string.place_scan_again)) },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                )
+            }
+        },
+    ) { padding ->
+        when {
+            state.isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+            detail == null -> Column(Modifier.fillMaxSize().statusBarsPadding().padding(Spacing.l)) {
+                RoundIconButton(OpenBiteIcons.ArrowBack, stringResource(R.string.place_back), onBack)
+                Text(
+                    stringResource(R.string.place_missing),
+                    modifier = Modifier.padding(Spacing.l),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
+            else -> PlaceDetailContent(detail, padding, onBack, onOpenMenu, onShare, onAddTag)
+        }
+    }
+}
+
+@Composable
+private fun PlaceDetailContent(
+    detail: PlaceDetail,
+    padding: PaddingValues,
+    onBack: () -> Unit,
+    onOpenMenu: () -> Unit,
+    onShare: () -> Unit,
+    onAddTag: () -> Unit,
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = padding.calculateBottomPadding() + 88.dp),
+    ) {
+        item(key = "header") { Header(detail, onBack, onShare, onAddTag) }
+        item(key = "history") { SectionHeader(stringResource(R.string.place_history), Modifier.padding(top = Spacing.xs)) }
+        if (detail.visits.isEmpty()) {
+            item(key = "no-visits") { Note(stringResource(R.string.place_no_visits)) }
+        }
+        itemsIndexed(detail.visits, key = { _, it -> it.memory.logId }) { index, visit ->
+            VisitCard(visit, index, detail.visits.size)
+        }
+        item(key = "dishes") {
+            SectionHeader(
+                stringResource(R.string.place_ordered_dishes),
+                action = { TextButton(onClick = onOpenMenu) { Text(stringResource(R.string.place_full_menu)) } },
+            )
+        }
+        itemsIndexed(detail.orderedDishes, key = { _, it -> it.dishId ?: it.nameOriginal }) { index, dish ->
+            SegmentedListItem(
+                headline = dish.nameOriginal,
+                supporting = dish.nameTranslated + stringResource(DsR.string.ds_separator) + timesOrdered(dish),
+                shape = segmentShape(index, detail.orderedDishes.size),
+                modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.xxs / 2),
+                trailing = { dish.averageRating?.let { RatingDisplay(formatRating(it)) } },
+            )
+        }
+    }
+}
+
+@Composable
+internal fun timesOrdered(stats: DishStats): String =
+    stringResource(if (stats.isDrink) R.string.place_cups_ordered else R.string.place_times_ordered, stats.timesOrdered)
+
+/** 彩色头部：大号淡色单字、返回和分享、店名、来过几次、标签。 */
+@Composable
+private fun Header(detail: PlaceDetail, onBack: () -> Unit, onShare: () -> Unit, onAddTag: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(scheme.primaryContainer)
+            .clipToBounds(),
+    ) {
+        Text(
+            detail.glyph.char,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = 18.dp, y = 28.dp)
+                .clearAndSetSemantics {},
+            fontSize = 190.sp,
+            lineHeight = 190.sp,
+            fontWeight = FontWeight.Bold,
+            color = scheme.onPrimaryContainer.copy(alpha = 0.12f),
+        )
+        Column(
+            modifier = Modifier
+                .statusBarsPadding()
+                .heightIn(min = 204.dp)
+                .padding(start = Spacing.l, end = Spacing.l, top = Spacing.s, bottom = Spacing.l),
+            verticalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Row(Modifier.fillMaxWidth()) {
+                RoundIconButton(OpenBiteIcons.ArrowBack, stringResource(R.string.place_back), onBack)
+                Spacer(Modifier.weight(1f))
+                RoundIconButton(OpenBiteIcons.Share, stringResource(R.string.place_share), onShare)
+            }
+            Column(
+                modifier = Modifier.padding(top = Spacing.xxl),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+            ) {
+                Text(detail.place.name, style = MaterialTheme.typography.headlineLarge, color = scheme.onPrimaryContainer)
+                val meta = listOfNotNull(stringResource(R.string.place_visits, detail.visitCount), detail.area)
+                    .joinToString(stringResource(DsR.string.ds_separator))
+                Text(meta, style = MaterialTheme.typography.bodyMedium, color = scheme.onPrimaryContainer)
+                Row(
+                    modifier = Modifier.padding(top = Spacing.xs).horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                ) {
+                    // TODO: 标签筛选和编辑（地图页 U5 一起做），现在点了不做事。
+                    detail.place.tags.forEach { tag ->
+                        SuggestionChip(onClick = {}, label = { Text(tag) })
+                    }
+                    AssistChip(
+                        onClick = onAddTag,
+                        label = { Text(stringResource(R.string.place_add_tag)) },
+                        leadingIcon = { Icon(OpenBiteIcons.Add, contentDescription = null, modifier = Modifier.size(AssistChipDefaults.IconSize)) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+internal fun RoundIconButton(icon: androidx.compose.ui.graphics.vector.ImageVector, description: String, onClick: () -> Unit) {
+    FilledIconButton(
+        onClick = onClick,
+        modifier = Modifier.size(48.dp),
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ),
+    ) {
+        Icon(icon, contentDescription = description)
+    }
+}
+
+/** 一次到店：日期、纪念日标签、评分、短评、“4 道菜 · ¥9,200 · 和老婆”。 */
+@Composable
+private fun VisitCard(visit: PlaceVisit, index: Int, count: Int) {
+    val scheme = MaterialTheme.colorScheme
+    val memory = visit.memory
+    Column(
+        modifier = Modifier
+            .padding(horizontal = Spacing.l, vertical = Spacing.xxs / 2)
+            .fillMaxWidth()
+            .background(scheme.surfaceContainer, segmentShape(index, count))
+            .padding(horizontal = Spacing.l, vertical = Spacing.m),
+        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+            Text(fullDate(memory.localDate), style = MaterialTheme.typography.titleMedium)
+            visit.milestone?.let {
+                Badge(milestoneTitle(it, visit.milestoneYears), scheme.tertiaryContainer, scheme.onTertiaryContainer)
+            }
+            Spacer(Modifier.weight(1f))
+            if (memory.isDraft) {
+                Text(stringResource(DsR.string.ds_memory_draft), style = MaterialTheme.typography.labelLarge, color = scheme.onSurfaceVariant)
+            } else {
+                memory.rating?.let { RatingDisplay(formatRating(it), color = scheme.tertiary, starColor = scheme.tertiary) }
+            }
+        }
+        memory.note?.let { Text(quoted(it), style = MaterialTheme.typography.bodyMedium) }
+        val separator = stringResource(DsR.string.ds_separator)
+        val listSeparator = stringResource(DsR.string.ds_list_separator)
+        val meta = buildList {
+            add(stringResource(R.string.place_visit_dishes, memory.dishCount))
+            memory.total?.let { add(formatMoney(it)) }
+            if (memory.companions.isNotEmpty()) {
+                add(stringResource(DsR.string.ds_memory_with, memory.companions.joinToString(listSeparator)))
+            }
+        }.joinToString(separator)
+        Text(meta, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
+    }
+}
+
+@Preview(showBackground = true, widthDp = 412, heightDp = 892)
+@Composable
+private fun PlaceDetailPreview() {
+    OpenBiteTheme(darkTheme = false) {
+        PlaceDetailScreen(PlaceDetailUiState(isLoading = false, detail = PlacePreviewData.detail, currentYear = 2026))
+    }
+}
+
+@Preview(showBackground = true, widthDp = 412, heightDp = 892)
+@Composable
+private fun PlaceDetailDarkPreview() {
+    OpenBiteTheme(darkTheme = true) {
+        PlaceDetailScreen(PlaceDetailUiState(isLoading = false, detail = PlacePreviewData.detail, currentYear = 2026))
+    }
+}

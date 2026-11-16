@@ -78,7 +78,7 @@ fun summarize(logs: List<DiningLog>, today: LocalDate): List<MemorySummary> {
             localTime = local.time,
             isToday = log.localDate == today,
             isDraft = log.status == DiningStatus.DRAFT,
-            dishCount = log.items.size,
+            dishCount = log.items.sumOf { it.qty },
             dishNames = log.items.map { it.name },
             visitNumber = visitNumbers.getValue(log.id),
             companions = log.companions.map { it.displayName },

@@ -55,9 +55,22 @@
         "适合约会",
         "纪念日"
       ],
+      "scans": [
+        {
+          "id": "scan-minato-1",
+          "photoPath": "seed/menus/minato-1.jpg",
+          "takenAtLocal": "2025-11-27T19:05"
+        },
+        {
+          "id": "scan-minato-2",
+          "photoPath": "seed/menus/minato-2.jpg",
+          "takenAtLocal": "2026-10-03T18:40"
+        }
+      ],
       "dishes": [
         {
           "id": "minato-goma",
+          "scanId": "scan-minato-1",
           "category": "先付",
           "nameOriginal": "ごま豆腐",
           "nameTranslated": "胡麻豆腐",
@@ -69,6 +82,7 @@
         },
         {
           "id": "minato-uni",
+          "scanId": "scan-minato-1",
           "category": "蒸物",
           "nameOriginal": "うに茶碗蒸し",
           "nameTranslated": "海胆茶碗蒸",
@@ -82,6 +96,7 @@
         },
         {
           "id": "minato-tsukuri",
+          "scanId": "scan-minato-1",
           "category": "造り",
           "nameOriginal": "お造り盛り合わせ",
           "nameTranslated": "刺身拼盘",
@@ -93,6 +108,7 @@
         },
         {
           "id": "minato-saikyo",
+          "scanId": "scan-minato-1",
           "category": "焼物",
           "nameOriginal": "鰆の西京焼き",
           "nameTranslated": "西京烧鲅鱼",
@@ -105,6 +121,7 @@
         },
         {
           "id": "minato-amadai",
+          "scanId": "scan-minato-1",
           "category": "焼物",
           "nameOriginal": "甘鯛の松笠焼き",
           "nameTranslated": "松笠烤方头鱼",
@@ -116,6 +133,7 @@
         },
         {
           "id": "minato-takiawase",
+          "scanId": "scan-minato-1",
           "category": "煮物",
           "nameOriginal": "炊き合わせ",
           "nameTranslated": "时蔬炖煮",
@@ -128,6 +146,7 @@
         },
         {
           "id": "minato-dobin",
+          "scanId": "scan-minato-2",
           "category": "椀物",
           "nameOriginal": "松茸の土瓶蒸し",
           "nameTranslated": "土瓶蒸松茸",
@@ -139,6 +158,7 @@
         },
         {
           "id": "minato-tempura",
+          "scanId": "scan-minato-2",
           "category": "揚物",
           "nameOriginal": "季節の天ぷら",
           "nameTranslated": "时令天妇罗",
@@ -152,6 +172,7 @@
         },
         {
           "id": "minato-donabe",
+          "scanId": "scan-minato-2",
           "category": "食事",
           "nameOriginal": "土鍋ご飯",
           "nameTranslated": "砂锅饭",
@@ -161,6 +182,7 @@
         },
         {
           "id": "minato-taichazuke",
+          "scanId": "scan-minato-2",
           "category": "食事",
           "nameOriginal": "鯛茶漬け",
           "nameTranslated": "鲷鱼茶泡饭",
@@ -172,6 +194,7 @@
         },
         {
           "id": "minato-warabi",
+          "scanId": "scan-minato-2",
           "category": "甘味",
           "nameOriginal": "わらび餅",
           "nameTranslated": "蕨饼",
@@ -183,6 +206,7 @@
         },
         {
           "id": "minato-matcha",
+          "scanId": "scan-minato-2",
           "category": "甘味",
           "nameOriginal": "抹茶アイス",
           "nameTranslated": "抹茶冰淇淋",
@@ -203,63 +227,88 @@
       "tags": [
         "深夜食堂"
       ],
+      "scans": [
+        {
+          "id": "scan-torimatsu-1",
+          "photoPath": "seed/menus/torimatsu-1.jpg",
+          "takenAtLocal": "2026-11-17T19:31"
+        }
+      ],
       "dishes": [
         {
-          "id": "tori-negima",
-          "category": "串焼き",
-          "nameOriginal": "ねぎま",
-          "nameTranslated": "葱段鸡腿串",
-          "priceMinor": 280,
-          "currency": "JPY",
-          "allergens": []
-        },
-        {
-          "id": "tori-tsukune",
-          "category": "串焼き",
-          "nameOriginal": "つくね（月見）",
-          "nameTranslated": "鸡肉丸串（蘸蛋黄）",
-          "priceMinor": 350,
+          "id": "tori-moriawase",
+          "scanId": "scan-torimatsu-1",
+          "category": "焼き鳥",
+          "nameOriginal": "焼き鳥盛り合わせ",
+          "nameTranslated": "烤鸡肉串拼盘",
+          "priceMinor": 980,
           "currency": "JPY",
           "allergens": [
-            "egg",
             "soy"
           ]
         },
         {
-          "id": "tori-sasami",
-          "category": "串焼き",
-          "nameOriginal": "ささみ梅しそ",
-          "nameTranslated": "梅子紫苏鸡胸串",
-          "priceMinor": 300,
+          "id": "tori-saba",
+          "scanId": "scan-torimatsu-1",
+          "category": "焼き物",
+          "nameOriginal": "鯖の塩焼き",
+          "nameTranslated": "盐烤青花鱼",
+          "priceMinor": 780,
           "currency": "JPY",
-          "allergens": []
+          "allergens": [
+            "fish"
+          ]
         },
         {
-          "id": "tori-tebasaki",
-          "category": "串焼き",
-          "nameOriginal": "手羽先",
-          "nameTranslated": "烤鸡翅",
-          "priceMinor": 320,
-          "currency": "JPY",
-          "allergens": []
-        },
-        {
-          "id": "tori-bonjiri",
-          "category": "串焼き",
-          "nameOriginal": "ぼんじり",
-          "nameTranslated": "鸡尾肉串",
-          "priceMinor": 280,
-          "currency": "JPY",
-          "allergens": []
-        },
-        {
-          "id": "tori-soup",
+          "id": "tori-dashimaki",
+          "scanId": "scan-torimatsu-1",
           "category": "一品",
-          "nameOriginal": "鶏スープ",
-          "nameTranslated": "鸡汤",
-          "priceMinor": 500,
+          "nameOriginal": "だし巻き玉子",
+          "nameTranslated": "高汤煎蛋卷",
+          "priceMinor": 580,
           "currency": "JPY",
-          "allergens": []
+          "allergens": [
+            "egg",
+            "fish"
+          ]
+        },
+        {
+          "id": "tori-ebiten",
+          "scanId": "scan-torimatsu-1",
+          "category": "揚げ物",
+          "nameOriginal": "海老の天ぷら",
+          "nameTranslated": "炸虾天妇罗",
+          "priceMinor": 1200,
+          "currency": "JPY",
+          "allergens": [
+            "shellfish",
+            "wheat",
+            "egg"
+          ]
+        },
+        {
+          "id": "tori-hiyayakko",
+          "scanId": "scan-torimatsu-1",
+          "category": "一品",
+          "nameOriginal": "冷奴",
+          "nameTranslated": "冷豆腐",
+          "priceMinor": 380,
+          "currency": "JPY",
+          "allergens": [
+            "soy"
+          ]
+        },
+        {
+          "id": "tori-beer",
+          "scanId": "scan-torimatsu-1",
+          "category": "飲み物",
+          "nameOriginal": "生ビール",
+          "nameTranslated": "生啤",
+          "priceMinor": 550,
+          "currency": "JPY",
+          "allergens": [
+            "wheat"
+          ]
         }
       ]
     },
@@ -270,9 +319,17 @@
       "lon": 135.7672,
       "address": "京都市中京区寺町通",
       "tags": [],
+      "scans": [
+        {
+          "id": "scan-komorebi-1",
+          "photoPath": "seed/menus/komorebi-1.jpg",
+          "takenAtLocal": "2026-11-15T15:12"
+        }
+      ],
       "dishes": [
         {
           "id": "komorebi-jelly",
+          "scanId": "scan-komorebi-1",
           "category": "飲み物",
           "nameOriginal": "ゼリーソーダ",
           "nameTranslated": "果冻苏打",
@@ -282,6 +339,7 @@
         },
         {
           "id": "komorebi-pudding",
+          "scanId": "scan-komorebi-1",
           "category": "甘味",
           "nameOriginal": "固めプリン",
           "nameTranslated": "布丁",
@@ -294,6 +352,7 @@
         },
         {
           "id": "komorebi-coffee",
+          "scanId": "scan-komorebi-1",
           "category": "飲み物",
           "nameOriginal": "ブレンドコーヒー",
           "nameTranslated": "招牌咖啡",
@@ -303,6 +362,7 @@
         },
         {
           "id": "komorebi-matcha",
+          "scanId": "scan-komorebi-1",
           "category": "飲み物",
           "nameOriginal": "抹茶ラテ",
           "nameTranslated": "抹茶拿铁",
@@ -314,6 +374,7 @@
         },
         {
           "id": "komorebi-mixjuice",
+          "scanId": "scan-komorebi-1",
           "category": "飲み物",
           "nameOriginal": "ミックスジュース",
           "nameTranslated": "综合果汁",
@@ -325,6 +386,7 @@
         },
         {
           "id": "komorebi-napolitan",
+          "scanId": "scan-komorebi-1",
           "category": "食事",
           "nameOriginal": "ナポリタン",
           "nameTranslated": "拿坡里意面",
@@ -336,6 +398,7 @@
         },
         {
           "id": "komorebi-tamagosando",
+          "scanId": "scan-komorebi-1",
           "category": "食事",
           "nameOriginal": "たまごサンド",
           "nameTranslated": "玉子三明治",
@@ -348,6 +411,7 @@
         },
         {
           "id": "komorebi-hotcake",
+          "scanId": "scan-komorebi-1",
           "category": "甘味",
           "nameOriginal": "ホットケーキ",
           "nameTranslated": "松饼",
@@ -361,6 +425,7 @@
         },
         {
           "id": "komorebi-cheesecake",
+          "scanId": "scan-komorebi-1",
           "category": "甘味",
           "nameOriginal": "チーズケーキ",
           "nameTranslated": "芝士蛋糕",
@@ -383,9 +448,17 @@
       "tags": [
         "深夜食堂"
       ],
+      "scans": [
+        {
+          "id": "scan-hinata-1",
+          "photoPath": "seed/menus/hinata-1.jpg",
+          "takenAtLocal": "2026-06-12T21:22"
+        }
+      ],
       "dishes": [
         {
           "id": "hinata-black",
+          "scanId": "scan-hinata-1",
           "category": "らーめん",
           "nameOriginal": "黒醤油らーめん",
           "nameTranslated": "黑酱油拉面",
@@ -398,6 +471,7 @@
         },
         {
           "id": "hinata-paitan",
+          "scanId": "scan-hinata-1",
           "category": "らーめん",
           "nameOriginal": "鶏白湯らーめん",
           "nameTranslated": "鸡白汤拉面",
@@ -409,6 +483,7 @@
         },
         {
           "id": "hinata-tsukemen",
+          "scanId": "scan-hinata-1",
           "category": "らーめん",
           "nameOriginal": "つけ麺",
           "nameTranslated": "蘸面",
@@ -421,6 +496,7 @@
         },
         {
           "id": "hinata-ajitama",
+          "scanId": "scan-hinata-1",
           "category": "トッピング",
           "nameOriginal": "味玉",
           "nameTranslated": "溏心蛋",
@@ -433,6 +509,7 @@
         },
         {
           "id": "hinata-kaedama",
+          "scanId": "scan-hinata-1",
           "category": "トッピング",
           "nameOriginal": "替え玉",
           "nameTranslated": "加面",
@@ -444,6 +521,7 @@
         },
         {
           "id": "hinata-chashudon",
+          "scanId": "scan-hinata-1",
           "category": "ご飯",
           "nameOriginal": "チャーシュー丼",
           "nameTranslated": "叉烧饭",
@@ -455,6 +533,7 @@
         },
         {
           "id": "hinata-gyoza",
+          "scanId": "scan-hinata-1",
           "category": "一品",
           "nameOriginal": "餃子",
           "nameTranslated": "煎饺",
@@ -467,6 +546,7 @@
         },
         {
           "id": "hinata-beer",
+          "scanId": "scan-hinata-1",
           "category": "飲み物",
           "nameOriginal": "生ビール",
           "nameTranslated": "生啤",
@@ -485,9 +565,17 @@
       "lon": 135.77,
       "address": "京都市左京区下鴨",
       "tags": [],
+      "scans": [
+        {
+          "id": "scan-tsubame-1",
+          "photoPath": "seed/menus/tsubame-1.jpg",
+          "takenAtLocal": "2026-10-26T12:24"
+        }
+      ],
       "dishes": [
         {
           "id": "tsubame-omurice",
+          "scanId": "scan-tsubame-1",
           "category": "洋食",
           "nameOriginal": "オムライス",
           "nameTranslated": "蛋包饭",
@@ -501,6 +589,7 @@
         },
         {
           "id": "tsubame-kakifry",
+          "scanId": "scan-tsubame-1",
           "category": "洋食",
           "nameOriginal": "カキフライ",
           "nameTranslated": "炸牡蛎",
@@ -514,6 +603,7 @@
         },
         {
           "id": "tsubame-hamburg",
+          "scanId": "scan-tsubame-1",
           "category": "洋食",
           "nameOriginal": "ハンバーグ",
           "nameTranslated": "汉堡肉",
@@ -527,6 +617,7 @@
         },
         {
           "id": "tsubame-stew",
+          "scanId": "scan-tsubame-1",
           "category": "洋食",
           "nameOriginal": "ビーフシチュー",
           "nameTranslated": "炖牛肉",
@@ -539,6 +630,7 @@
         },
         {
           "id": "tsubame-ebifry",
+          "scanId": "scan-tsubame-1",
           "category": "洋食",
           "nameOriginal": "エビフライ",
           "nameTranslated": "炸虾",
@@ -552,6 +644,7 @@
         },
         {
           "id": "tsubame-napolitan",
+          "scanId": "scan-tsubame-1",
           "category": "洋食",
           "nameOriginal": "ナポリタン",
           "nameTranslated": "拿坡里意面",
@@ -563,6 +656,7 @@
         },
         {
           "id": "tsubame-katsu",
+          "scanId": "scan-tsubame-1",
           "category": "洋食",
           "nameOriginal": "ポークカツ",
           "nameTranslated": "炸猪排",
@@ -575,6 +669,7 @@
         },
         {
           "id": "tsubame-croquette",
+          "scanId": "scan-tsubame-1",
           "category": "洋食",
           "nameOriginal": "コロッケ",
           "nameTranslated": "可乐饼",
@@ -588,6 +683,7 @@
         },
         {
           "id": "tsubame-potage",
+          "scanId": "scan-tsubame-1",
           "category": "スープ",
           "nameOriginal": "ポタージュ",
           "nameTranslated": "浓汤",
@@ -599,6 +695,7 @@
         },
         {
           "id": "tsubame-pudding",
+          "scanId": "scan-tsubame-1",
           "category": "デザート",
           "nameOriginal": "プリン",
           "nameTranslated": "布丁",
@@ -622,39 +719,32 @@
       "personIds": [],
       "items": [
         {
-          "dishId": "tori-negima",
-          "name": "葱段鸡腿串",
-          "priceMinor": 280,
+          "dishId": "tori-moriawase",
+          "name": "烤鸡肉串拼盘",
+          "priceMinor": 980,
+          "currency": "JPY",
+          "qty": 1
+        },
+        {
+          "dishId": "tori-dashimaki",
+          "name": "高汤煎蛋卷",
+          "priceMinor": 580,
+          "currency": "JPY",
+          "qty": 1
+        },
+        {
+          "dishId": "tori-ebiten",
+          "name": "炸虾天妇罗",
+          "priceMinor": 1200,
+          "currency": "JPY",
+          "qty": 1
+        },
+        {
+          "dishId": "tori-beer",
+          "name": "生啤",
+          "priceMinor": 550,
           "currency": "JPY",
           "qty": 2
-        },
-        {
-          "dishId": "tori-tsukune",
-          "name": "鸡肉丸串（蘸蛋黄）",
-          "priceMinor": 350,
-          "currency": "JPY",
-          "qty": 2
-        },
-        {
-          "dishId": "tori-sasami",
-          "name": "梅子紫苏鸡胸串",
-          "priceMinor": 300,
-          "currency": "JPY",
-          "qty": 1
-        },
-        {
-          "dishId": "tori-tebasaki",
-          "name": "烤鸡翅",
-          "priceMinor": 320,
-          "currency": "JPY",
-          "qty": 1
-        },
-        {
-          "dishId": "tori-bonjiri",
-          "name": "鸡尾肉串",
-          "priceMinor": 280,
-          "currency": "JPY",
-          "qty": 1
         }
       ]
     },
@@ -765,7 +855,7 @@
           "priceMinor": 2200,
           "currency": "JPY",
           "qty": 1,
-          "rating": 5
+          "rating": 4
         },
         {
           "dishId": "minato-warabi",
@@ -873,7 +963,7 @@
           "priceMinor": 3600,
           "currency": "JPY",
           "qty": 1,
-          "rating": 5
+          "rating": 4
         },
         {
           "dishId": "minato-takiawase",

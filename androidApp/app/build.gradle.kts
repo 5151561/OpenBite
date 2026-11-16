@@ -35,6 +35,7 @@ dependencies {
     implementation(project(":androidApp:feature:home"))
     implementation(project(":androidApp:feature:memories"))
     implementation(project(":androidApp:feature:milestone"))
+    implementation(project(":androidApp:feature:place"))
     implementation(project(":androidApp:feature:settings"))
 
     implementation(platform(libs.androidx.compose.bom))

@@ -20,6 +20,7 @@ data class MemorySummary(
     val localTime: LocalTime,
     val isToday: Boolean,
     val isDraft: Boolean,
+    /** 一共几份（按份数累加，两杯啤酒算 2）。 */
     val dishCount: Int,
     val dishNames: List<String>,
     /** 第几次来这家店（按时间顺序，从 1 开始）。 */

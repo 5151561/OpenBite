@@ -6,6 +6,9 @@ import com.openbite.core.domain.LoadSampleDataUseCase
 import com.openbite.core.domain.ObserveDiningLogsUseCase
 import com.openbite.core.domain.ObserveMemoriesUseCase
 import com.openbite.core.domain.ObserveMilestoneHighlightsUseCase
+import com.openbite.core.domain.ObservePlaceDetailUseCase
+import com.openbite.core.domain.ObservePlaceMenuUseCase
+import com.openbite.core.domain.ObservePlacesUseCase
 import com.openbite.core.domain.ObserveUpcomingMilestonesUseCase
 import com.openbite.core.domain.SystemTodayProvider
 import com.openbite.core.domain.TodayProvider
@@ -20,6 +23,9 @@ val sharedCoreModule: Module = module {
     factory { ObserveUpcomingMilestonesUseCase(get(), get()) }
     factory { ObserveMemoriesUseCase(get(), get()) }
     factory { ObserveMilestoneHighlightsUseCase(get(), get()) }
+    factory { ObservePlacesUseCase(get(), get(), get()) }
+    factory { ObservePlaceDetailUseCase(get(), get(), get(), get()) }
+    factory { ObservePlaceMenuUseCase(get(), get()) }
     factory { LoadSampleDataUseCase(get()) }
     factory { ClearAllDataUseCase(get()) }
 }

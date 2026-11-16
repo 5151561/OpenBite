@@ -26,6 +26,7 @@ include(":shared:core:domain")
 include(":shared:feature:home")
 include(":shared:feature:memories")
 include(":shared:feature:milestone")
+include(":shared:feature:place")
 include(":shared:feature:settings")
 
 // ---- Android 原生界面 ----
@@ -34,4 +35,5 @@ include(":androidApp:core:designsystem")
 include(":androidApp:feature:home")
 include(":androidApp:feature:memories")
 include(":androidApp:feature:milestone")
+include(":androidApp:feature:place")
 include(":androidApp:feature:settings")
