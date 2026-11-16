@@ -52,6 +52,16 @@ interface PlaceDao {
     @Query("SELECT * FROM menu_scan WHERE placeId = :placeId ORDER BY createdAt, rowid")
     fun observeScansOf(placeId: String): Flow<List<MenuScanEntity>>
 
+    @Transaction
+    @Query("SELECT * FROM place WHERE id = :placeId")
+    suspend fun byId(placeId: String): PlaceWithTags?
+
+    @Query("SELECT * FROM dish WHERE placeId = :placeId ORDER BY rowid")
+    suspend fun menuOf(placeId: String): List<DishEntity>
+
+    @Query("UPDATE place SET name = :name WHERE id = :placeId")
+    suspend fun rename(placeId: String, name: String)
+
     @Query("SELECT placeId, COUNT(*) AS count FROM dish GROUP BY placeId")
     fun observeDishCounts(): Flow<List<PlaceCount>>
 
@@ -181,5 +191,26 @@ abstract class MaintenanceDao {
         deleteMilestonePersons()
         deleteMilestones()
         deletePersons()
+    }
+}
+
+/** 一次识别的结果整批写入：新店铺（可选）、menu_scan、合并后的菜品。 */
+@Dao
+abstract class ScanDao {
+    @Insert
+    protected abstract suspend fun insertPlace(place: PlaceEntity)
+
+    @Insert
+    protected abstract suspend fun insertScan(scan: MenuScanEntity)
+
+    /** Upsert 对已有的行做 UPDATE，rowid 不变，所以菜单顺序保持；新菜排到后面。 */
+    @Upsert
+    protected abstract suspend fun upsertDishes(dishes: List<DishEntity>)
+
+    @Transaction
+    open suspend fun save(newPlace: PlaceEntity?, scan: MenuScanEntity, dishes: List<DishEntity>) {
+        newPlace?.let { insertPlace(it) }
+        insertScan(scan)
+        upsertDishes(dishes)
     }
 }

@@ -10,6 +10,7 @@ import com.openbite.core.model.Milestone
 import com.openbite.core.model.MilestoneHighlight
 import com.openbite.core.model.MilestoneType
 import com.openbite.core.model.Recurrence
+import com.openbite.core.model.VisionModelChoice
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
@@ -131,3 +132,14 @@ fun memorySupportingText(memory: MemorySummary, currentYear: Int): String {
     }
     return (listOf(date) + details).joinToString(separator)
 }
+
+/** 识别模型在界面上的名字。 */
+@Composable
+@ReadOnlyComposable
+fun visionModelLabel(choice: VisionModelChoice): String = stringResource(
+    when (choice) {
+        VisionModelChoice.CLAUDE_HAIKU -> R.string.ds_model_claude_haiku
+        VisionModelChoice.CLAUDE_SONNET -> R.string.ds_model_claude_sonnet
+        VisionModelChoice.SAMPLE -> R.string.ds_model_sample
+    },
+)

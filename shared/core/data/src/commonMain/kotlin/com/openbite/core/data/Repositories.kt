@@ -2,6 +2,7 @@ package com.openbite.core.data
 
 import com.openbite.core.data.seed.SeedImporter
 import com.openbite.core.database.OpenBiteDatabase
+import com.openbite.core.database.entity.MenuScanEntity
 import com.openbite.core.model.DiningLog
 import com.openbite.core.model.Dish
 import com.openbite.core.model.MenuScan
@@ -28,6 +29,56 @@ interface PlaceRepository {
 
     /** 每家店的菜品数和原照片数。 */
     fun observeCounts(): Flow<Map<String, PlaceCounts>>
+
+    suspend fun rename(placeId: String, name: String)
+}
+
+/** 一次识别要写进 menu_scan 的内容。 */
+data class NewMenuScan(
+    val id: String,
+    val placeId: String,
+    /** 相对路径 photos/<id>.jpg。 */
+    val photoPath: String,
+    /** 模型 id（Anthropic 的模型名或 "sample"）。 */
+    val model: String,
+    val sourceLang: String?,
+    val targetLang: String,
+    /** 模型的原始输出。 */
+    val rawOutput: String,
+    val createdAt: Long,
+)
+
+interface MenuScanRepository {
+    suspend fun place(placeId: String): Place?
+
+    /** 这家店现有的菜单，按菜单顺序。 */
+    suspend fun menuOf(placeId: String): List<Dish>
+
+    /** 一个事务：[newPlace] 不为 null 时先建店，再写 menu_scan，再 upsert 合并后的菜品。 */
+    suspend fun save(newPlace: Place?, scan: NewMenuScan, dishes: List<Dish>)
+}
+
+internal class RoomMenuScanRepository(private val db: OpenBiteDatabase) : MenuScanRepository {
+    override suspend fun place(placeId: String) = db.placeDao().byId(placeId)?.toModel()
+
+    override suspend fun menuOf(placeId: String) = db.placeDao().menuOf(placeId).map { it.toModel() }
+
+    override suspend fun save(newPlace: Place?, scan: NewMenuScan, dishes: List<Dish>) {
+        db.scanDao().save(
+            newPlace = newPlace?.toEntity(scan.createdAt),
+            scan = MenuScanEntity(
+                id = scan.id,
+                placeId = scan.placeId,
+                photoPath = scan.photoPath,
+                model = scan.model,
+                sourceLang = scan.sourceLang,
+                targetLang = scan.targetLang,
+                rawJson = scan.rawOutput,
+                createdAt = scan.createdAt,
+            ),
+            dishes = dishes.map { it.toEntity() },
+        )
+    }
 }
 
 data class PlaceCounts(val dishes: Int, val photos: Int)
@@ -78,6 +129,8 @@ internal class RoomPlaceRepository(private val db: OpenBiteDatabase) : PlaceRepo
             val scanMap = scans.associate { it.placeId to it.count }
             (dishMap.keys + scanMap.keys).associateWith { PlaceCounts(dishMap[it] ?: 0, scanMap[it] ?: 0) }
         }
+
+    override suspend fun rename(placeId: String, name: String) = db.placeDao().rename(placeId, name)
 }
 
 internal class RoomMilestoneRepository(private val db: OpenBiteDatabase) : MilestoneRepository {

@@ -22,6 +22,7 @@ import com.openbite.android.feature.milestone.MilestonesRoute
 import com.openbite.android.feature.place.PlaceDetailRoute
 import com.openbite.android.feature.place.PlaceMenuRoute
 import com.openbite.android.feature.place.PlacesRoute
+import com.openbite.android.feature.scan.ScanRoute
 import com.openbite.android.feature.settings.SettingsRoute
 
 private val tabs = TopLevelDestination.entries.toList()
@@ -32,7 +33,7 @@ fun OpenBiteApp() {
     val state = rememberNavigationState(tabs)
     val navigator = remember(state) { Navigator(state) }
 
-    // 以下回调的目标页面在 U3–U6 才做，现在什么都不做。
+    // 以下回调的目标页面在 U3b–U6 才做，现在什么都不做。
     val notYet: () -> Unit = {}
 
     val openPlace: (String) -> Unit = { navigator.navigate(PlaceKey(it)) }
@@ -43,8 +44,8 @@ fun OpenBiteApp() {
                 onOpenSettings = { navigator.navigate(SettingsKey) },
                 onOpenMilestones = { navigator.navigate(MilestonesKey) },
                 onOpenMemories = { navigator.navigate(MemoriesKey) },
-                onScanMenu = notYet, // TODO(U3): 识别菜单
-                onPickPhoto = notYet, // TODO(U3): 相册选图后识别
+                onScanMenu = { navigator.navigate(ScanKey()) },
+                onPickPhoto = { navigator.navigate(ScanKey(fromGallery = true)) },
                 // TODO(U4): 改成打开这条记录（补记忆 / 看记录）；在那之前先进店铺页。
                 onOpenMemory = { _, placeId -> openPlace(placeId) },
             )
@@ -52,7 +53,7 @@ fun OpenBiteApp() {
         entry<MemoriesKey> {
             MemoriesRoute(
                 onSearch = notYet, // TODO: 搜索记忆（设计稿未定）
-                onScanMenu = notYet, // TODO(U3)
+                onScanMenu = { navigator.navigate(ScanKey()) },
                 // TODO(U4): 改成打开这条记录；在那之前先进店铺页。
                 onOpenMemory = { _, placeId -> openPlace(placeId) },
             )
@@ -62,7 +63,7 @@ fun OpenBiteApp() {
                 onOpenPlace = openPlace,
                 onSearch = notYet, // TODO: 搜索店铺（设计稿未定）
                 onOpenMap = notYet, // TODO(U5): 地图
-                onScanMenu = notYet, // TODO(U3)
+                onScanMenu = { navigator.navigate(ScanKey()) },
             )
         }
         entry<MilestonesKey> {
@@ -75,8 +76,17 @@ fun OpenBiteApp() {
         entry<SettingsKey> {
             SettingsRoute(
                 onBack = navigator::goBack,
-                onOpenTaste = notYet, // TODO(U3): 我的口味
-                onChooseModel = notYet, // TODO(U3): 模型选择
+                onOpenTaste = notYet, // TODO(U3b): 我的口味
+            )
+        }
+        entry<ScanKey> { key ->
+            ScanRoute(
+                placeId = key.placeId,
+                fromGallery = key.fromGallery,
+                onBack = navigator::goBack,
+                // TODO(U3b): 识别完改去点单页。
+                onOpenMenu = { placeId -> navigator.replaceTop(PlaceMenuKey(placeId)) },
+                onOpenSettings = { navigator.navigate(SettingsKey) },
             )
         }
         entry<PlaceKey> { key ->
@@ -86,7 +96,7 @@ fun OpenBiteApp() {
                 onOpenMenu = { navigator.navigate(PlaceMenuKey(key.placeId)) },
                 onShare = notYet, // TODO(U6): 分享店铺
                 onAddTag = notYet, // TODO(U5): 标签编辑
-                onScanMenu = notYet, // TODO(U3)
+                onScanMenu = { navigator.navigate(ScanKey(placeId = key.placeId)) },
             )
         }
         entry<PlaceMenuKey> { key ->
@@ -94,9 +104,9 @@ fun OpenBiteApp() {
                 placeId = key.placeId,
                 showPhotos = key.showPhotos,
                 onBack = navigator::goBack,
-                onOrder = notYet, // TODO(U3): 用这份菜单点单
-                onRescan = notYet, // TODO(U3): 补拍一页
-                onEditDish = notYet, // TODO(U3): 改译名或价格
+                onOrder = notYet, // TODO(U3b): 用这份菜单点单
+                onRescan = { navigator.navigate(ScanKey(placeId = key.placeId)) },
+                onEditDish = notYet, // TODO(U3b): 改译名或价格
             )
         }
     }

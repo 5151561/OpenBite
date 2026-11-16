@@ -3,15 +3,23 @@ package com.openbite.feature.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.openbite.core.domain.ClearAllDataUseCase
+import com.openbite.core.domain.ClearApiKeyUseCase
+import com.openbite.core.domain.ObserveVisionSettingsUseCase
+import com.openbite.core.domain.SaveApiKeyUseCase
+import com.openbite.core.domain.SetVisionModelUseCase
+import com.openbite.core.domain.VisionSettings
+import com.openbite.core.model.VisionModelChoice
 import com.openbite.core.domain.LoadSampleDataUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /** 操作完成后给用户的一次性提示。 */
-enum class SettingsMessage { SAMPLE_LOADED, SAMPLE_SKIPPED_NOT_EMPTY, CLEARED, FAILED }
+enum class SettingsMessage { SAMPLE_LOADED, SAMPLE_SKIPPED_NOT_EMPTY, CLEARED, FAILED, KEY_SAVED, KEY_INVALID, KEY_CLEARED }
 
 data class SettingsUiState(
     val isWorking: Boolean = false,
@@ -23,10 +31,32 @@ data class SettingsUiState(
 class SettingsViewModel(
     private val loadSampleData: LoadSampleDataUseCase,
     private val clearAllData: ClearAllDataUseCase,
+    observeVisionSettings: ObserveVisionSettingsUseCase,
+    private val setVisionModel: SetVisionModelUseCase,
+    private val saveApiKey: SaveApiKeyUseCase,
+    private val clearApiKey: ClearApiKeyUseCase,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = state.asStateFlow()
+
+    /** 识别模型和 API Key（只有打码后的样子）。加载完之前为 null。 */
+    val vision: StateFlow<VisionSettings?> = observeVisionSettings()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    fun chooseModel(choice: VisionModelChoice) {
+        viewModelScope.launch { setVisionModel(choice) }
+    }
+
+    /** 保存粘贴的 Key。返回前不回显、不记日志。 */
+    fun saveKey(rawKey: String) = launchAction {
+        if (saveApiKey(rawKey)) SettingsMessage.KEY_SAVED else SettingsMessage.KEY_INVALID
+    }
+
+    fun clearKey() = launchAction {
+        clearApiKey()
+        SettingsMessage.KEY_CLEARED
+    }
 
     fun loadSample() = launchAction {
         val imported = loadSampleData()

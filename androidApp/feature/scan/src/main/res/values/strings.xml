@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="scan_title">识别菜单</string>
+    <string name="scan_back">返回</string>
+    <string name="scan_photo_description">要识别的菜单照片</string>
+    <string name="scan_default_place_name">新店铺 %1$s</string>
+
+    <string name="scan_preparing">正在处理照片</string>
+    <string name="scan_reading">正在读菜单</string>
+    <string name="scan_saving">正在存进店铺</string>
+    <string name="scan_done">读完了</string>
+    <string name="scan_failed">没读成</string>
+    <string name="scan_progress_label">识别进度</string>
+    <string name="scan_count_estimated">%1$d / 约 %2$d 道</string>
+    <string name="scan_count">%1$d 道</string>
+
+    <string name="scan_chip_exif_location">EXIF 已剥离，仅保留位置</string>
+    <string name="scan_chip_exif">EXIF 已剥离</string>
+
+    <string name="scan_saved_new">已存为新店铺：%1$s</string>
+    <string name="scan_saved_existing">已存到 %1$s · 新增 %2$d 道，更新 %3$d 道</string>
+    <string name="scan_rename">改店名</string>
+    <string name="scan_rename_title">店名</string>
+    <string name="scan_rename_confirm">保存</string>
+    <string name="scan_cancel">取消</string>
+    <string name="scan_open_menu">查看电子菜单</string>
+    <string name="scan_allergens_note">过敏原是模型推测，仅供参考，请向店员确认。</string>
+
+    <string name="scan_retry">重试</string>
+    <string name="scan_use_sample">改用示例菜单</string>
+    <string name="scan_open_settings">去设置填 Key</string>
+    <string name="scan_retake">重新拍</string>
+    <string name="scan_no_camera">没有找到相机应用。</string>
+
+    <string name="scan_error_no_api_key">还没填 API Key。可以先用示例菜单体验，或去设置里填 Key。</string>
+    <string name="scan_error_invalid_api_key">API Key 无效或没有权限，请在设置里检查。</string>
+    <string name="scan_error_rate_limited">请求太频繁或额度用完了，稍后再试。</string>
+    <string name="scan_error_service_unavailable">模型服务暂时忙不过来，稍后再试。</string>
+    <string name="scan_error_timeout">识别超时了，网络可能不太好。</string>
+    <string name="scan_error_network">连不上网络，检查一下再试。</string>
+    <string name="scan_error_image_unreadable">这张照片读不出来，换一张试试。</string>
+    <string name="scan_error_no_dishes">没认出菜品。照片可能太糊，或者不是菜单。</string>
+    <string name="scan_error_place_missing">这家店已经不在了。</string>
+    <string name="scan_error_unknown">识别失败了，请重试。</string>
+</resources>

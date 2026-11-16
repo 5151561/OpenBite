@@ -2,6 +2,16 @@ package com.openbite.core.domain.di
 
 import com.openbite.core.data.di.dataModule
 import com.openbite.core.domain.ClearAllDataUseCase
+import com.openbite.core.domain.ClearApiKeyUseCase
+import com.openbite.core.domain.IdGenerator
+import com.openbite.core.domain.NowProvider
+import com.openbite.core.domain.ObserveVisionSettingsUseCase
+import com.openbite.core.domain.RenamePlaceUseCase
+import com.openbite.core.domain.SaveApiKeyUseCase
+import com.openbite.core.domain.ScanMenuUseCase
+import com.openbite.core.domain.SetVisionModelUseCase
+import com.openbite.core.domain.SystemNowProvider
+import com.openbite.core.domain.UuidGenerator
 import com.openbite.core.domain.LoadSampleDataUseCase
 import com.openbite.core.domain.ObserveDiningLogsUseCase
 import com.openbite.core.domain.ObserveMemoriesUseCase
@@ -27,5 +37,13 @@ val sharedCoreModule: Module = module {
     factory { ObservePlaceDetailUseCase(get(), get(), get(), get()) }
     factory { ObservePlaceMenuUseCase(get(), get()) }
     factory { LoadSampleDataUseCase(get()) }
-    factory { ClearAllDataUseCase(get()) }
+    factory { ClearAllDataUseCase(get(), get()) }
+    single<IdGenerator> { UuidGenerator() }
+    single<NowProvider> { SystemNowProvider() }
+    factory { ScanMenuUseCase(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { ObserveVisionSettingsUseCase(get(), get()) }
+    factory { SetVisionModelUseCase(get()) }
+    factory { SaveApiKeyUseCase(get()) }
+    factory { ClearApiKeyUseCase(get()) }
+    factory { RenamePlaceUseCase(get()) }
 }

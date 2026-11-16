@@ -1,6 +1,20 @@
 package com.openbite.android.feature.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import com.openbite.android.core.designsystem.text.visionModelLabel
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +53,8 @@ import com.openbite.android.core.designsystem.component.segmentShape
 import com.openbite.android.core.designsystem.icon.OpenBiteIcons
 import com.openbite.android.core.designsystem.theme.OpenBiteTheme
 import com.openbite.android.core.designsystem.theme.Spacing
+import com.openbite.core.domain.VisionSettings
+import com.openbite.core.model.VisionModelChoice
 import com.openbite.feature.settings.SettingsMessage
 import com.openbite.feature.settings.SettingsUiState
 import com.openbite.feature.settings.SettingsViewModel
@@ -46,21 +62,24 @@ import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * 设置页。U1 只做静态部分和两个数据操作：
- * 口味、模型选择、API Key 在 U3 做；隐私开关现在固定为开。
+ * 口味在 U3b 做；隐私开关现在固定为开。
  */
 @Composable
 fun SettingsRoute(
     onBack: () -> Unit,
     onOpenTaste: () -> Unit,
-    onChooseModel: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val vision by viewModel.vision.collectAsStateWithLifecycle()
     SettingsScreen(
         state = state,
+        vision = vision,
         onBack = onBack,
         onOpenTaste = onOpenTaste,
-        onChooseModel = onChooseModel,
+        onChooseModel = viewModel::chooseModel,
+        onSaveKey = viewModel::saveKey,
+        onClearKey = viewModel::clearKey,
         onLoadSample = viewModel::loadSample,
         onRequestClear = viewModel::requestClear,
         onConfirmClear = viewModel::confirmClear,
@@ -73,9 +92,12 @@ fun SettingsRoute(
 @Composable
 fun SettingsScreen(
     state: SettingsUiState,
+    vision: VisionSettings? = null,
     onBack: () -> Unit = {},
     onOpenTaste: () -> Unit = {},
-    onChooseModel: () -> Unit = {},
+    onChooseModel: (VisionModelChoice) -> Unit = {},
+    onSaveKey: (String) -> Unit = {},
+    onClearKey: () -> Unit = {},
     onLoadSample: () -> Unit = {},
     onRequestClear: () -> Unit = {},
     onConfirmClear: () -> Unit = {},
@@ -91,6 +113,9 @@ fun SettingsScreen(
             SettingsMessage.SAMPLE_SKIPPED_NOT_EMPTY -> R.string.settings_msg_sample_skipped
             SettingsMessage.CLEARED -> R.string.settings_msg_cleared
             SettingsMessage.FAILED -> R.string.settings_msg_failed
+            SettingsMessage.KEY_SAVED -> R.string.settings_msg_key_saved
+            SettingsMessage.KEY_INVALID -> R.string.settings_msg_key_invalid
+            SettingsMessage.KEY_CLEARED -> R.string.settings_msg_key_cleared
         }
         onMessageShown()
         snackbar.showSnackbar(resources.getString(text))
@@ -142,22 +167,8 @@ fun SettingsScreen(
                 onClick = onOpenTaste,
             )
 
-            // TODO(U3): 模型选择和 API Key（Keystore）。
             SectionHeader(stringResource(R.string.settings_model_section), color = MaterialTheme.colorScheme.primary)
-            SegmentedList {
-                SegmentedListItem(
-                    headline = stringResource(R.string.settings_model),
-                    shape = segmentShape(0, 1),
-                    trailing = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            TrailingText(stringResource(R.string.settings_model_default))
-                            Icon(OpenBiteIcons.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    },
-                    onClick = onChooseModel,
-                )
-            }
-            Note(stringResource(R.string.settings_model_note))
+            if (vision != null) VisionSection(vision, state.isWorking, onChooseModel, onSaveKey, onClearKey)
 
             // 去 EXIF 是强制的；保留经纬度的开关在 U3 接 DataStore，现在固定为开。
             SectionHeader(stringResource(R.string.settings_privacy_section), color = MaterialTheme.colorScheme.primary)
@@ -222,11 +233,128 @@ private fun Note(text: String) {
 @Preview(showBackground = true, widthDp = 412, heightDp = 892)
 @Composable
 private fun SettingsScreenPreview() {
-    OpenBiteTheme(darkTheme = false) { SettingsScreen(SettingsUiState()) }
+    OpenBiteTheme(darkTheme = false) {
+        SettingsScreen(SettingsUiState(), VisionSettings(VisionModelChoice.CLAUDE_HAIKU, VisionModelChoice.SAMPLE, null))
+    }
 }
 
 @Preview(showBackground = true, widthDp = 412, heightDp = 892)
 @Composable
 private fun SettingsConfirmClearDarkPreview() {
-    OpenBiteTheme(darkTheme = true) { SettingsScreen(SettingsUiState(confirmingClear = true)) }
+    OpenBiteTheme(darkTheme = true) {
+        SettingsScreen(
+            SettingsUiState(confirmingClear = true),
+            VisionSettings(VisionModelChoice.CLAUDE_HAIKU, VisionModelChoice.CLAUDE_HAIKU, "sk-ant-••••WXYZ"),
+        )
+    }
+}
+
+/** 识别模型：选模型 + API Key。没 Key 时需要 Key 的模型不能选，实际用示例菜单。 */
+@Composable
+private fun VisionSection(
+    vision: VisionSettings,
+    busy: Boolean,
+    onChooseModel: (VisionModelChoice) -> Unit,
+    onSaveKey: (String) -> Unit,
+    onClearKey: () -> Unit,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
+    SegmentedList {
+        Box {
+            SegmentedListItem(
+                headline = stringResource(R.string.settings_model),
+                shape = segmentShape(0, 2),
+                trailing = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        TrailingText(visionModelLabel(vision.effective))
+                        Icon(OpenBiteIcons.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                },
+                onClick = { menuOpen = true },
+            )
+            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }, modifier = Modifier.align(Alignment.TopEnd)) {
+                VisionModelChoice.entries.forEach { choice ->
+                    val enabled = !choice.needsApiKey || vision.hasApiKey
+                    DropdownMenuItem(
+                        text = {
+                            Column {
+                                Text(visionModelLabel(choice))
+                                if (!enabled) {
+                                    Text(
+                                        stringResource(R.string.settings_model_needs_key),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                        },
+                        enabled = enabled,
+                        leadingIcon = {
+                            if (choice == vision.effective) Icon(OpenBiteIcons.Check, contentDescription = null)
+                        },
+                        onClick = {
+                            onChooseModel(choice)
+                            menuOpen = false
+                        },
+                    )
+                }
+            }
+        }
+        val masked = vision.maskedKey
+        if (masked != null) {
+            SegmentedListItem(
+                headline = stringResource(R.string.settings_api_key),
+                supporting = masked,
+                shape = segmentShape(1, 2),
+                trailing = {
+                    TextButton(onClick = onClearKey, enabled = !busy) { Text(stringResource(R.string.settings_api_key_clear)) }
+                },
+            )
+        } else {
+            ApiKeyField(segmentShape(1, 2), busy, onSaveKey)
+        }
+    }
+    Note(stringResource(if (vision.hasApiKey) R.string.settings_model_note_key else R.string.settings_model_note))
+}
+
+@Composable
+private fun ApiKeyField(shape: androidx.compose.ui.graphics.Shape, busy: Boolean, onSaveKey: (String) -> Unit) {
+    // 输入框内容只在内存里，不进 saveable（避免进 Bundle）。
+    var input by remember { mutableStateOf("") }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceContainer, shape)
+            .padding(start = Spacing.l, end = Spacing.s, top = Spacing.s, bottom = Spacing.m),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+    ) {
+        OutlinedTextField(
+            value = input,
+            onValueChange = { input = it },
+            modifier = Modifier.weight(1f),
+            label = { Text(stringResource(R.string.settings_api_key)) },
+            placeholder = { Text(stringResource(R.string.settings_api_key_placeholder)) },
+            singleLine = true,
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                autoCorrectEnabled = false,
+                imeAction = ImeAction.Done,
+            ),
+            keyboardActions = KeyboardActions(onDone = {
+                if (input.isNotBlank()) {
+                    onSaveKey(input)
+                    input = ""
+                }
+            }),
+        )
+        TextButton(
+            onClick = {
+                onSaveKey(input)
+                input = ""
+            },
+            enabled = input.isNotBlank() && !busy,
+        ) { Text(stringResource(R.string.settings_api_key_save)) }
+    }
 }

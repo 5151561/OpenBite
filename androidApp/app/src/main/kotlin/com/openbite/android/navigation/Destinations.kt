@@ -24,6 +24,10 @@ data object MilestonesKey : NavKey
 @Serializable
 data object SettingsKey : NavKey
 
+/** 识别菜单。[placeId] 不为 null 时结果挂到这家店；[fromGallery] 为 true 时从相册选，否则拍照。 */
+@Serializable
+data class ScanKey(val placeId: String? = null, val fromGallery: Boolean = false) : NavKey
+
 /** 店铺详情，压在当前 Tab 的返回栈上。 */
 @Serializable
 data class PlaceKey(val placeId: String) : NavKey

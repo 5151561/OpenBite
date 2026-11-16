@@ -4,6 +4,7 @@ import com.openbite.core.database.entity.DiningLogItemEntity
 import com.openbite.core.database.entity.DiningLogWithDetails
 import com.openbite.core.database.entity.DishEntity
 import com.openbite.core.database.entity.MenuScanEntity
+import com.openbite.core.database.entity.PlaceEntity
 import com.openbite.core.database.entity.MilestoneEntity
 import com.openbite.core.database.entity.PlaceWithTags
 import com.openbite.core.model.DiningLog
@@ -82,3 +83,17 @@ internal fun MenuScanEntity.toModel() = MenuScan(
     photoPath = photoPath,
     takenAt = createdAt,
 )
+
+internal fun Dish.toEntity() = DishEntity(
+    id = id,
+    placeId = placeId,
+    scanId = scanId,
+    category = category,
+    nameOriginal = nameOriginal,
+    nameTranslated = nameTranslated,
+    priceMinor = price?.amountMinor,
+    currency = price?.currency,
+    allergensJson = json.encodeToString(allergens),
+)
+
+internal fun Place.toEntity(createdAt: Long) = PlaceEntity(id, name, lat, lon, address, createdAt)

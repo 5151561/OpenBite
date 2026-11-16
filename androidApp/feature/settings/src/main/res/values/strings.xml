@@ -8,8 +8,13 @@
 
     <string name="settings_model_section">识别模型</string>
     <string name="settings_model">模型</string>
-    <string name="settings_model_default">Claude Haiku 5.5</string>
-    <string name="settings_model_note">识别新菜单要用你自己的 API Key，只存本机。不填也能用示例菜单体验全部流程。</string>
+    <string name="settings_model_needs_key">先填 API Key</string>
+    <string name="settings_model_note">没填 Key 时用示例菜单（不调用模型），也能体验全部流程。识别真实菜单要填你自己的 Anthropic API Key。</string>
+    <string name="settings_model_note_key">Key 用 Android Keystore 加密后只存在这台手机上，只在识别时发给 Anthropic。</string>
+    <string name="settings_api_key">API Key</string>
+    <string name="settings_api_key_placeholder">粘贴你的 API Key</string>
+    <string name="settings_api_key_save">保存</string>
+    <string name="settings_api_key_clear">清除</string>
 
     <string name="settings_privacy_section">隐私</string>
     <string name="settings_strip_exif">上传前剥离 EXIF</string>
@@ -35,4 +40,7 @@
     <string name="settings_msg_sample_skipped">已有记忆，没有载入。想换成示例数据，先清空。</string>
     <string name="settings_msg_cleared">已清空全部记忆</string>
     <string name="settings_msg_failed">操作失败，请重试</string>
+    <string name="settings_msg_key_saved">已保存 API Key</string>
+    <string name="settings_msg_key_invalid">Key 格式不对：不能为空，中间不能有空格</string>
+    <string name="settings_msg_key_cleared">已清除 API Key，识别会用示例菜单</string>
 </resources>

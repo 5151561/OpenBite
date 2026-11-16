@@ -36,6 +36,7 @@ dependencies {
     implementation(project(":androidApp:feature:memories"))
     implementation(project(":androidApp:feature:milestone"))
     implementation(project(":androidApp:feature:place"))
+    implementation(project(":androidApp:feature:scan"))
     implementation(project(":androidApp:feature:settings"))
 
     implementation(platform(libs.androidx.compose.bom))
@@ -48,6 +49,10 @@ dependencies {
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.kotlinx.serialization.core)
+    implementation(project(":shared:core:network"))
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.exifinterface)
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.android)
     debugImplementation(libs.androidx.compose.ui.tooling)

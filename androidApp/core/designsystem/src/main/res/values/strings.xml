@@ -53,4 +53,9 @@
     <string name="ds_previous_last_year">去年在 %1$s</string>
     <string name="ds_previous_in_year">%1$d年在 %2$s</string>
     <string name="ds_quote">「%1$s」</string>
+
+    <!-- 识别模型 -->
+    <string name="ds_model_claude_haiku">Claude Haiku 5.5</string>
+    <string name="ds_model_claude_sonnet">Claude Sonnet 5.5</string>
+    <string name="ds_model_sample">示例菜单（不调用模型）</string>
 </resources>

@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- 只有识别菜单时联网（发去掉 EXIF 的菜单图片给所选模型）。 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 新建店铺、照片又没有 GPS 时取一次粗略位置；用到时才申请。 -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- 读相册照片里的拍摄位置；从相册选图时才申请。 -->
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
+    <!-- 拍照交给系统相机（ACTION_IMAGE_CAPTURE），不需要 CAMERA 权限。 -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <application
         android:name=".OpenBiteApplication"
         android:allowBackup="false"
@@ -17,6 +26,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 系统相机把照片写进 cache/scan/，识别完由 App 清理。 -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

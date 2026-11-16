@@ -4,6 +4,7 @@ import com.openbite.core.data.DiningLogRepository
 import com.openbite.core.data.MilestoneRepository
 import com.openbite.core.data.PlaceRepository
 import com.openbite.core.data.SampleDataRepository
+import com.openbite.core.data.platform.PhotoStore
 import com.openbite.core.model.DiningLog
 import com.openbite.core.model.MemorySummary
 import com.openbite.core.model.MilestoneHighlight
@@ -66,8 +67,15 @@ class LoadSampleDataUseCase(private val repository: SampleDataRepository) {
 }
 
 /** 清空全部记忆。界面必须先让用户确认。 */
-class ClearAllDataUseCase(private val repository: SampleDataRepository) {
-    suspend operator fun invoke() = repository.clearAll()
+class ClearAllDataUseCase(
+    private val repository: SampleDataRepository,
+    private val photos: PhotoStore,
+) {
+    suspend operator fun invoke() {
+        repository.clearAll()
+        // 数据库清掉后再删菜单原照片，免得留下孤儿文件。
+        photos.deleteAll()
+    }
 }
 
 /** 店铺列表。 */

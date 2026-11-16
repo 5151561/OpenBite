@@ -8,6 +8,7 @@ import com.openbite.core.database.dao.DiningLogDao
 import com.openbite.core.database.dao.MaintenanceDao
 import com.openbite.core.database.dao.MilestoneDao
 import com.openbite.core.database.dao.PlaceDao
+import com.openbite.core.database.dao.ScanDao
 import com.openbite.core.database.dao.SeedDao
 import com.openbite.core.database.entity.DiningLogEntity
 import com.openbite.core.database.entity.DiningLogItemEntity
@@ -49,6 +50,7 @@ abstract class OpenBiteDatabase : RoomDatabase() {
     abstract fun milestoneDao(): MilestoneDao
     abstract fun seedDao(): SeedDao
     abstract fun maintenanceDao(): MaintenanceDao
+    abstract fun scanDao(): ScanDao
 }
 
 // Room 编译器为每个平台生成 actual 实现。
