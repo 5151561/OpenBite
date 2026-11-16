@@ -1,0 +1,57 @@
+package com.openbite.core.data
+
+import com.openbite.core.database.entity.DiningLogItemEntity
+import com.openbite.core.database.entity.DiningLogWithDetails
+import com.openbite.core.database.entity.MilestoneEntity
+import com.openbite.core.database.entity.PlaceWithTags
+import com.openbite.core.model.DiningLog
+import com.openbite.core.model.DiningLogItem
+import com.openbite.core.model.DiningStatus
+import com.openbite.core.model.LogSource
+import com.openbite.core.model.Milestone
+import com.openbite.core.model.MilestoneType
+import com.openbite.core.model.Money
+import com.openbite.core.model.Place
+import com.openbite.core.model.Recurrence
+import kotlinx.datetime.LocalDate
+
+internal fun PlaceWithTags.toModel() = Place(
+    id = place.id,
+    name = place.name,
+    lat = place.lat,
+    lon = place.lon,
+    address = place.address,
+    tags = tags.map { it.tag },
+)
+
+internal fun DiningLogItemEntity.toModel() = DiningLogItem(
+    id = id,
+    dishId = dishId,
+    name = nameSnapshot,
+    price = priceMinorSnapshot?.let { amount -> currencySnapshot?.let { Money(amount, it) } },
+    qty = qty,
+    rating = rating,
+    comment = comment,
+)
+
+internal fun DiningLogWithDetails.toModel() = DiningLog(
+    id = log.id,
+    place = place.toModel(),
+    visitedAt = log.visitedAt,
+    timezone = log.timezone,
+    localDate = LocalDate.parse(log.localDate),
+    status = DiningStatus.valueOf(log.status.uppercase()),
+    milestoneId = log.milestoneId,
+    note = log.note,
+    source = LogSource.valueOf(log.createdBy.uppercase()),
+    items = items.map { it.toModel() },
+)
+
+internal fun MilestoneEntity.toModel() = Milestone(
+    id = id,
+    title = title,
+    type = MilestoneType.valueOf(type.uppercase()),
+    date = LocalDate.parse(date),
+    recurrence = Recurrence.valueOf(recurrence.uppercase()),
+    remindDaysBefore = remindDaysBefore,
+)

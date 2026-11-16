@@ -1,0 +1,27 @@
+# Build
+build/
+**/build/
+.gradle/
+.kotlin/
+*.apk
+*.aab
+
+# Local config
+local.properties
+
+# IDE
+.idea/
+*.iml
+captures/
+
+# Secrets
+*.jks
+*.keystore
+
+# OS
+.DS_Store
+
+# Xcode（后半段 iOS）
+xcuserdata/
+*.xcuserstate
+iosApp/DerivedData/

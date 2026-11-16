@@ -1,0 +1,68 @@
+{
+  "persons": [
+    { "id": "person-partner", "displayName": "老婆" }
+  ],
+  "milestones": [
+    {
+      "id": "ms-love",
+      "title": "恋爱纪念日",
+      "type": "anniversary",
+      "date": "2024-11-27",
+      "recurrence": "yearly",
+      "remindDaysBefore": 7,
+      "personIds": ["person-partner"]
+    }
+  ],
+  "places": [
+    {
+      "id": "place-izakaya",
+      "name": "居酒屋 とり吉",
+      "lat": 35.6595,
+      "lon": 139.7005,
+      "address": "東京都渋谷区",
+      "tags": ["深夜食堂", "适合约会"],
+      "dishes": [
+        { "id": "dish-tsukune", "category": "串焼き", "nameOriginal": "つくね", "nameTranslated": "鸡肉丸串", "priceMinor": 280, "currency": "JPY", "allergens": ["egg"] },
+        { "id": "dish-negima", "category": "串焼き", "nameOriginal": "ねぎま", "nameTranslated": "葱段鸡腿串", "priceMinor": 250, "currency": "JPY" },
+        { "id": "dish-dashimaki", "category": "一品料理", "nameOriginal": "だし巻き玉子", "nameTranslated": "高汤厚蛋烧", "priceMinor": 480, "currency": "JPY", "allergens": ["egg", "fish"] }
+      ]
+    },
+    {
+      "id": "place-ramen",
+      "name": "麺屋 しずく",
+      "lat": 35.7023,
+      "lon": 139.7745,
+      "address": "東京都台東区",
+      "tags": ["一人食"],
+      "dishes": [
+        { "id": "dish-shoyu", "category": "ラーメン", "nameOriginal": "醤油らーめん", "nameTranslated": "酱油拉面", "priceMinor": 950, "currency": "JPY", "allergens": ["wheat", "soy"] }
+      ]
+    }
+  ],
+  "logs": [
+    {
+      "id": "log-2025-anniv",
+      "placeId": "place-izakaya",
+      "visitedAtLocal": "2025-11-27T19:30",
+      "timezone": "Asia/Tokyo",
+      "status": "done",
+      "milestoneId": "ms-love",
+      "note": "一周年，坐吧台，老板送了一份厚蛋烧",
+      "personIds": ["person-partner"],
+      "items": [
+        { "dishId": "dish-tsukune", "name": "つくね", "priceMinor": 280, "currency": "JPY", "qty": 2, "rating": 5, "comment": "蘸蛋黄，必点" },
+        { "dishId": "dish-dashimaki", "name": "だし巻き玉子", "priceMinor": 480, "currency": "JPY", "qty": 1, "rating": 4 }
+      ]
+    },
+    {
+      "id": "log-2026-ramen",
+      "placeId": "place-ramen",
+      "visitedAtLocal": "2026-03-14T12:10",
+      "timezone": "Asia/Tokyo",
+      "status": "done",
+      "items": [
+        { "dishId": "dish-shoyu", "name": "醤油らーめん", "priceMinor": 950, "currency": "JPY", "qty": 1, "rating": 4, "comment": "汤很清" }
+      ]
+    }
+  ]
+}
