@@ -11,7 +11,7 @@ import com.openbite.core.model.MilestoneHighlight
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import com.openbite.core.data.MilestoneRepository
+import com.openbite.core.domain.ObserveAllMilestonesUseCase
 import com.openbite.core.model.Milestone
 import kotlinx.coroutines.flow.stateIn
 
@@ -34,7 +34,7 @@ data class MilestonesUiState(
 
 class MilestonesViewModel(
     observeHighlights: ObserveMilestoneHighlightsUseCase,
-    milestones: MilestoneRepository,
+    observeAllMilestones: ObserveAllMilestonesUseCase,
     observeReminders: ObserveReminderSettingsUseCase,
     private val setReminders: SetReminderSettingsUseCase,
 ) : ViewModel() {
@@ -49,7 +49,7 @@ class MilestonesViewModel(
     }
 
     val uiState: StateFlow<MilestonesUiState> =
-        combine(observeHighlights(daysAhead = DAYS_AHEAD), milestones.observeMilestones()) { all, every ->
+        combine(observeHighlights(daysAhead = DAYS_AHEAD), observeAllMilestones()) { all, every ->
             val upcomingIds = all.map { it.upcoming.milestone.id }.toSet()
             MilestonesUiState(
                 isLoading = false,

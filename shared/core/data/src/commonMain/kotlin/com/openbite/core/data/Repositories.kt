@@ -1,5 +1,6 @@
 package com.openbite.core.data
 
+import com.openbite.core.model.MilestoneWithPeople
 import com.openbite.core.model.NewPhoto
 import com.openbite.core.model.MealEdit
 import com.openbite.core.data.seed.SeedImporter
@@ -123,8 +124,6 @@ interface MilestoneRepository {
     /** 标了这个纪念日的用餐记录数。 */
     suspend fun taggedMealCount(id: String): Int
 }
-
-data class MilestoneWithPeople(val milestone: Milestone, val personIds: List<String>)
 
 /** 设置页的示例数据和清空操作。 */
 interface SampleDataRepository {

@@ -7,7 +7,6 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(project(":shared:core:model"))
-            api(project(":shared:core:network"))
             implementation(project(":shared:core:domain"))
             api(libs.jetbrains.lifecycle.viewmodel)
             api(libs.kotlinx.coroutines.core)

@@ -5,7 +5,7 @@ import com.openbite.core.data.DraftRepository
 import com.openbite.core.model.MealEdit
 import com.openbite.core.data.MealRepository
 import com.openbite.core.data.MilestoneRepository
-import com.openbite.core.data.MilestoneWithPeople
+import com.openbite.core.model.MilestoneWithPeople
 import com.openbite.core.data.NewDraftLog
 import com.openbite.core.model.NewPhoto
 import com.openbite.core.data.PlaceCounts

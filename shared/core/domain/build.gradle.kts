@@ -10,6 +10,8 @@ kotlin {
         commonMain.dependencies {
             api(project(":shared:core:model"))
             implementation(project(":shared:core:data"))
+            // 视觉模型（识别菜单、读小票）。只在用例内部用，不往 feature 传。
+            implementation(project(":shared:core:network"))
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)
             implementation(libs.kotlinx.serialization.json)

@@ -105,5 +105,8 @@ val sharedCoreModule: Module = module {
     factory { com.openbite.core.domain.UpdateDishUseCase(get()) }
     factory { com.openbite.core.domain.AssistantApi(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { ObserveTasteProfileUseCase(get()) }
+    factory { com.openbite.core.domain.ObserveAllMilestonesUseCase(get()) }
+    factory { com.openbite.core.domain.ObservePlaceUseCase(get()) }
+    factory { com.openbite.core.domain.ObserveSharePlaceUseCase(get()) }
     factory { SaveTasteProfileUseCase(get()) }
 }

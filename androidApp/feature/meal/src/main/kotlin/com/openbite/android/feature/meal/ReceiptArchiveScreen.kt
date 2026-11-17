@@ -49,8 +49,7 @@ import com.openbite.android.core.designsystem.theme.OpenBiteTheme
 import com.openbite.android.core.designsystem.theme.Spacing
 import com.openbite.core.model.Money
 import com.openbite.core.model.formatMoney
-import com.openbite.core.network.SampleVisionModel
-import com.openbite.core.network.parseReceipt
+import com.openbite.core.domain.sampleReceipt
 import com.openbite.feature.meal.ReceiptArchiveUiState
 import com.openbite.feature.meal.ReceiptArchiveViewModel
 import com.openbite.feature.meal.ReceiptPhase
@@ -250,7 +249,7 @@ private fun ReceiptArchivePreview() {
             ReceiptArchiveUiState(
                 isLoading = false,
                 phase = ReceiptPhase.READ,
-                reading = parseReceipt(SampleVisionModel.SAMPLE_RECEIPT),
+                reading = sampleReceipt(),
                 totalText = "4246",
                 orderedTotal = Money(3860, "JPY"),
             ),

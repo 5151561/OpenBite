@@ -1,7 +1,7 @@
 package com.openbite.core.domain
 
 import com.openbite.core.data.MilestoneRepository
-import com.openbite.core.data.MilestoneWithPeople
+import com.openbite.core.model.MilestoneWithPeople
 import com.openbite.core.model.Milestone
 import com.openbite.core.model.MilestoneType
 import com.openbite.core.model.Recurrence

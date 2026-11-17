@@ -9,7 +9,8 @@ kotlin {
         commonMain.dependencies {
             api(project(":shared:core:model"))
             implementation(project(":shared:core:database"))
-            api(project(":shared:core:network"))
+            // 网络是数据层的实现细节，不往上传。
+            implementation(project(":shared:core:network"))
             implementation(libs.kotlinx.serialization.json)
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)

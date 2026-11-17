@@ -2,8 +2,10 @@ import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import com.openbite.buildlogic.OpenBiteVersions
 import com.openbite.buildlogic.defaultNamespace
 import com.openbite.buildlogic.iosEnabled
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.kotlin.dsl.configure
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -40,6 +42,21 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
 
                 sourceSets.getByName("commonTest").dependencies {
                     implementation(kotlin("test"))
+                }
+            }
+
+            // 分层规则：共享 feature 只能依赖 domain 和 model，不能越过 domain 直连 data / database / network。
+            if (path.startsWith(":shared:feature:")) {
+                val modulePath = path
+                val forbidden = setOf(":shared:core:data", ":shared:core:database", ":shared:core:network")
+                configurations.configureEach {
+                    val configuration = name
+                    dependencies.configureEach {
+                        val dep = this
+                        if (dep is ProjectDependency && dep.path in forbidden) {
+                            throw GradleException("$modulePath 不能依赖 ${dep.path}（$configuration）：feature 只走 :shared:core:domain 的用例。")
+                        }
+                    }
                 }
             }
 

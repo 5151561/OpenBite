@@ -2,7 +2,7 @@ package com.openbite.feature.share
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.openbite.core.data.PlaceRepository
+import com.openbite.core.domain.ObserveSharePlaceUseCase
 import com.openbite.core.domain.ExportPlaceUseCase
 import com.openbite.core.domain.ExportedFile
 import com.openbite.core.domain.ImportError
@@ -19,7 +19,6 @@ import com.openbite.core.domain.importPreview
 import com.openbite.core.domain.mealCard
 import com.openbite.core.domain.openBiteFileName
 import com.openbite.core.domain.shortArea
-import com.openbite.core.model.MenuScan
 import com.openbite.core.model.Photo
 import com.openbite.core.model.PhotoKind
 import com.openbite.core.model.Place
@@ -102,25 +101,24 @@ data class SharePlaceUiState(
 /** 分享店铺（设计稿 17）：只有店铺和菜单，永远不带自己的记录。 */
 class SharePlaceViewModel(
     private val placeId: String,
-    places: PlaceRepository,
+    observeSource: ObserveSharePlaceUseCase,
     private val export: ExportPlaceUseCase,
 ) : ViewModel() {
     private val options = MutableStateFlow(ShareOptions())
     private val transient = MutableStateFlow(SharePlaceUiState())
 
     val uiState: StateFlow<SharePlaceUiState> = combine(
-        places.observePlace(placeId),
-        places.observeMenu(placeId),
-        places.observeScans(placeId),
+        observeSource(placeId),
         options,
         transient,
-    ) { place, menu, scans: List<MenuScan>, o, t ->
+    ) { source, o, t ->
+        val place = source.place
         t.copy(
             isLoading = false,
             place = place,
             area = shortArea(place?.address),
-            dishCount = menu.size,
-            photoCount = scans.size,
+            dishCount = source.dishCount,
+            photoCount = source.photoCount,
             options = o,
             fileName = place?.let { openBiteFileName(it.name) }.orEmpty(),
         )

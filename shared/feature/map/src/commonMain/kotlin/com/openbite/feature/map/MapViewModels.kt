@@ -98,7 +98,7 @@ data class PickLocationUiState(
 class PickLocationViewModel(
     private val placeId: String,
     observeMap: ObserveMapUseCase,
-    places: com.openbite.core.data.PlaceRepository,
+    observePlace: com.openbite.core.domain.ObservePlaceUseCase,
     private val setLocation: SetPlaceLocationUseCase,
 ) : ViewModel() {
     private val state = MutableStateFlow(PickLocationUiState())
@@ -106,7 +106,7 @@ class PickLocationViewModel(
 
     init {
         viewModelScope.launch {
-            val place = places.observePlace(placeId).first()
+            val place = observePlace(placeId).first()
             val pins = observeMap().first().pins.filterNot { it.place.id == placeId }
             state.update { it.copy(isLoading = false, place = place, otherPins = pins) }
         }

@@ -8,7 +8,6 @@ kotlin {
         commonMain.dependencies {
             api(project(":shared:core:model"))
             implementation(project(":shared:core:domain"))
-            api(project(":shared:core:data"))
             api(libs.jetbrains.lifecycle.viewmodel)
             api(libs.kotlinx.coroutines.core)
         }
