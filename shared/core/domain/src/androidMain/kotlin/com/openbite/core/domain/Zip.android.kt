@@ -2,6 +2,7 @@ package com.openbite.core.domain
 
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -45,11 +46,19 @@ internal actual fun readZipEntries(bytes: ByteArray, limits: OpenBiteLimits): Ma
     return result
 }
 
+/** 照片已经是 JPEG，再 deflate 几乎不变小，只白费 CPU：照片条目用 STORED 原样存，manifest 照常压缩。 */
 internal actual fun writeZipEntries(entries: List<Pair<String, ByteArray>>): ByteArray {
     val out = ByteArrayOutputStream()
     ZipOutputStream(out).use { zip ->
         entries.forEach { (name, data) ->
-            zip.putNextEntry(ZipEntry(name))
+            val entry = ZipEntry(name)
+            if (name != OPENBITE_MANIFEST) {
+                entry.method = ZipEntry.STORED
+                entry.size = data.size.toLong()
+                entry.compressedSize = data.size.toLong()
+                entry.crc = CRC32().apply { update(data) }.value
+            }
+            zip.putNextEntry(entry)
             zip.write(data)
             zip.closeEntry()
         }

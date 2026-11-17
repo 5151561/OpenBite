@@ -39,6 +39,7 @@ import com.openbite.core.domain.ObservePlacesUseCase
 import com.openbite.core.domain.ObserveUpcomingMilestonesUseCase
 import com.openbite.core.domain.SystemTodayProvider
 import com.openbite.core.domain.TodayProvider
+import com.openbite.core.domain.AppDispatchers
 import com.openbite.core.domain.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +51,7 @@ import org.koin.dsl.module
 val sharedCoreModule: Module = module {
     includes(dataModule)
     single<TodayProvider> { SystemTodayProvider() }
+    single { AppDispatchers() }
     single { ApplicationScope(CoroutineScope(SupervisorJob() + Dispatchers.Default)) }
     factory { ObserveDiningLogsUseCase(get()) }
     factory { ObserveUpcomingMilestonesUseCase(get(), get()) }
@@ -62,7 +64,7 @@ val sharedCoreModule: Module = module {
     factory { ClearAllDataUseCase(get(), get()) }
     single<IdGenerator> { UuidGenerator() }
     single<NowProvider> { SystemNowProvider() }
-    factory { ScanMenuUseCase(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { ScanMenuUseCase(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { ObserveVisionSettingsUseCase(get(), get()) }
     factory { SetVisionModelUseCase(get()) }
     factory { SaveApiKeyUseCase(get()) }
@@ -87,8 +89,8 @@ val sharedCoreModule: Module = module {
     factory { com.openbite.core.domain.AddPlaceTagUseCase(get()) }
     factory { com.openbite.core.domain.RemovePlaceTagUseCase(get()) }
     factory { com.openbite.core.domain.ObserveAllTagsUseCase(get()) }
-    factory { com.openbite.core.domain.ExportPlaceUseCase(get(), get()) }
-    factory { com.openbite.core.domain.OpenSharedPlaceUseCase(get()) }
+    factory { com.openbite.core.domain.ExportPlaceUseCase(get(), get(), get()) }
+    factory { com.openbite.core.domain.OpenSharedPlaceUseCase(get(), get()) }
     factory { com.openbite.core.domain.ImportPlaceUseCase(get(), get(), get(), get(), get()) }
     factory { com.openbite.core.domain.LoadMilestoneUseCase(get()) }
     factory { com.openbite.core.domain.ObservePersonsUseCase(get()) }

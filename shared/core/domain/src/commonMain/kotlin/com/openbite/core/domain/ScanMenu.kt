@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
@@ -111,6 +112,7 @@ class ScanMenuUseCase(
     private val models: VisionModelRegistry,
     private val ids: IdGenerator,
     private val now: NowProvider,
+    private val dispatchers: AppDispatchers = AppDispatchers(),
 ) {
     /**
      * [ensureLocationPermission]：只有照片没有 GPS、又要新建店铺时才调用，界面在这时弹定位权限。
@@ -230,7 +232,7 @@ class ScanMenuUseCase(
                 ),
             ),
         )
-    }
+    }.flowOn(dispatchers.default) // Base64、拼请求 JSON、逐行解析都不占主线程。
 }
 
 internal fun VisionException.toScanError(): ScanError = when (this) {

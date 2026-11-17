@@ -239,11 +239,11 @@ class OpenBiteFileTest {
 
     @Test
     fun openRejectsWrongTypeAndTooLarge() = runTest {
-        val wrong = OpenSharedPlaceUseCase { _, _ -> IncomingFile("x.zip", "application/zip", byteArrayOf(), false) }
+        val wrong = OpenSharedPlaceUseCase({ _, _ -> IncomingFile("x.zip", "application/zip", byteArrayOf(), false) })
         assertEquals(ImportError.NOT_OPENBITE, assertFailsWith<ImportException> { wrong("content://x") }.error)
-        val big = OpenSharedPlaceUseCase { _, _ -> IncomingFile("x.openbite", null, null, true) }
+        val big = OpenSharedPlaceUseCase({ _, _ -> IncomingFile("x.openbite", null, null, true) })
         assertEquals(ImportError.TOO_LARGE, assertFailsWith<ImportException> { big("content://x") }.error)
-        val broken = OpenSharedPlaceUseCase { _, _ -> error("revoked") }
+        val broken = OpenSharedPlaceUseCase({ _, _ -> error("revoked") })
         assertEquals(ImportError.READ_FAILED, assertFailsWith<ImportException> { broken("content://x") }.error)
     }
 

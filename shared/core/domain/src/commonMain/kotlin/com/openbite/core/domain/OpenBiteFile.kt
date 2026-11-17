@@ -12,6 +12,7 @@ import com.openbite.core.model.Money
 import com.openbite.core.model.Place
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -282,7 +283,11 @@ fun importPreview(manifest: OpenBiteManifest) = ImportPreview(
 class ExportedFile(val fileName: String, val bytes: ByteArray, val manifest: OpenBiteManifest)
 
 /** 生成要分享出去的店铺文件。照片用已经去掉 EXIF 的那份；读不出来或不是 JPEG 的跳过。 */
-class ExportPlaceUseCase(private val places: PlaceRepository, private val photos: PhotoStore) {
+class ExportPlaceUseCase(
+    private val places: PlaceRepository,
+    private val photos: PhotoStore,
+    private val dispatchers: AppDispatchers = AppDispatchers(),
+) {
     suspend fun manifest(placeId: String, options: ShareOptions): OpenBiteManifest? {
         val place = places.observePlace(placeId).first() ?: return null
         return buildManifest(place, places.observeMenu(placeId).first(), places.observeScans(placeId).first(), options)
@@ -302,12 +307,16 @@ class ExportPlaceUseCase(private val places: PlaceRepository, private val photos
         val base = buildManifest(place, places.observeMenu(placeId).first(), scans, options.copy(photos = false), limits)
         val manifest = base.copy(photos = photoBytes.indices.map { "photos/${it + 1}.jpg" })
         val pkg = OpenBitePackage(manifest, photoBytes.mapIndexed { i, bytes -> SharedPhoto(manifest.photos[i], bytes) })
-        return ExportedFile(openBiteFileName(place.name), OpenBiteCodec.encode(pkg), manifest)
+        val bytes = withContext(dispatchers.default) { OpenBiteCodec.encode(pkg) }
+        return ExportedFile(openBiteFileName(place.name), bytes, manifest)
     }
 }
 
 /** 读一个收到的文件并校验。 */
-class OpenSharedPlaceUseCase(private val files: IncomingFileSource) {
+class OpenSharedPlaceUseCase(
+    private val files: IncomingFileSource,
+    private val dispatchers: AppDispatchers = AppDispatchers(),
+) {
     suspend operator fun invoke(uri: String, limits: OpenBiteLimits = OpenBiteLimits()): OpenBitePackage {
         val file = try {
             files.read(uri, limits.maxFileBytes)
@@ -318,7 +327,8 @@ class OpenSharedPlaceUseCase(private val files: IncomingFileSource) {
         }
         if (!acceptsIncoming(file.mimeType, file.displayName)) throw ImportException(ImportError.NOT_OPENBITE)
         if (file.tooLarge) throw ImportException(ImportError.TOO_LARGE)
-        return OpenBiteCodec.decode(file.bytes ?: throw ImportException(ImportError.READ_FAILED), limits)
+        val bytes = file.bytes ?: throw ImportException(ImportError.READ_FAILED)
+        return withContext(dispatchers.default) { OpenBiteCodec.decode(bytes, limits) }
     }
 }
 
