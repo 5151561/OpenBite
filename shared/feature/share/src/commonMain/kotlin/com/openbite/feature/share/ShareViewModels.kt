@@ -141,6 +141,9 @@ class SharePlaceViewModel(
 
     fun exportHandled() = transient.update { it.copy(exported = null) }
 
+    /** 失败提示弹过了，转屏或回到页面时不再弹。 */
+    fun failureShown() = transient.update { it.copy(failed = false) }
+
     fun showPreview() {
         viewModelScope.launch {
             val manifest = export.manifest(placeId, options.value) ?: return@launch

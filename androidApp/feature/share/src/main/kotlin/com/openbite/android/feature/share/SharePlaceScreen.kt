@@ -65,7 +65,12 @@ fun SharePlaceRoute(placeId: String, onBack: () -> Unit, viewModel: SharePlaceVi
         val uri = ShareFiles.write(context, file.fileName, file.bytes)
         ShareFiles.share(context, uri, OPENBITE_MIME, text, chooser)
     }
-    LaunchedEffect(state.failed) { if (state.failed) Toast.makeText(context, failed, Toast.LENGTH_SHORT).show() }
+    LaunchedEffect(state.failed) {
+        if (state.failed) {
+            Toast.makeText(context, failed, Toast.LENGTH_SHORT).show()
+            viewModel.failureShown()
+        }
+    }
     SharePlaceScreen(state, onBack, viewModel::setOptions, viewModel::export, viewModel::showPreview)
     state.preview?.let { ImportPreviewSheet(it, viewModel::hidePreview) }
 }
