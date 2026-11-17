@@ -2,6 +2,8 @@ import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import com.openbite.buildlogic.OpenBiteVersions
 import com.openbite.buildlogic.defaultNamespace
 import com.openbite.buildlogic.iosEnabled
+import com.openbite.buildlogic.lib
+import com.openbite.buildlogic.libs
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -47,6 +49,14 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
 
             // 分层规则：共享 feature 只能依赖 domain 和 model，不能越过 domain 直连 data / database / network。
             if (path.startsWith(":shared:feature:")) {
+                // 共享 ViewModel 的 Koin 定义写在各 feature 的 commonMain 里，Android / iOS 共用。
+                // 用 koin-core 的 factory：koinViewModel() 按类型取，ViewModel 的生命周期由 ViewModelStore 管。
+                extensions.configure<KotlinMultiplatformExtension> {
+                    sourceSets.getByName("commonMain").dependencies {
+                        implementation(project.dependencies.platform(libs.lib("koin-bom")))
+                        implementation(libs.lib("koin-core"))
+                    }
+                }
                 val modulePath = path
                 val forbidden = setOf(":shared:core:data", ":shared:core:database", ":shared:core:network")
                 configurations.configureEach {

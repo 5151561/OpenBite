@@ -94,6 +94,18 @@ dependencies {
     implementation(project(":androidApp:feature:place"))
     implementation(project(":androidApp:feature:scan"))
     implementation(project(":androidApp:feature:settings"))
+    // 共享 ViewModel 的 Koin 模块（各 :shared:feature:* 的 commonMain），startKoin 时引入。
+    implementation(project(":shared:feature:home"))
+    implementation(project(":shared:feature:memories"))
+    implementation(project(":shared:feature:milestone"))
+    implementation(project(":shared:feature:meal"))
+    implementation(project(":shared:feature:map"))
+    implementation(project(":shared:feature:share"))
+    implementation(project(":shared:feature:search"))
+    implementation(project(":shared:feature:order"))
+    implementation(project(":shared:feature:place"))
+    implementation(project(":shared:feature:scan"))
+    implementation(project(":shared:feature:settings"))
     // 系统助手接口（AppFunctions）：Service 和元数据随清单合并进来，App 代码不直接调用。
     implementation(project(":androidApp:assistant"))
 

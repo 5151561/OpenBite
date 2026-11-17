@@ -71,6 +71,7 @@ import com.openbite.core.model.TasteProfile
 import com.openbite.core.model.formatMoney
 import com.openbite.feature.order.OrderItem
 import com.openbite.feature.order.OrderUiState
+import com.openbite.feature.order.OrderArgs
 import com.openbite.feature.order.OrderViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -82,7 +83,7 @@ fun OrderRoute(
     placeId: String?,
     onBack: () -> Unit,
     onShowStaff: (sessionId: String) -> Unit,
-    viewModel: OrderViewModel = koinViewModel(parameters = { parametersOf(sessionId, placeId) }),
+    viewModel: OrderViewModel = koinViewModel(parameters = { parametersOf(OrderArgs(sessionId, placeId)) }),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val currentSession by viewModel.sessionId.collectAsStateWithLifecycle()

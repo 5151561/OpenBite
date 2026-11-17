@@ -64,6 +64,9 @@ data class OrderUiState(
  * 否则用 [placeId] 店铺里已存的菜单新开一个会话，并在自己销毁时移除。
  */
 @OptIn(ExperimentalCoroutinesApi::class)
+/** 点单页的参数：[sessionId] 来自识别页（边识别边点单）；为 null 时用 [placeId] 店铺里存好的菜单。 */
+data class OrderArgs(val sessionId: String?, val placeId: String?)
+
 class OrderViewModel(
     sessionId: String?,
     placeId: String?,
