@@ -140,6 +140,7 @@ class AssistantApiTest {
         assertEquals(api.upcomingMilestones(30), api.upcomingMilestones(0))
         assertEquals(setOf("ms-love", "ms-bday"), api.upcomingMilestones(366).map { it.milestoneId }.toSet())
         expectError(AssistantErrorKind.INVALID_ARGUMENT) { api.upcomingMilestones(367) }
+        expectError(AssistantErrorKind.INVALID_ARGUMENT) { api.upcomingMilestones(-1) }
     }
 
     @Test
@@ -281,5 +282,15 @@ class AssistantApiTest {
         // 京都站 → 大阪站约 39 公里
         val d = distanceKm(34.9858, 135.7588, 34.7025, 135.4959)
         assertTrue(d in 38.0..41.0, "was $d")
+    }
+
+    @Test
+    fun outOfRangeSearchArgumentsAreRejectedNotDefaulted() = runTest {
+        expectError(AssistantErrorKind.INVALID_ARGUMENT) { api.searchPlaces(35.0, 135.7, -1.0, emptyList()) }
+        expectError(AssistantErrorKind.INVALID_ARGUMENT) { api.searchPlaces(35.0, 135.7, Double.NaN, emptyList()) }
+        expectError(AssistantErrorKind.INVALID_ARGUMENT) { api.searchPlaces(35.0, 135.7, Double.POSITIVE_INFINITY, emptyList()) }
+        expectError(AssistantErrorKind.INVALID_ARGUMENT) { api.searchPlaces(null, null, null, listOf("x".repeat(MAX_TAG_LENGTH + 1))) }
+        // 0 和 null 仍是默认的 2 公里。
+        assertEquals(api.searchPlaces(35.0050, 135.7680, null, emptyList()), api.searchPlaces(35.0050, 135.7680, 0.0, emptyList()))
     }
 }

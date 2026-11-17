@@ -150,11 +150,12 @@ class AssistantApi(
     private val now: NowProvider,
     private val zones: TimeZoneProvider,
 ) {
-    /** 未来 [daysAhead] 天内（含今天）的纪念日，每个带上以前为它吃的饭。[daysAhead] ≤ 0 时按 30 天。 */
+    /** 未来 [daysAhead] 天内（含今天）的纪念日，每个带上以前为它吃的饭。[daysAhead] 为 0 时按 30 天，负数是错误。 */
     // iOS（Swift）只能接住 @Throws 里列出的异常，别的会让进程直接终止。
     @Throws(AssistantException::class, CancellationException::class)
     suspend fun upcomingMilestones(daysAhead: Int): List<AssistantMilestone> {
-        val days = if (daysAhead <= 0) ASSISTANT_DEFAULT_DAYS else daysAhead
+        if (daysAhead < 0) invalidArg("daysAhead must be between 1 and $ASSISTANT_MAX_DAYS, or 0 for the default.")
+        val days = if (daysAhead == 0) ASSISTANT_DEFAULT_DAYS else daysAhead
         if (days > ASSISTANT_MAX_DAYS) invalidArg("daysAhead must be between 1 and $ASSISTANT_MAX_DAYS.")
         val all = milestones.observeMilestones().first()
         val allLogs = logs.observeLogs().first()
@@ -215,9 +216,12 @@ class AssistantApi(
         if ((lat == null) != (lon == null)) invalidArg("lat and lon must be given together.")
         if (lat != null && (!lat.isFinite() || lat !in -90.0..90.0)) invalidArg("lat must be between -90 and 90.")
         if (lon != null && (!lon.isFinite() || lon !in -180.0..180.0)) invalidArg("lon must be between -180 and 180.")
+        // 只有 null 和 0 走默认值；负数、NaN、无穷大是传错了，告诉助手而不是悄悄换成 2 公里。
+        if (radiusKm != null && (radiusKm.isNaN() || radiusKm < 0)) invalidArg("radiusKm must be positive, or null or 0 for the default.")
         val radius = radiusKm?.takeIf { it > 0 } ?: ASSISTANT_DEFAULT_RADIUS_KM
         if (!radius.isFinite() || radius > ASSISTANT_MAX_RADIUS_KM) invalidArg("radiusKm must be at most $ASSISTANT_MAX_RADIUS_KM.")
         if (tags.size > 10) invalidArg("At most 10 tags.")
+        if (tags.any { it.trim().length > MAX_TAG_LENGTH }) invalidArg("Each tag must be at most $MAX_TAG_LENGTH characters.")
         val wanted = tags.map { it.trim() }.filter { it.isNotEmpty() }
         val allLogs = logs.observeLogs().first()
         val results = places.observePlaces().first()

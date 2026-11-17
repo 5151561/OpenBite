@@ -37,7 +37,7 @@ abstract class BaseOpenBiteAppFunctionService : AppFunctionService() {
      * Lists the user's milestones, such as anniversaries and birthdays, whose next occurrence is
      * within the coming days, soonest first, each with up to 5 earlier meals tagged with it.
      *
-     * @param daysAhead How many days to look ahead, counting today, from 1 to 366. If 0, looks 30 days ahead.
+     * @param daysAhead How many days to look ahead, counting today, from 1 to 366. If 0, looks 30 days ahead. Negative values are rejected.
      * @return Upcoming milestones, soonest first. Empty if none fall in the range.
      */
     @AppFunctionDeclaration(isDescribedByKDoc = true)
@@ -72,8 +72,8 @@ abstract class BaseOpenBiteAppFunctionService : AppFunctionService() {
      *
      * @param lat Latitude of the search point, -90 to 90. Requires lon.
      * @param lon Longitude of the search point, -180 to 180. Requires lat.
-     * @param radiusKm Search radius in kilometres, up to 50. If null or 0, uses 2.
-     * @param tags Tags the place must all have, for example "适合约会", at most 10.
+     * @param radiusKm Search radius in kilometres, up to 50. If null or 0, uses 2. Negative values are rejected.
+     * @param tags Tags the place must all have, for example "适合约会", at most 10, each up to 12 characters.
      * @return Matching places.
      */
     @AppFunctionDeclaration(isDescribedByKDoc = true)
@@ -106,7 +106,7 @@ abstract class BaseOpenBiteAppFunctionService : AppFunctionService() {
      * @param items Dishes ordered, 1 to 30. Each needs a dishId from that place's menu or a name.
      * @param milestoneId ID of a milestone this meal celebrates, or null.
      * @param note Note on the meal, up to 500 characters, or null.
-     * @return The ID of the new dining log.
+     * @return The new draft dining log: its ID, place ID and number of dishes.
      */
     @AppFunctionDeclaration(isDescribedByKDoc = true)
     suspend fun createDiningLog(
