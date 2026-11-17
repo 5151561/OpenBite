@@ -1,7 +1,6 @@
 package com.openbite.android.platform
 
 import android.content.Context
-import androidx.room.RoomDatabase
 import com.openbite.core.data.platform.ImageProcessor
 import com.openbite.core.data.platform.IncomingFileSource
 import com.openbite.core.data.platform.LocationProvider
@@ -15,8 +14,6 @@ import com.openbite.core.data.platform.SeedSource
 import com.openbite.core.network.createVisionHttpClient
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
-import com.openbite.core.database.OpenBiteDatabase
-import com.openbite.core.database.openBiteDatabaseBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.koin.androidContext
@@ -24,7 +21,6 @@ import org.koin.dsl.module
 
 /** 共享内核需要的 Android 实现。 */
 val androidPlatformModule = module {
-    single<RoomDatabase.Builder<OpenBiteDatabase>> { openBiteDatabaseBuilder(androidContext()) }
     single<SeedSource> { AssetSeedSource(androidContext()) }
     single<HttpClient> { createVisionHttpClient(OkHttp.create()) }
     single<ImageProcessor> { AndroidImageProcessor(androidContext()) }

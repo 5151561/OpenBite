@@ -79,7 +79,6 @@ if (!hasReleaseSigning) {
 
 dependencies {
     implementation(project(":shared:core:model"))
-    implementation(project(":shared:core:database"))
     implementation(project(":shared:core:data"))
     implementation(project(":shared:core:domain"))
     implementation(project(":androidApp:core:designsystem"))
