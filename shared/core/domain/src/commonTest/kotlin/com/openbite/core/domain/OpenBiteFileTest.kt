@@ -242,4 +242,36 @@ class OpenBiteFileTest {
         assertEquals("東京", cityOf("東京都渋谷区"))
         assertNull(cityOf("Shibuya"))
     }
+
+    /** Android（java.util.zip）和 iOS 用的 SimpleZip 都要守住同一组规则。数据用 STORED，SimpleZip 不需要解压。 */
+    private fun bothReaders(bytes: ByteArray, limits: OpenBiteLimits): List<ImportError> = listOf(
+        assertFailsWith<ImportException> { readZipEntries(bytes, limits) }.error,
+        assertFailsWith<ImportException> { SimpleZip.read(bytes, limits) { _, _ -> error("STORED only") } }.error,
+    )
+
+    @Test
+    fun twoManifestsAreRejectedByBothReaders() {
+        // 同名条目可以让不同的 zip 解析器读出不同内容（先读的和后读的不一样）。
+        val twice = SimpleZip.write(listOf(manifestBytes(minimal), manifestBytes("""{"formatVersion":1,"place":{"name":"别的店"}}""")))
+        assertEquals(listOf(ImportError.UNEXPECTED_ENTRY, ImportError.UNEXPECTED_ENTRY), bothReaders(twice, OpenBiteLimits()))
+        assertEquals(ImportError.UNEXPECTED_ENTRY, decodeError(twice))
+    }
+
+    @Test
+    fun photosTogetherOverTotalLimitAreRejectedByBothReaders() {
+        // 每张都没超单张上限，合起来超了总量。
+        val photo = ByteArray(60 * 1024)
+        val bytes = SimpleZip.write(listOf(manifestBytes(minimal), "photos/1.jpg" to photo, "photos/2.jpg" to photo, "photos/3.jpg" to photo))
+        val limits = OpenBiteLimits(maxTotalBytes = 100L * 1024, maxPhotoBytes = 1024L * 1024)
+        assertEquals(listOf(ImportError.TOO_LARGE, ImportError.TOO_LARGE), bothReaders(bytes, limits))
+        // 总量放宽后两边都能读出来。
+        assertEquals(4, readZipEntries(bytes, OpenBiteLimits()).size)
+        assertEquals(4, SimpleZip.read(bytes, OpenBiteLimits()) { _, _ -> error("STORED only") }.size)
+    }
+
+    @Test
+    fun directoryEntryIsRejectedByBothReaders() {
+        val bytes = SimpleZip.write(listOf(manifestBytes(minimal), "photos/" to byteArrayOf()))
+        assertEquals(listOf(ImportError.UNEXPECTED_ENTRY, ImportError.UNEXPECTED_ENTRY), bothReaders(bytes, OpenBiteLimits()))
+    }
 }
