@@ -17,17 +17,25 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -96,40 +104,84 @@ fun ScanScreen(
     onRename: (String) -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
-    Column(
-        Modifier
-            .fillMaxSize()
-            .background(scheme.inverseSurface),
-    ) {
-        Row(
-            modifier = Modifier.statusBarsPadding().padding(horizontal = Spacing.xs).height(64.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(OpenBiteIcons.ArrowBack, contentDescription = stringResource(R.string.scan_back), tint = scheme.inverseOnSurface)
+    val sheet: @Composable () -> Unit = {
+        Sheet(state, onBack, onRetry, onUseSample, onRetake, onOpenSettings, onOrder, onRename)
+    }
+    BoxWithConstraints(Modifier.fillMaxSize().background(scheme.inverseSurface)) {
+        if (maxHeight < CompactHeight) {
+            // 横屏或分屏：高度不够竖着排，照片放左边，识别面板放右边占满高度，底部按钮不会被挤掉。
+            Row(
+                Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(
+                        WindowInsets.displayCutout.union(WindowInsets.navigationBars).only(WindowInsetsSides.Horizontal),
+                    ),
+            ) {
+                Column(Modifier.weight(1f).fillMaxHeight()) {
+                    ScanTopBar(onBack)
+                    Box(
+                        modifier = Modifier.fillMaxWidth().weight(1f).padding(bottom = Spacing.l),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        PhotoCard(
+                            state.photo,
+                            sweeping = state.isWorking,
+                            modifier = Modifier.fillMaxHeight(0.9f).aspectRatio(PhotoAspect),
+                        )
+                    }
+                }
+                Surface(
+                    modifier = Modifier.weight(1f).fillMaxHeight().statusBarsPadding().padding(top = Spacing.s),
+                    color = scheme.surfaceContainerLow,
+                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                ) { sheet() }
             }
-            Text(stringResource(R.string.scan_title), style = MaterialTheme.typography.titleLarge, color = scheme.inverseOnSurface)
+        } else {
+            Column(Modifier.fillMaxSize()) {
+                ScanTopBar(onBack)
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(272.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    PhotoCard(state.photo, sweeping = state.isWorking)
+                }
+                Surface(
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    color = scheme.surfaceContainerLow,
+                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                ) { sheet() }
+            }
         }
-        Box(
-            modifier = Modifier.fillMaxWidth().height(272.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            PhotoCard(state.photo, sweeping = state.isWorking)
+    }
+}
+
+/** 低于这个高度（横屏手机、分屏）改成左右两栏。 */
+private val CompactHeight = 480.dp
+
+private const val PhotoAspect = 280f / 252f
+
+@Composable
+private fun ScanTopBar(onBack: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier.statusBarsPadding().padding(horizontal = Spacing.xs).height(64.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+    ) {
+        IconButton(onClick = onBack) {
+            Icon(OpenBiteIcons.ArrowBack, contentDescription = stringResource(R.string.scan_back), tint = scheme.inverseOnSurface)
         }
-        Surface(
-            modifier = Modifier.fillMaxWidth().weight(1f),
-            color = scheme.surfaceContainerLow,
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        ) {
-            Sheet(state, onBack, onRetry, onUseSample, onRetake, onOpenSettings, onOrder, onRename)
-        }
+        Text(stringResource(R.string.scan_title), style = MaterialTheme.typography.titleLarge, color = scheme.inverseOnSurface)
     }
 }
 
 /** 斜放的照片 + 识别中左右扫动的竖条。 */
 @Composable
-private fun PhotoCard(jpeg: ByteArray?, sweeping: Boolean) {
+private fun PhotoCard(
+    jpeg: ByteArray?,
+    sweeping: Boolean,
+    modifier: Modifier = Modifier.size(width = 280.dp, height = 252.dp),
+) {
     val bitmap by produceState<ImageBitmap?>(null, jpeg) {
         value = jpeg?.let { bytes ->
             withContext(Dispatchers.Default) { BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap() }
@@ -137,8 +189,7 @@ private fun PhotoCard(jpeg: ByteArray?, sweeping: Boolean) {
     }
     val description = stringResource(R.string.scan_photo_description)
     BoxWithConstraints(
-        modifier = Modifier
-            .size(width = 280.dp, height = 252.dp)
+        modifier = modifier
             .rotate(-3f)
             .shadow(6.dp, MaterialTheme.shapes.extraSmall)
             .clip(MaterialTheme.shapes.extraSmall)
@@ -453,6 +504,22 @@ private fun ScanReadingPreview() {
                 estimatedDishCount = 7,
                 dishes = previewDishes,
                 pendingName = "海老の天ぷら",
+            ),
+        )
+    }
+}
+
+@Preview(widthDp = 892, heightDp = 412)
+@Composable
+private fun ScanReadingLandscapePreview() {
+    OpenBiteTheme(darkTheme = false) {
+        ScanScreen(
+            ScanUiState(
+                phase = ScanPhase.READING,
+                model = VisionModelChoice.CLAUDE_HAIKU,
+                hasLocation = true,
+                estimatedDishCount = 7,
+                dishes = previewDishes,
             ),
         )
     }
