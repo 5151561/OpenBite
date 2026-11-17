@@ -3,6 +3,7 @@ package com.openbite.android.platform
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import com.openbite.android.core.designsystem.photo.PhotoFiles
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
@@ -204,20 +205,12 @@ internal class FilePhotoStore(context: Context) : PhotoStore {
 
     override suspend fun delete(relativePath: String) {
         withContext(Dispatchers.IO) {
-            val file = File(root, relativePath).canonicalFile
-            if (file.path.startsWith(File(root, DIR).canonicalPath)) file.delete()
+            PhotoFiles.photoFile(root, relativePath)?.delete()
         }
     }
 
     override suspend fun read(relativePath: String): ByteArray? = withContext(Dispatchers.IO) {
-        runCatching {
-            if (relativePath.startsWith(SEED_PREFIX)) {
-                appContext.assets.open(relativePath).use { it.readBytes() }
-            } else {
-                val file = File(root, relativePath).canonicalFile
-                if (!file.path.startsWith(File(root, DIR).canonicalPath)) null else file.readBytes()
-            }
-        }.getOrNull()
+        runCatching { PhotoFiles.open(appContext, relativePath)?.use { it.readBytes() } }.getOrNull()
     }
 
     override suspend fun deleteAll() {
@@ -225,8 +218,7 @@ internal class FilePhotoStore(context: Context) : PhotoStore {
     }
 
     private companion object {
-        const val DIR = "photos"
-        const val SEED_PREFIX = "seed/"
+        const val DIR = PhotoFiles.DIR
     }
 }
 

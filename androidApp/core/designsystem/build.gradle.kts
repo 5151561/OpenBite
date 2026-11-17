@@ -10,3 +10,8 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
 }
+
+dependencies {
+    // 照片路径规则（PhotoFiles）的 JVM 单测。
+    testImplementation(kotlin("test-junit"))
+}

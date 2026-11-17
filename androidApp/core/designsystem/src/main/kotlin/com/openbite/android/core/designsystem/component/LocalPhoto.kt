@@ -12,7 +12,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
+import com.openbite.android.core.designsystem.photo.PhotoFiles
 
 /** 读原照片的结果。 */
 sealed interface PhotoLoad {
@@ -20,9 +20,6 @@ sealed interface PhotoLoad {
     data class Loaded(val bitmap: ImageBitmap) : PhotoLoad
     data object Failed : PhotoLoad
 }
-
-/** `seed/` 开头的示例图打包在 assets 里；其余是 App 私有目录（filesDir）下的相对路径。 */
-private const val SEED_PREFIX = "seed/"
 
 /**
  * 在 IO 线程解码 App 里的照片（菜单原照片、饭菜照片、小票）。图片已在拍摄时压到 1568px 长边以内。
@@ -38,11 +35,9 @@ fun rememberLocalPhoto(photoPath: String, targetSize: Dp? = null): State<PhotoLo
     }
 }
 
-private fun openLocalPhoto(context: Context, photoPath: String) = if (photoPath.startsWith(SEED_PREFIX)) {
-    context.assets.open(photoPath)
-} else {
-    File(context.filesDir, photoPath).inputStream()
-}
+/** 路径规则和 PhotoStore 共用（[PhotoFiles]）：越出 photos/ 目录的路径打不开。 */
+private fun openLocalPhoto(context: Context, photoPath: String) =
+    PhotoFiles.open(context, photoPath) ?: throw java.io.FileNotFoundException(photoPath)
 
 /** 读照片的原始字节（分享卡片要自己解码）。读不到返回 null。在 IO 线程调用。 */
 fun readLocalPhotoBytes(context: Context, photoPath: String): ByteArray? =
