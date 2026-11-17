@@ -1,5 +1,14 @@
 package com.openbite.android.feature.place
 
+import com.openbite.core.model.PlaceDeletionSummary
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.ButtonDefaults
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.clickable
@@ -89,9 +98,22 @@ fun PlaceDetailRoute(
     onOpenMeal: (logId: String, isDraft: Boolean) -> Unit,
     onOpenMap: () -> Unit,
     onPickLocation: () -> Unit,
+    onDeleted: () -> Unit = onBack,
     viewModel: PlaceDetailViewModel = koinViewModel(parameters = { parametersOf(placeId) }),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val deleteFailed = stringResource(R.string.place_delete_failed)
+    LaunchedEffect(state.deleted) { if (state.deleted) onDeleted() }
+    LaunchedEffect(state.deleteFailed) {
+        if (state.deleteFailed) {
+            Toast.makeText(context, deleteFailed, Toast.LENGTH_SHORT).show()
+            viewModel.deleteErrorShown()
+        }
+    }
+    state.confirmingDelete?.let { summary ->
+        DeletePlaceDialog(summary, onConfirm = viewModel::confirmDelete, onDismiss = viewModel::cancelDelete)
+    }
     PlaceDetailScreen(
         state = state,
         onBack = onBack,
@@ -103,6 +125,30 @@ fun PlaceDetailRoute(
         onOpenMeal = onOpenMeal,
         onOpenMap = onOpenMap,
         onPickLocation = onPickLocation,
+        onDelete = viewModel::requestDelete,
+    )
+}
+
+/** 删除确认：写清楚会一起删掉什么、不能撤销；删除按钮用 error 色。 */
+@Composable
+internal fun DeletePlaceDialog(summary: PlaceDeletionSummary, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(OpenBiteIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+        title = { Text(stringResource(R.string.place_delete_title, summary.placeName)) },
+        text = {
+            Text(
+                stringResource(R.string.place_delete_text, summary.dishCount, summary.logCount, summary.photoCount),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            ) { Text(stringResource(R.string.place_delete_confirm)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.place_tag_cancel)) } },
     )
 }
 
@@ -118,6 +164,7 @@ fun PlaceDetailScreen(
     onOpenMeal: (String, Boolean) -> Unit = { _, _ -> },
     onOpenMap: () -> Unit = {},
     onPickLocation: () -> Unit = {},
+    onDelete: () -> Unit = {},
 ) {
     val detail = state.detail
     var addingTag by rememberSaveable { mutableStateOf(false) }
@@ -159,7 +206,7 @@ fun PlaceDetailScreen(
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }
-            else -> PlaceDetailContent(detail, padding, onBack, onOpenMenu, onShare, tagActions, onOpenMeal)
+            else -> PlaceDetailContent(detail, padding, onBack, onOpenMenu, onShare, onDelete, tagActions, onOpenMeal)
         }
     }
 }
@@ -171,6 +218,7 @@ private fun PlaceDetailContent(
     onBack: () -> Unit,
     onOpenMenu: () -> Unit,
     onShare: () -> Unit,
+    onDelete: () -> Unit,
     tagActions: TagActions,
     onOpenMeal: (String, Boolean) -> Unit,
 ) {
@@ -178,7 +226,7 @@ private fun PlaceDetailContent(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = padding.calculateBottomPadding() + 88.dp),
     ) {
-        item(key = "header") { Header(detail, onBack, onShare, tagActions) }
+        item(key = "header") { Header(detail, onBack, onShare, onDelete, tagActions) }
         item(key = "history") { SectionHeader(stringResource(R.string.place_history), Modifier.padding(top = Spacing.xs)) }
         if (detail.visits.isEmpty()) {
             item(key = "no-visits") { Note(stringResource(R.string.place_no_visits)) }
@@ -210,7 +258,7 @@ internal fun timesOrdered(stats: DishStats): String =
 
 /** 彩色头部：大号淡色单字、返回和分享、店名、来过几次、标签。 */
 @Composable
-private fun Header(detail: PlaceDetail, onBack: () -> Unit, onShare: () -> Unit, actions: TagActions) {
+private fun Header(detail: PlaceDetail, onBack: () -> Unit, onShare: () -> Unit, onDelete: () -> Unit, actions: TagActions) {
     val scheme = MaterialTheme.colorScheme
     Box(
         modifier = Modifier
@@ -240,6 +288,21 @@ private fun Header(detail: PlaceDetail, onBack: () -> Unit, onShare: () -> Unit,
                 RoundIconButton(OpenBiteIcons.ArrowBack, stringResource(R.string.place_back), onBack)
                 Spacer(Modifier.weight(1f))
                 RoundIconButton(OpenBiteIcons.Share, stringResource(R.string.place_share), onShare)
+                Spacer(Modifier.width(Spacing.s))
+                Box {
+                    var menuOpen by remember { mutableStateOf(false) }
+                    RoundIconButton(OpenBiteIcons.MoreVert, stringResource(R.string.place_more)) { menuOpen = true }
+                    DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.place_delete), color = MaterialTheme.colorScheme.error) },
+                            leadingIcon = { Icon(OpenBiteIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                            onClick = {
+                                menuOpen = false
+                                onDelete()
+                            },
+                        )
+                    }
+                }
             }
             Column(
                 modifier = Modifier.padding(top = Spacing.xxl),

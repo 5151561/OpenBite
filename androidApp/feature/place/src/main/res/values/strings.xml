@@ -35,6 +35,12 @@
     <string name="place_cups_ordered">点过 %1$d 杯</string>
     <string name="place_scan_again">又来了，拍今天的菜单</string>
     <string name="place_missing">这家店已经不在了。</string>
+    <string name="place_more">更多</string>
+    <string name="place_delete">删除店铺</string>
+    <string name="place_delete_title">删除“%1$s”？</string>
+    <string name="place_delete_text">会一起删掉：电子菜单 %1$d 道菜、%2$d 条用餐记录（含草稿和小票存档）、%3$d 张照片，以及这家店的标签和待发的饭后提醒。纪念日和同行人会保留。删除后不能撤销。</string>
+    <string name="place_delete_confirm">删除</string>
+    <string name="place_delete_failed">没删成，请再试一次。</string>
 
     <!-- 电子菜单与原照片（13 / 14） -->
     <string name="menu_back">返回</string>

@@ -177,6 +177,8 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
                 onOpenMeal = { logId, isDraft -> openMemory(logId, isDraft) },
                 onOpenMap = { navigator.navigate(MapKey(focusPlaceId = key.placeId)) },
                 onPickLocation = { navigator.navigate(PickLocationKey(key.placeId)) },
+                // 删完退回上一页；只弹自己，地图等下面的页面会显示店已不在。
+                onDeleted = { navigator.pop(key) },
             )
         }
         entry<ImportPlaceKey>(metadata = BottomSheetSceneStrategy.bottomSheet()) { key ->
