@@ -109,9 +109,9 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
                 onAddMilestone = { navigator.navigate(MilestoneEditKey()) },
             )
         }
-        entry<SettingsKey> {
+        entry<SettingsKey> { key ->
             SettingsRoute(
-                onBack = navigator::goBack,
+                onBack = { navigator.pop(key) },
                 onOpenTaste = { navigator.navigate(TasteKey) },
             )
         }
@@ -119,7 +119,7 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
             ScanRoute(
                 placeId = key.placeId,
                 fromGallery = key.fromGallery,
-                onBack = navigator::goBack,
+                onBack = { navigator.pop(key) },
                 onOrder = { sessionId -> navigator.navigate(OrderKey(sessionId = sessionId)) },
                 onOpenSettings = { navigator.navigate(SettingsKey) },
             )
@@ -128,23 +128,23 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
             OrderRoute(
                 sessionId = key.sessionId,
                 placeId = key.placeId,
-                onBack = navigator::goBack,
+                onBack = { navigator.pop(key) },
                 onShowStaff = { navigator.navigate(ReceiptKey(it)) },
             )
         }
         entry<ReceiptKey> { key ->
             ReceiptRoute(
                 sessionId = key.sessionId,
-                onBack = navigator::goBack,
+                onBack = { navigator.pop(key) },
                 // 草稿出现在“今天”的最近记忆里，点它进补记忆。
                 onPlaced = { navigator.finishTo(TopLevelDestination.TODAY) },
             )
         }
-        entry<TasteKey> { TasteRoute(onBack = navigator::goBack) }
+        entry<TasteKey> { key -> TasteRoute(onBack = { navigator.pop(key) }) }
         entry<MemoryEditKey> { key ->
             MemoryEditRoute(
                 logId = key.logId,
-                onDone = navigator::goBack,
+                onDone = { navigator.pop(key) },
                 onOpenReceipt = { navigator.navigate(ReceiptArchiveKey(key.logId)) },
                 onShare = { navigator.navigate(ShareMealKey(key.logId)) },
             )
@@ -152,31 +152,31 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
         entry<MealKey> { key ->
             MealRoute(
                 logId = key.logId,
-                onBack = navigator::goBack,
+                onBack = { navigator.pop(key) },
                 onEdit = { navigator.navigate(MemoryEditKey(key.logId)) },
                 onShare = { navigator.navigate(ShareMealKey(key.logId)) },
             )
         }
         entry<SearchKey> { key ->
-            SearchRoute(places = key.places, onBack = navigator::goBack, onOpenMemory = openMemory, onOpenPlace = openPlace)
+            SearchRoute(places = key.places, onBack = { navigator.pop(key) }, onOpenMemory = openMemory, onOpenPlace = openPlace)
         }
-        entry<MilestoneEditKey> { key -> MilestoneEditRoute(milestoneId = key.milestoneId, onDone = navigator::goBack) }
-        entry<ShareMealKey> { key -> ShareMealRoute(logId = key.logId, onBack = navigator::goBack) }
-        entry<SharePlaceKey> { key -> SharePlaceRoute(placeId = key.placeId, onBack = navigator::goBack) }
+        entry<MilestoneEditKey> { key -> MilestoneEditRoute(milestoneId = key.milestoneId, onDone = { navigator.pop(key) }) }
+        entry<ShareMealKey> { key -> ShareMealRoute(logId = key.logId, onBack = { navigator.pop(key) }) }
+        entry<SharePlaceKey> { key -> SharePlaceRoute(placeId = key.placeId, onBack = { navigator.pop(key) }) }
         entry<MapKey> { key ->
             MapRoute(
                 focusPlaceId = key.focusPlaceId,
-                onBackToList = navigator::goBack,
+                onBackToList = { navigator.pop(key) },
                 onOpenPlace = openPlace,
                 onOpenMeal = openMemory,
             )
         }
-        entry<PickLocationKey> { key -> PickLocationRoute(placeId = key.placeId, onDone = navigator::goBack) }
-        entry<ReceiptArchiveKey> { key -> ReceiptArchiveRoute(logId = key.logId, onBack = navigator::goBack) }
+        entry<PickLocationKey> { key -> PickLocationRoute(placeId = key.placeId, onDone = { navigator.pop(key) }) }
+        entry<ReceiptArchiveKey> { key -> ReceiptArchiveRoute(logId = key.logId, onBack = { navigator.pop(key) }) }
         entry<PlaceKey> { key ->
             PlaceDetailRoute(
                 placeId = key.placeId,
-                onBack = navigator::goBack,
+                onBack = { navigator.pop(key) },
                 onOpenMenu = { navigator.navigate(PlaceMenuKey(key.placeId)) },
                 onShare = { navigator.navigate(SharePlaceKey(key.placeId)) },
                 onScanMenu = { navigator.navigate(ScanKey(placeId = key.placeId)) },
@@ -189,7 +189,7 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
             PlaceMenuRoute(
                 placeId = key.placeId,
                 showPhotos = key.showPhotos,
-                onBack = navigator::goBack,
+                onBack = { navigator.pop(key) },
                 onOrder = { navigator.navigate(OrderKey(placeId = key.placeId)) },
                 onRescan = { navigator.navigate(ScanKey(placeId = key.placeId)) },
             )

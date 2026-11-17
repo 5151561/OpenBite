@@ -69,9 +69,20 @@ fun rememberNavigationState(tabs: List<TopLevelDestination>): NavigationState {
 class Navigator(private val state: NavigationState) {
     fun selectTab(tab: TopLevelDestination) = state.selectTab(tab)
 
+    /**
+     * 打开 [key]。它已经在当前栈里时退回到那一页，不再压第二份：
+     * 同一个 key 的两个 entry 会共用 ViewModel 和保存的状态（比如店铺页 → 地图 → 同一家店）。
+     */
     fun navigate(key: NavKey) {
         val tab = state.tabs.firstOrNull { it.key == key }
-        if (tab != null) state.selectTab(tab) else state.currentStack.add(key)
+        if (tab != null) return state.selectTab(tab)
+        val stack = state.currentStack
+        val existing = stack.lastIndexOf(key)
+        if (existing >= 0) {
+            while (stack.size > existing + 1) stack.removeLastOrNull()
+        } else {
+            stack.add(key)
+        }
     }
 
     /** 走完一段流程（比如点完菜）：清掉当前 Tab 上面的页面，回到 [tab] 的根页面。 */
@@ -89,6 +100,15 @@ class Navigator(private val state: NavigationState) {
         key?.let { stack.add(it) }
     }
 
+    /**
+     * 页面自己要求返回（点返回按钮、保存完自动返回）：只有 [key] 还是当前栈顶时才弹。
+     * 用户先用手势返回、保存结果晚到时，不会把下面一页也弹掉。
+     */
+    fun pop(key: NavKey) {
+        if (state.currentStack.lastOrNull() == key) goBack()
+    }
+
+    /** 系统返回（手势、返回键）：弹当前栈顶；在 Tab 根页面时回到“今天”。 */
     fun goBack() {
         val stack = state.currentStack
         if (stack.lastOrNull() == state.currentTab.key) {
