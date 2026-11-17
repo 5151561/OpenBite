@@ -14,6 +14,7 @@ import com.openbite.core.model.MilestoneType
 import com.openbite.core.model.Money
 import com.openbite.core.model.Place
 import com.openbite.core.model.Recurrence
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
@@ -150,6 +151,8 @@ class AssistantApi(
     private val zones: TimeZoneProvider,
 ) {
     /** 未来 [daysAhead] 天内（含今天）的纪念日，每个带上以前为它吃的饭。[daysAhead] ≤ 0 时按 30 天。 */
+    // iOS（Swift）只能接住 @Throws 里列出的异常，别的会让进程直接终止。
+    @Throws(AssistantException::class, CancellationException::class)
     suspend fun upcomingMilestones(daysAhead: Int): List<AssistantMilestone> {
         val days = if (daysAhead <= 0) ASSISTANT_DEFAULT_DAYS else daysAhead
         if (days > ASSISTANT_MAX_DAYS) invalidArg("daysAhead must be between 1 and $ASSISTANT_MAX_DAYS.")
@@ -181,6 +184,8 @@ class AssistantApi(
      * 查用餐记录，最新的在前，最多 50 条。条件都是可选的，同时给就要同时满足：
      * [milestoneId] 标了这个纪念日；[personName] 同行人名字（不分大小写、完全一致）；[dateFrom]..[dateTo] 当地日期（含两端）。
      */
+    // iOS（Swift）只能接住 @Throws 里列出的异常，别的会让进程直接终止。
+    @Throws(AssistantException::class, CancellationException::class)
     suspend fun queryDiningLogs(milestoneId: String?, personName: String?, dateFrom: LocalDate?, dateTo: LocalDate?): List<AssistantMeal> {
         if (dateFrom != null && dateTo != null && dateFrom > dateTo) invalidArg("dateFrom must not be after dateTo.")
         val all = milestones.observeMilestones().first()
@@ -204,6 +209,8 @@ class AssistantApi(
      * 找店铺。给了 [lat]/[lon]（两个都要给）就只返回 [radiusKm] 公里内的、近的在前（默认 2 公里，最多 50）；
      * 给了 [tags] 就只返回带全部这些标签的。都不给时返回最近去过的店。最多 50 家。
      */
+    // iOS（Swift）只能接住 @Throws 里列出的异常，别的会让进程直接终止。
+    @Throws(AssistantException::class, CancellationException::class)
     suspend fun searchPlaces(lat: Double?, lon: Double?, radiusKm: Double?, tags: List<String>): List<AssistantPlace> {
         if ((lat == null) != (lon == null)) invalidArg("lat and lon must be given together.")
         if (lat != null && (!lat.isFinite() || lat !in -90.0..90.0)) invalidArg("lat must be between -90 and 90.")
@@ -226,6 +233,8 @@ class AssistantApi(
     }
 
     /** 一家店的电子菜单（最多 300 道），每道菜带点过几次和平均分。 */
+    // iOS（Swift）只能接住 @Throws 里列出的异常，别的会让进程直接终止。
+    @Throws(AssistantException::class, CancellationException::class)
     suspend fun getPlaceMenu(placeId: String): AssistantMenu {
         val id = placeId.trim().takeIf { it.isNotEmpty() } ?: invalidArg("placeId is required.")
         val place = places.observePlace(id).first() ?: notFound("No place with id $id.")
@@ -248,6 +257,8 @@ class AssistantApi(
      * [items] 1–30 道，每道 1–20 份；[dishId] 必须是这家店菜单里的菜。
      */
     @OptIn(ExperimentalTime::class)
+    // iOS（Swift）只能接住 @Throws 里列出的异常，别的会让进程直接终止。
+    @Throws(AssistantException::class, CancellationException::class)
     suspend fun createDiningLog(placeId: String, items: List<AssistantNewItem>, milestoneId: String?, note: String?): String {
         val id = placeId.trim().takeIf { it.isNotEmpty() } ?: invalidArg("placeId is required.")
         places.observePlace(id).first() ?: notFound("No place with id $id.")
