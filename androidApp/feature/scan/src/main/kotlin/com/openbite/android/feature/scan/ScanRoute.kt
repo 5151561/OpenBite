@@ -1,25 +1,33 @@
 package com.openbite.android.feature.scan
 
 import android.Manifest
+import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.openbite.android.core.designsystem.text.monthDay
 import com.openbite.feature.scan.ScanViewModel
@@ -111,6 +119,7 @@ fun ScanRoute(
         }
     }
 
+    StatusBarIconsFor(MaterialTheme.colorScheme.inverseSurface)
     ScanScreen(
         state = state,
         onBack = onBack,
@@ -125,6 +134,30 @@ fun ScanRoute(
         onOrder = { onOrder(viewModel.sessionId) },
         onRename = viewModel::rename,
     )
+}
+
+/**
+ * 识别页整页是 inverseSurface（浅色主题下是深色，深色主题下是浅色），和系统默认的状态栏图标颜色正好相反。
+ * 按背景亮度设图标颜色，离开页面时恢复。
+ */
+@Composable
+private fun StatusBarIconsFor(background: Color) {
+    val view = LocalView.current
+    if (view.isInEditMode) return
+    val lightBackground = background.luminance() > 0.5f
+    DisposableEffect(view, lightBackground) {
+        val window = view.context.findActivity()?.window
+        val controller = window?.let { WindowCompat.getInsetsController(it, view) }
+        val previous = controller?.isAppearanceLightStatusBars
+        controller?.isAppearanceLightStatusBars = lightBackground
+        onDispose { if (previous != null) controller.isAppearanceLightStatusBars = previous }
+    }
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
 
 /** 译名语言跟着手机：取系统首选语言，拿不到就用简体中文。 */
