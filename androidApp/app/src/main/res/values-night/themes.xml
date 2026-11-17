@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 深色模式：启动和重建时不再白闪。 -->
+    <style name="Theme.OpenBite" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/openbite_window_background</item>
+    </style>
+
+    <color name="openbite_window_background">#0E1514</color>
+</resources>

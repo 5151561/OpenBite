@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 窗口主题：Compose 第一帧之前、转屏重建时露出的底色。和 designsystem 的 background 一致。 -->
+    <style name="Theme.OpenBite" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/openbite_window_background</item>
+    </style>
+
+    <color name="openbite_window_background">#F4FBF9</color>
+</resources>
