@@ -9,6 +9,7 @@ import com.openbite.core.data.platform.PhotoStore
 import com.openbite.core.data.platform.PreferencesStore
 import com.openbite.core.data.platform.SecretKeys
 import com.openbite.core.data.platform.SecretStore
+import com.openbite.core.data.platform.TempFiles
 import com.openbite.core.model.Place
 import com.openbite.core.model.ScanError
 import com.openbite.core.model.ScanException
@@ -112,6 +113,7 @@ class ScanMenuUseCase(
     private val models: VisionModelRegistry,
     private val ids: IdGenerator,
     private val now: NowProvider,
+    private val tempFiles: TempFiles,
     private val dispatchers: AppDispatchers = AppDispatchers(),
 ) {
     /**
@@ -218,6 +220,8 @@ class ScanMenuUseCase(
             runCatching { photoStore.delete(photoPath) }
             throw if (e is CancellationException) e else ScanException(ScanError.UNKNOWN, e)
         }
+        // 去掉 EXIF 的照片已经存好：系统相机写的原图（带 GPS）马上删。失败时留着给“重试”用。
+        runCatching { tempFiles.discardCapture(request.sourceUri) }
         emit(
             ScanUpdate.Saved(
                 ScanResult(

@@ -11,6 +11,7 @@ import com.openbite.core.data.platform.ReminderScheduler
 import com.openbite.core.data.platform.ReminderSettings
 import com.openbite.core.data.platform.SecretKeys
 import com.openbite.core.data.platform.SecretStore
+import com.openbite.core.data.platform.TempFiles
 import com.openbite.core.model.DiningLog
 import com.openbite.core.model.DiningStatus
 import com.openbite.core.model.Milestone
@@ -81,6 +82,7 @@ class AddMealPhotoUseCase(
     private val photos: PhotoStore,
     private val ids: IdGenerator,
     private val now: NowProvider,
+    private val tempFiles: TempFiles,
 ) {
     /** 存好的照片 + 处理后的 JPEG（小票要拿它去识别）。 */
     class Stored(val photo: NewPhoto, val jpegBytes: ByteArray)
@@ -92,6 +94,9 @@ class AddMealPhotoUseCase(
             throw e
         } catch (e: Exception) {
             throw ScanException(ScanError.IMAGE_UNREADABLE, e)
+        } finally {
+            // 系统相机写的原图（带 EXIF/GPS）读完就删；要再加照片会重新拍。
+            withContext(NonCancellable) { runCatching { tempFiles.discardCapture(sourceUri) } }
         }
         val id = ids.newId()
         return Stored(NewPhoto(id, photos.save(id, image.jpegBytes), kind, now.nowMillis()), image.jpegBytes)
@@ -108,6 +113,13 @@ class DiscardPhotosUseCase(private val photos: PhotoStore, private val appScope:
     /** 不跟调用方的生命周期走，在应用级作用域里删；给 ViewModel.onCleared 这类马上要被取消的地方用。 */
     fun inBackground(paths: List<String>) {
         if (paths.isNotEmpty()) appScope.launch { invoke(paths) }
+    }
+}
+
+/** 识别页不用了（离开、重拍）：删掉系统相机写的原图。在应用级作用域里删，不受页面取消影响。 */
+class DiscardCaptureUseCase(private val tempFiles: TempFiles, private val appScope: ApplicationScope) {
+    fun inBackground(sourceUri: String) {
+        appScope.launch { runCatching { tempFiles.discardCapture(sourceUri) } }
     }
 }
 

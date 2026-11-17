@@ -61,10 +61,10 @@ val sharedCoreModule: Module = module {
     factory { ObservePlaceDetailUseCase(get(), get(), get(), get()) }
     factory { ObservePlaceMenuUseCase(get(), get()) }
     factory { LoadSampleDataUseCase(get()) }
-    factory { ClearAllDataUseCase(get(), get()) }
+    factory { ClearAllDataUseCase(get(), get(), get()) }
     single<IdGenerator> { UuidGenerator() }
     single<NowProvider> { SystemNowProvider() }
-    factory { ScanMenuUseCase(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { ScanMenuUseCase(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { ObserveVisionSettingsUseCase(get(), get()) }
     factory { SetVisionModelUseCase(get()) }
     factory { SaveApiKeyUseCase(get()) }
@@ -76,8 +76,9 @@ val sharedCoreModule: Module = module {
     factory { ObserveMealUseCase(get(), get()) }
     factory { SaveMealUseCase(get(), get(), get()) }
     factory { AddPersonUseCase(get(), get()) }
-    factory { AddMealPhotoUseCase(get(), get(), get(), get()) }
+    factory { AddMealPhotoUseCase(get(), get(), get(), get(), get()) }
     factory { DiscardPhotosUseCase(get(), get()) }
+    factory { com.openbite.core.domain.DiscardCaptureUseCase(get(), get()) }
     factory { ReadReceiptUseCase(get(), get(), get()) }
     factory { SaveReceiptUseCase(get(), get(), get()) }
     factory { ObserveReminderSettingsUseCase(get()) }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.openbite.core.domain.MenuStatus
 import com.openbite.core.domain.OrderMenu
 import com.openbite.core.domain.OrderSession
+import com.openbite.core.domain.DiscardCaptureUseCase
 import com.openbite.core.domain.OrderSessions
 import com.openbite.core.domain.RenamePlaceUseCase
 import com.openbite.core.domain.apply
@@ -64,6 +65,7 @@ class ScanViewModel(
     private val scanMenu: ScanMenuUseCase,
     private val renamePlace: RenamePlaceUseCase,
     private val sessions: OrderSessions,
+    private val discardCapture: DiscardCaptureUseCase,
 ) : ViewModel() {
     private val state = MutableStateFlow(ScanUiState())
     val uiState: StateFlow<ScanUiState> = state.asStateFlow()
@@ -99,6 +101,7 @@ class ScanViewModel(
     /** 重新拍：回到等照片的状态。 */
     fun reset() {
         job?.cancel()
+        lastRequest?.let { discardCapture.inBackground(it.sourceUri) }
         permissionAnswer?.cancel()
         permissionAnswer = null
         lastRequest = null
@@ -172,6 +175,8 @@ class ScanViewModel(
     }
 
     override fun onCleared() {
+        // 离开识别页：没识别成功时留着给重试的相机原图也删掉。
+        lastRequest?.let { discardCapture.inBackground(it.sourceUri) }
         session.retryHandler = null
         sessions.remove(session.id)
     }

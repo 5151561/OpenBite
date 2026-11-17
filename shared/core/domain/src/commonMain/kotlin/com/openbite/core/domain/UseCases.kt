@@ -5,6 +5,7 @@ import com.openbite.core.data.MilestoneRepository
 import com.openbite.core.data.PlaceRepository
 import com.openbite.core.data.SampleDataRepository
 import com.openbite.core.data.platform.PhotoStore
+import com.openbite.core.data.platform.TempFiles
 import com.openbite.core.model.DiningLog
 import com.openbite.core.model.MemorySummary
 import com.openbite.core.model.MilestoneHighlight
@@ -70,11 +71,14 @@ class LoadSampleDataUseCase(private val repository: SampleDataRepository) {
 class ClearAllDataUseCase(
     private val repository: SampleDataRepository,
     private val photos: PhotoStore,
+    private val tempFiles: TempFiles,
 ) {
     suspend operator fun invoke() {
         repository.clearAll()
         // 数据库清掉后再删菜单原照片，免得留下孤儿文件。
         photos.deleteAll()
+        // 相机原图和分享出去的临时文件也一起清。
+        tempFiles.clearAll()
     }
 }
 

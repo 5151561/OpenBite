@@ -9,6 +9,7 @@ import com.openbite.core.data.platform.PhotoStore
 import com.openbite.core.data.platform.PreferencesStore
 import com.openbite.core.data.platform.ReminderScheduler
 import com.openbite.core.data.platform.SecretStore
+import com.openbite.core.data.platform.TempFiles
 import com.openbite.android.reminders.WorkManagerReminderScheduler
 import com.openbite.core.data.platform.SeedSource
 import com.openbite.core.network.createVisionHttpClient
@@ -33,6 +34,7 @@ val androidPlatformModule = module {
     single<PreferencesStore> { DataStorePreferencesStore(androidContext()) }
     single<ReminderScheduler> { WorkManagerReminderScheduler(androidContext()) }
     single<IncomingFileSource> { ContentResolverFileSource(androidContext()) }
+    single<TempFiles> { CacheTempFiles(androidContext()) }
 }
 
 private class AssetSeedSource(private val context: Context) : SeedSource {

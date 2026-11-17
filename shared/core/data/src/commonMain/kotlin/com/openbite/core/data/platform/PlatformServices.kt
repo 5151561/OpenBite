@@ -80,6 +80,18 @@ interface PhotoStore {
     suspend fun deleteAll()
 }
 
+/**
+ * 拍照和分享留下的临时文件（Android 上是 cache/scan 和 cache/share）。
+ * 系统相机写下的原图带完整 EXIF/GPS，处理完就该删。
+ */
+interface TempFiles {
+    /** [sourceUri] 是 App 自己交给系统相机的临时文件时删掉；相册等别的地址不动。 */
+    suspend fun discardCapture(sourceUri: String)
+
+    /** 清空全部记忆时一起清掉。 */
+    suspend fun clearAll()
+}
+
 /** 普通设置（不含密钥）：Android 存 DataStore Preferences。 */
 interface PreferencesStore {
     /** 用户选的识别模型；没选过发 null。 */

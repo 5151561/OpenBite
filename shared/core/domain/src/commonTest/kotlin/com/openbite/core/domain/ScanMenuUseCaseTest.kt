@@ -9,6 +9,7 @@ import com.openbite.core.data.platform.PreferencesStore
 import com.openbite.core.data.platform.ProcessedImage
 import com.openbite.core.data.platform.SecretKeys
 import com.openbite.core.data.platform.SecretStore
+import com.openbite.core.data.platform.TempFiles
 import com.openbite.core.model.Dish
 import com.openbite.core.model.Money
 import com.openbite.core.model.Place
@@ -90,6 +91,7 @@ class ScanMenuUseCaseTest {
         prefs: FakePrefs = FakePrefs(),
         secrets: FakeSecrets = FakeSecrets(),
         client: HttpClient = noNetwork,
+        temp: FakeTemp = FakeTemp(),
     ): ScanMenuUseCase {
         var n = 0
         return ScanMenuUseCase(
@@ -107,7 +109,32 @@ class ScanMenuUseCaseTest {
             models = VisionModelRegistry(client),
             ids = IdGenerator { "id-${++n}" },
             now = NowProvider { 1_000L },
+            tempFiles = temp,
         )
+    }
+
+    internal class FakeTemp : TempFiles {
+        val discarded = mutableListOf<String>()
+        var cleared = 0
+        override suspend fun discardCapture(sourceUri: String) {
+            discarded += sourceUri
+        }
+        override suspend fun clearAll() {
+            cleared++
+        }
+    }
+
+    @Test
+    fun capturedOriginalIsDeletedOnlyAfterSuccessfulSave() = runTest {
+        val ok = FakeTemp()
+        useCase(temp = ok).invoke(request()) { true }.toList()
+        assertEquals(listOf("content://photo/1"), ok.discarded)
+
+        val failed = FakeTemp()
+        assertFailsWith<ScanException> {
+            useCase(secrets = FakeSecrets("sk-ant-bad"), temp = failed).invoke(request()) { true }.toList()
+        }
+        assertTrue(failed.discarded.isEmpty(), "失败时留着原图给重试")
     }
 
     private fun request(placeId: String? = null, override: VisionModelChoice? = null) =
