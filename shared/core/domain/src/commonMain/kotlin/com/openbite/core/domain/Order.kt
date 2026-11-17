@@ -1,5 +1,9 @@
 package com.openbite.core.domain
 
+import com.openbite.core.model.OrderLine
+import com.openbite.core.model.OrderMenu
+import com.openbite.core.model.OrderDish
+import com.openbite.core.model.MenuStatus
 import com.openbite.core.data.DraftRepository
 import com.openbite.core.data.NewDraftItem
 import com.openbite.core.data.NewDraftLog
@@ -11,90 +15,91 @@ import com.openbite.core.model.PlaceMenu
 import com.openbite.core.model.ScanError
 import com.openbite.core.model.TasteProfile
 import com.openbite.core.model.ScannedDish
+import com.openbite.core.data.InMemoryOrderSessionRepository
+import com.openbite.core.data.OrderSessionData
+import com.openbite.core.data.OrderSessionRepository
+import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-/** 点单菜单的状态：还在识别 / 正在存 / 已存好（有 dishId）/ 识别或保存失败。 */
-enum class MenuStatus { SCANNING, SAVING, READY, FAILED }
-
-/** 点单页上的一道菜。[key] 是 [normalizeDishName] 后的原名，识别中还没有 dishId 时靠它对应。 */
-data class OrderDish(
-    val key: String,
-    val nameOriginal: String,
-    val nameTranslated: String,
-    val category: String,
-    val price: Money?,
-    /** 模型推测的过敏原代码。 */
-    val allergens: List<String>,
-    val dishId: String?,
-)
-
-data class OrderMenu(
-    /** 已有店铺，或新店已存好；新店还没存时为 null。 */
-    val placeId: String?,
-    val placeName: String,
-    val location: Pair<Double, Double>?,
-    /** 菜单原文语言（BCP 47），决定小票用什么语言。 */
-    val sourceLang: String?,
-    val currency: String?,
-    val dishes: List<OrderDish>,
-    val status: MenuStatus,
-    val error: ScanError? = null,
-    val estimatedDishCount: Int? = null,
-)
-
-data class OrderLine(val dish: OrderDish, val qty: Int)
-
 /**
- * 一次点单：识别中的菜单（或店铺里已存的菜单）+ 每道菜点了几份 + 这次临时改的口味。
- * 识别页、点单页、小票页共用同一个会话，所以能“边识别边点单”，返回修改时状态也还在。
- * 只在内存里；进程被杀就没了。
+ * 一次点单的句柄：识别中的菜单（或店铺里已存的菜单）+ 每道菜点了几份 + 这次临时改的口味。
+ * 状态存在 data 层的 [OrderSessionRepository]（内存）；识别页、点单页、小票页拿同一个 id 共用。
  */
-class OrderSession(val id: String, initial: OrderMenu) {
-    private val menuState = MutableStateFlow(initial)
-    private val quantityState = MutableStateFlow<Map<String, Int>>(emptyMap())
-    private val overrideState = MutableStateFlow<TasteProfile?>(null)
-
-    val menu: StateFlow<OrderMenu> = menuState.asStateFlow()
-    val quantities: StateFlow<Map<String, Int>> = quantityState.asStateFlow()
+class OrderSession internal constructor(
+    val id: String,
+    private val state: MutableStateFlow<OrderSessionData>,
+    private val repository: OrderSessionRepository,
+) {
+    val menu: StateFlow<OrderMenu> = state.mapState { it.menu }
+    val quantities: StateFlow<Map<String, Int>> = state.mapState { it.quantities }
 
     /** 这次点单临时改的口味，不改档案；null 表示用档案。 */
-    val tasteOverride: StateFlow<TasteProfile?> = overrideState.asStateFlow()
+    val tasteOverride: StateFlow<TasteProfile?> = state.mapState { it.tasteOverride }
 
-    /** 识别页注册：重新识别并保存。返回 false 表示现在没法重试。 */
-    var retryHandler: (() -> Boolean)? = null
+    /** 识别页订阅：收到就重新识别并保存。 */
+    val retryRequests: Flow<Unit> get() = repository.retryRequests(id)
 
-    fun updateMenu(transform: (OrderMenu) -> OrderMenu) = menuState.update(transform)
+    fun updateMenu(transform: (OrderMenu) -> OrderMenu) = state.update { it.copy(menu = transform(it.menu)) }
 
-    fun setQuantity(key: String, qty: Int) = quantityState.update { current ->
+    fun setQuantity(key: String, qty: Int) = state.update { current ->
         val value = qty.coerceIn(0, MAX_QTY)
-        if (value == 0) current - key else current + (key to value)
+        current.copy(quantities = if (value == 0) current.quantities - key else current.quantities + (key to value))
     }
 
-    fun setTasteOverride(profile: TasteProfile?) {
-        overrideState.value = profile
-    }
+    fun setTasteOverride(profile: TasteProfile?) = state.update { it.copy(tasteOverride = profile) }
 
     /** 重新拍：换了照片，菜和份数都清掉。 */
-    fun resetForNewPhoto() {
-        menuState.update { it.copy(dishes = emptyList(), status = MenuStatus.SCANNING, error = null, estimatedDishCount = null) }
-        quantityState.value = emptyMap()
+    fun resetForNewPhoto() = state.update {
+        it.copy(
+            menu = it.menu.copy(dishes = emptyList(), status = MenuStatus.SCANNING, error = null, estimatedDishCount = null),
+            quantities = emptyMap(),
+        )
     }
 
-    fun retry(): Boolean = retryHandler?.invoke() ?: false
+    /**
+     * 让识别页重新识别（发命令，不直接调识别页）。没有识别页在听时返回 false。
+     * 发出前先把菜单标成识别中，等菜单的人不会读到旧的“失败”。
+     */
+    fun retry(): Boolean {
+        val before = state.value.menu
+        updateMenu { it.copy(status = MenuStatus.SCANNING, error = null) }
+        if (repository.requestRetry(id)) return true
+        updateMenu { before }
+        return false
+    }
 
     /** 点了的菜，按菜单顺序。 */
-    fun lines(): List<OrderLine> = orderLines(menuState.value, quantityState.value)
+    fun lines(): List<OrderLine> = orderLines(state.value.menu, state.value.quantities)
 
     companion object {
         const val MAX_QTY = 99
+
+        /** 测试用：不经过会话表的独立会话。 */
+        fun standalone(id: String, initial: OrderMenu): OrderSession {
+            val repository = InMemoryOrderSessionRepository()
+            return OrderSession(id, repository.create(id, initial), repository)
+        }
+    }
+}
+
+/** 从一个 StateFlow 派生只读视图，不需要协程作用域。 */
+@OptIn(ExperimentalForInheritanceCoroutinesApi::class)
+private fun <T, R> StateFlow<T>.mapState(transform: (T) -> R): StateFlow<R> = object : StateFlow<R> {
+    override val value: R get() = transform(this@mapState.value)
+    override val replayCache: List<R> get() = listOf(value)
+    override suspend fun collect(collector: FlowCollector<R>): Nothing {
+        this@mapState.map(transform).distinctUntilChanged().collect(collector)
+        error("StateFlow never completes")
     }
 }
 
@@ -177,17 +182,17 @@ fun orderMenuFrom(menu: PlaceMenu): OrderMenu = OrderMenu(
     status = MenuStatus.READY,
 )
 
-/** 内存里的点单会话。识别页或电子菜单页创建，自己被销毁时移除。 */
-class OrderSessions(private val ids: IdGenerator) {
-    private val sessions = mutableMapOf<String, OrderSession>()
-
-    fun create(initial: OrderMenu): OrderSession = OrderSession(ids.newId(), initial).also { sessions[it.id] = it }
-
-    operator fun get(id: String): OrderSession? = sessions[id]
-
-    fun remove(id: String) {
-        sessions.remove(id)
+/** 点单会话表（薄用例）：识别页或电子菜单页创建，自己被销毁时移除。状态在 data 层的内存 repository 里。 */
+class OrderSessions(private val ids: IdGenerator, private val repository: OrderSessionRepository) {
+    fun create(initial: OrderMenu): OrderSession {
+        val id = ids.newId()
+        return OrderSession(id, repository.create(id, initial), repository)
     }
+
+    /** 进程被杀后返回栈里的 id 会找不到，返回 null。 */
+    operator fun get(id: String): OrderSession? = repository[id]?.let { OrderSession(id, it, repository) }
+
+    fun remove(id: String) = repository.remove(id)
 }
 
 /** 手机当前时区。测试里换成固定时区。 */

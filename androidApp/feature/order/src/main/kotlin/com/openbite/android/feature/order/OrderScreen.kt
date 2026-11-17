@@ -37,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,8 +60,8 @@ import com.openbite.android.core.designsystem.component.segmentShape
 import com.openbite.android.core.designsystem.icon.OpenBiteIcons
 import com.openbite.android.core.designsystem.theme.OpenBiteTheme
 import com.openbite.android.core.designsystem.theme.Spacing
-import com.openbite.core.domain.MenuStatus
-import com.openbite.core.domain.OrderDish
+import com.openbite.core.model.MenuStatus
+import com.openbite.core.model.OrderDish
 import com.openbite.core.domain.TastePhrases
 import com.openbite.core.domain.dishGlyph
 import com.openbite.core.model.Allergen
@@ -87,6 +88,8 @@ fun OrderRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val currentSession by viewModel.sessionId.collectAsStateWithLifecycle()
+    // 进程被杀过、识别页的会话没了：不停在空页，直接退回上一页。
+    LaunchedEffect(state.sessionLost) { if (state.sessionLost) onBack() }
     OrderScreen(
         state = state,
         onBack = onBack,

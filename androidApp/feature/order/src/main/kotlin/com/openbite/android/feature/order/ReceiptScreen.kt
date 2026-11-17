@@ -58,7 +58,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.openbite.android.core.designsystem.icon.OpenBiteIcons
 import com.openbite.android.core.designsystem.theme.OpenBiteTheme
 import com.openbite.android.core.designsystem.theme.Spacing
-import com.openbite.core.domain.MenuStatus
+import com.openbite.core.model.MenuStatus
 import com.openbite.core.domain.Phrase
 import com.openbite.core.domain.Receipt
 import com.openbite.core.domain.ReceiptLine
@@ -86,6 +86,8 @@ fun ReceiptRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(state.placedLogId) { state.placedLogId?.let(onPlaced) }
+    // 进程被杀过、会话没了：不停在空页，直接退回上一页。
+    LaunchedEffect(state.sessionLost) { if (state.sessionLost) onBack() }
     val context = LocalContext.current
     // 通知权限只在第一次“已下单”时要（饭后补记忆的提醒要用）；不管给不给都接着下单。
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {

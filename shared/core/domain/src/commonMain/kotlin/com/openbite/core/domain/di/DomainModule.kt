@@ -71,7 +71,7 @@ val sharedCoreModule: Module = module {
     factory { ClearApiKeyUseCase(get()) }
     factory { RenamePlaceUseCase(get()) }
     single<TimeZoneProvider> { SystemTimeZoneProvider() }
-    single { OrderSessions(get()) }
+    single { OrderSessions(get(), get()) }
     factory { PlaceOrderUseCase(get(), get(), get(), get(), get()) }
     factory { ObserveMealUseCase(get(), get()) }
     factory { SaveMealUseCase(get(), get(), get()) }

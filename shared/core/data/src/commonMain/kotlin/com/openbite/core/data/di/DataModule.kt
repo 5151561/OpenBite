@@ -22,6 +22,8 @@ import com.openbite.core.database.buildOpenBite
 import com.openbite.core.network.VisionModelRegistry
 import io.ktor.client.HttpClient
 import androidx.room.RoomDatabase
+import com.openbite.core.data.InMemoryOrderSessionRepository
+import com.openbite.core.data.OrderSessionRepository
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -36,6 +38,7 @@ val dataModule: Module = module {
     single<PlaceRepository> { RoomPlaceRepository(get()) }
     single<MilestoneRepository> { RoomMilestoneRepository(get()) }
     single { SeedImporter(get(), get()) }
+    single<OrderSessionRepository> { InMemoryOrderSessionRepository() }
     single<SampleDataRepository> { RoomSampleDataRepository(get(), get()) }
     single<MenuScanRepository> { RoomMenuScanRepository(get()) }
     single<DraftRepository> { RoomDraftRepository(get()) }

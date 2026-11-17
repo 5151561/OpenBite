@@ -1,5 +1,8 @@
 package com.openbite.core.domain
 
+import com.openbite.core.model.OrderMenu
+import com.openbite.core.model.OrderDish
+import com.openbite.core.model.MenuStatus
 import com.openbite.core.data.DraftRepository
 import com.openbite.core.data.NewDraftLog
 import com.openbite.core.model.Money
@@ -7,6 +10,9 @@ import com.openbite.core.model.Place
 import com.openbite.core.model.ScanError
 import com.openbite.core.model.VisionModelChoice
 import com.openbite.core.model.ScannedDish
+import com.openbite.core.data.InMemoryOrderSessionRepository
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -20,7 +26,7 @@ import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
 class OrderTest {
-    private fun newSession(placeId: String? = null) = OrderSession(
+    private fun newSession(placeId: String? = null) = OrderSession.standalone(
         "s",
         OrderMenu(placeId, "新店铺", null, null, null, emptyList(), MenuStatus.SCANNING),
     )
@@ -177,5 +183,25 @@ class OrderTest {
     @Test
     fun emptyOrderIsRejected() = runTest {
         assertFailsWith<IllegalArgumentException> { placeOrder(FakeDrafts())(readyMenu("p"), emptyList(), true) }
+    }
+
+    @Test
+    fun retryIsACommandToTheScanPage() = runTest(UnconfinedTestDispatcher()) {
+        val sessions = OrderSessions(IdGenerator { "s1" }, InMemoryOrderSessionRepository())
+        val session = sessions.create(OrderMenu(null, "新店铺", null, null, null, emptyList(), MenuStatus.SCANNING))
+        session.fail(ScanError.NETWORK)
+        // 没有识别页在听：不能重试，状态不变。
+        assertEquals(false, session.retry())
+        assertEquals(MenuStatus.FAILED, session.menu.value.status)
+
+        var received = 0
+        val job = launch { sessions["s1"]!!.retryRequests.collect { received++ } }
+        assertTrue(session.retry())
+        assertEquals(1, received)
+        assertEquals(MenuStatus.SCANNING, session.menu.value.status)
+        job.cancel()
+
+        sessions.remove("s1")
+        assertNull(sessions["s1"], "进程重建后找不到的会话返回 null")
     }
 }

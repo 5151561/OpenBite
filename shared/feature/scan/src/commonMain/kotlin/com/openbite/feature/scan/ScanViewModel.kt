@@ -2,8 +2,8 @@ package com.openbite.feature.scan
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.openbite.core.domain.MenuStatus
-import com.openbite.core.domain.OrderMenu
+import com.openbite.core.model.MenuStatus
+import com.openbite.core.model.OrderMenu
 import com.openbite.core.domain.OrderSession
 import com.openbite.core.domain.DiscardCaptureUseCase
 import com.openbite.core.domain.OrderSessions
@@ -73,13 +73,22 @@ class ScanViewModel(
     /** 这次识别对应的点单会话，点单页和小票页用它（边识别边点单）。识别页销毁时一起移除。 */
     private val session: OrderSession = sessions.create(
         OrderMenu(placeId, placeName = "", location = null, sourceLang = null, currency = null, dishes = emptyList(), status = MenuStatus.SCANNING),
-    ).also { it.retryHandler = { retry() } }
+    )
 
     val sessionId: String get() = session.id
 
     private var job: Job? = null
     private var permissionAnswer: CompletableDeferred<Boolean>? = null
     private var lastRequest: ScanMenuRequest? = null
+
+    init {
+        // 小票页点“重试”发来的命令：重新识别；正在识别就不管，没法重试时把菜单标回失败。
+        viewModelScope.launch {
+            session.retryRequests.collect {
+                if (!state.value.isWorking && !retry()) session.fail(state.value.error ?: ScanError.UNKNOWN)
+            }
+        }
+    }
 
     fun onPhoto(sourceUri: String, defaultPlaceName: String, targetLang: String = "zh-CN") {
         if (state.value.phase != ScanPhase.WAITING_PHOTO) return
@@ -177,7 +186,6 @@ class ScanViewModel(
     override fun onCleared() {
         // 离开识别页：没识别成功时留着给重试的相机原图也删掉。
         lastRequest?.let { discardCapture.inBackground(it.sourceUri) }
-        session.retryHandler = null
         sessions.remove(session.id)
     }
 }

@@ -2,12 +2,12 @@ package com.openbite.feature.order
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.openbite.core.domain.MenuStatus
+import com.openbite.core.model.MenuStatus
 import com.openbite.core.domain.ObservePlaceMenuUseCase
 import com.openbite.core.domain.ObserveTasteProfileUseCase
-import com.openbite.core.domain.OrderDish
-import com.openbite.core.domain.OrderLine
-import com.openbite.core.domain.OrderMenu
+import com.openbite.core.model.OrderDish
+import com.openbite.core.model.OrderLine
+import com.openbite.core.model.OrderMenu
 import com.openbite.core.domain.OrderSession
 import com.openbite.core.domain.OrderSessions
 import com.openbite.core.domain.PlaceOrderUseCase
@@ -42,6 +42,8 @@ data class OrderUiState(
     val isLoading: Boolean = true,
     /** 会话不见了（进程被杀过）或店铺没有菜单。 */
     val unavailable: Boolean = false,
+    /** 识别页传来的会话找不到了（进程被杀过）：界面直接退回上一页。 */
+    val sessionLost: Boolean = false,
     val placeName: String = "",
     val status: MenuStatus = MenuStatus.SCANNING,
     val estimatedDishCount: Int? = null,
@@ -77,7 +79,8 @@ class OrderViewModel(
     private val ownedSessionId = MutableStateFlow<String?>(null)
     private val sessionFlow = MutableStateFlow(sessionId?.let { sessions[it] })
     private val category = MutableStateFlow<String?>(null)
-    private val missing = MutableStateFlow(sessionId != null && sessionFlow.value == null)
+    private val sessionLost = sessionId != null && sessionFlow.value == null
+    private val missing = MutableStateFlow(sessionLost)
 
     /** 小票页要用的会话 id；从店铺菜单开始时等菜单读出来才有。 */
     val sessionId: StateFlow<String?> = sessionFlow.map { it?.id }
@@ -106,7 +109,7 @@ class OrderViewModel(
         Quad(session, gone, profile, selected)
     }.flatMapLatest { (session, gone, profile, selected) ->
         when {
-            gone -> flowOf(OrderUiState(isLoading = false, unavailable = true))
+            gone -> flowOf(OrderUiState(isLoading = false, unavailable = true, sessionLost = sessionLost))
             session == null -> flowOf(OrderUiState())
             else -> combine(session.menu, session.quantities, session.tasteOverride) { menu, quantities, override ->
                 orderState(menu, quantities, profile, override, selected)
@@ -177,6 +180,8 @@ enum class PlacePhase {
 data class ReceiptUiState(
     val isLoading: Boolean = true,
     val unavailable: Boolean = false,
+    /** 会话找不到了（进程被杀过）：界面直接退回上一页。 */
+    val sessionLost: Boolean = false,
     val receipt: Receipt? = null,
     val menuStatus: MenuStatus = MenuStatus.READY,
     val phase: PlacePhase = PlacePhase.IDLE,
@@ -198,7 +203,7 @@ class ReceiptViewModel(
     private var placing = false
 
     val uiState: StateFlow<ReceiptUiState> = if (session == null) {
-        MutableStateFlow(ReceiptUiState(isLoading = false, unavailable = true))
+        MutableStateFlow(ReceiptUiState(isLoading = false, unavailable = true, sessionLost = true))
     } else {
         combine(session.menu, session.quantities, session.tasteOverride, observeTaste(), phase) { menu, quantities, override, profile, p ->
             val lines = orderLines(menu, quantities).map {

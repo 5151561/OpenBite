@@ -1,8 +1,8 @@
 package com.openbite.feature.order
 
-import com.openbite.core.domain.MenuStatus
-import com.openbite.core.domain.OrderDish
-import com.openbite.core.domain.OrderMenu
+import com.openbite.core.model.MenuStatus
+import com.openbite.core.model.OrderDish
+import com.openbite.core.model.OrderMenu
 import com.openbite.core.model.Allergen
 import com.openbite.core.model.Money
 import com.openbite.core.model.TasteProfile
