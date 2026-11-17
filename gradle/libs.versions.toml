@@ -7,6 +7,8 @@ composeBom = "2026.06.01"
 coreKtx = "1.19.0"
 activityCompose = "1.13.0"
 lifecycle = "2.11.0"
+# JetBrains 的 KMP lifecycle（共享 ViewModel 用），和 androidx 的发版节奏不同，单独记版本。
+jetbrainsLifecycle = "2.11.0"
 navigation3 = "1.2.0"
 ktor = "3.6.1"
 datastore = "1.2.1"
@@ -23,7 +25,6 @@ kotlinxDatetime = "0.8.0"
 koin = "4.2.2"
 room = "2.8.5"
 sqlite = "2.7.1"
-junit = "4.13.2"
 
 [libraries]
 # ---- Android 界面 ----
@@ -50,7 +51,7 @@ ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.r
 ktor-client-mock = { group = "io.ktor", name = "ktor-client-mock", version.ref = "ktor" }
 
 # ---- KMP 共享 ----
-jetbrains-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "lifecycle" }
+jetbrains-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "jetbrainsLifecycle" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
@@ -69,7 +70,6 @@ koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmo
 # ---- 测试 ----
 # 只在数据库迁移测试里用：JVM 上的 SQLite 驱动。
 sqlite-jdbc = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqliteJdbc" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-appfunctions = { group = "androidx.appfunctions", name = "appfunctions", version.ref = "appfunctions" }
 androidx-appfunctions-compiler = { group = "androidx.appfunctions", name = "appfunctions-compiler", version.ref = "appfunctions" }
 
