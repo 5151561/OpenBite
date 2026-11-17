@@ -92,4 +92,52 @@ class MenuMergeTest {
         val result = mergeMenu("p", "s", emptyList(), listOf(ScannedDish(nameOriginal = "水", priceMinor = 100)), null, ids())
         assertEquals(null, result.upserts.single().price)
     }
+
+    @Test
+    fun updatedDishIsTrimmedLikeNewDish() {
+        val result = mergeMenu(
+            "p", "scan-2", existing,
+            listOf(
+                ScannedDish(" 焼き鳥 ", "つくね", "  鸡肉丸串 ", 350, "JPY"),
+                ScannedDish(" 焼き鳥 ", "皮", " 鸡皮串 ", 250, "JPY"),
+            ),
+            defaultCurrency = "JPY", newId = ids(),
+        )
+        val (updated, added) = result.upserts
+        // 更新已有菜和新加的菜一样去掉首尾空白，界面分组不会因为空格分裂。
+        assertEquals("焼き鳥", updated.category)
+        assertEquals("鸡肉丸串", updated.nameTranslated)
+        assertEquals("焼き鳥", added.category)
+        assertEquals("鸡皮串", added.nameTranslated)
+    }
+
+    @Test
+    fun blankFieldsWithOnlySpacesKeepOldValues() {
+        val dish = mergeMenu(
+            "p", "scan-2", existing,
+            listOf(ScannedDish("  ", "つくね", "   ", null, null)),
+            defaultCurrency = "JPY", newId = ids(),
+        ).upserts.single()
+        assertEquals("一品", dish.category)
+        assertEquals("鸡肉丸", dish.nameTranslated)
+        assertEquals(Money(300, "JPY"), dish.price)
+    }
+
+    @Test
+    fun lowercaseCurrencyIsUppercasedAndNegativePriceDropped() {
+        val result = mergeMenu(
+            "p", "scan-2", emptyList(),
+            listOf(
+                ScannedDish("一品", "冷奴", "凉拌豆腐", 380, "jpy"),
+                ScannedDish("一品", "枝豆", "毛豆", -1, "JPY"),
+                ScannedDish("一品", "お通し", "小菜", 300, null),
+            ),
+            defaultCurrency = "JPY", newId = ids(),
+        )
+        val (tofu, edamame, otoshi) = result.upserts
+        assertEquals(Money(380, "JPY"), tofu.price)
+        assertEquals(null, edamame.price)
+        // 没写币种用菜单抬头的。
+        assertEquals(Money(300, "JPY"), otoshi.price)
+    }
 }

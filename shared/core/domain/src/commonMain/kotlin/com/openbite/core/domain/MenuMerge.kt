@@ -45,8 +45,8 @@ fun mergeMenu(
         if (old != null) {
             updated++
             old.copy(
-                category = dish.category.ifBlank { old.category },
-                nameTranslated = dish.nameTranslated.ifBlank { old.nameTranslated },
+                category = dish.category.trim().ifEmpty { old.category },
+                nameTranslated = dish.nameTranslated.trim().ifEmpty { old.nameTranslated },
                 price = price ?: old.price,
                 allergens = dish.allergens.ifEmpty { old.allergens },
                 scanId = scanId,
