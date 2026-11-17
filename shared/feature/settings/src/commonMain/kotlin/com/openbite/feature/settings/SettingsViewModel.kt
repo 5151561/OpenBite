@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -32,6 +32,21 @@ enum class SettingsMessage { SAMPLE_LOADED, SAMPLE_SKIPPED_NOT_EMPTY, CLEARED, F
 data class SettingsUiState(
     val isWorking: Boolean = false,
     /** 正在等用户确认清空。 */
+    val confirmingClear: Boolean = false,
+    val message: SettingsMessage? = null,
+    /** “保留经纬度作为店铺位置”；加载完之前为 null。 */
+    val keepLocation: Boolean? = null,
+    /** 两个提醒开关；加载完之前为 null。 */
+    val reminders: ReminderSettings? = null,
+    /** “我的口味”那一行的摘要；没设过为 null。加载完之前也是 null。 */
+    val tasteSummary: String? = null,
+    /** 识别模型和 API Key（只有打码后的样子）。加载完之前为 null。 */
+    val vision: VisionSettings? = null,
+)
+
+/** 页面自己的临时状态（忙不忙、确认框、提示）。 */
+private data class SettingsLocal(
+    val isWorking: Boolean = false,
     val confirmingClear: Boolean = false,
     val message: SettingsMessage? = null,
 )
@@ -50,34 +65,26 @@ class SettingsViewModel(
     private val setKeepLocation: SetKeepLocationUseCase,
 ) : ViewModel() {
 
-    /** “保留经纬度作为店铺位置”；加载完之前为 null。 */
-    val keepLocation: StateFlow<Boolean?> = observeKeepLocation()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    private val state = MutableStateFlow(SettingsLocal())
+
+    /** 整页一个不可变状态。 */
+    val uiState: StateFlow<SettingsUiState> = combine(
+        state,
+        observeKeepLocation(),
+        observeReminders(),
+        observeTaste().map { TastePhrases.summary(it) },
+        observeVisionSettings(),
+    ) { local, keep, reminders, taste, vision ->
+        SettingsUiState(local.isWorking, local.confirmingClear, local.message, keep, reminders, taste, vision)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
 
     fun setKeepLocation(keep: Boolean) {
         viewModelScope.launch { setKeepLocation.invoke(keep) }
     }
 
-    /** 两个提醒开关；加载完之前为 null。 */
-    val reminders: StateFlow<ReminderSettings?> = observeReminders()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
     fun setReminders(meal: Boolean, milestones: Boolean) {
         viewModelScope.launch { setReminderSettings(ReminderSettings(meal, milestones)) }
     }
-
-    /** “我的口味”那一行的摘要；没设过为 null。加载完之前也是 null。 */
-    val tasteSummary: StateFlow<String?> = observeTaste()
-        .map { TastePhrases.summary(it) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
-
-    private val state = MutableStateFlow(SettingsUiState())
-    val uiState: StateFlow<SettingsUiState> = state.asStateFlow()
-
-    /** 识别模型和 API Key（只有打码后的样子）。加载完之前为 null。 */
-    val vision: StateFlow<VisionSettings?> = observeVisionSettings()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun chooseModel(choice: VisionModelChoice) {
         viewModelScope.launch { setVisionModel(choice) }

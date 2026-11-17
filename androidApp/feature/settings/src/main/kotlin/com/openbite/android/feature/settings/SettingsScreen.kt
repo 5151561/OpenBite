@@ -71,17 +71,13 @@ fun SettingsRoute(
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val vision by viewModel.vision.collectAsStateWithLifecycle()
-    val tasteSummary by viewModel.tasteSummary.collectAsStateWithLifecycle()
-    val reminders by viewModel.reminders.collectAsStateWithLifecycle()
-    val keepLocation by viewModel.keepLocation.collectAsStateWithLifecycle()
     SettingsScreen(
-        keepLocation = keepLocation,
+        keepLocation = state.keepLocation,
         onKeepLocation = viewModel::setKeepLocation,
         state = state,
-        vision = vision,
-        tasteSummary = tasteSummary,
-        reminders = reminders,
+        vision = state.vision,
+        tasteSummary = state.tasteSummary,
+        reminders = state.reminders,
         onReminders = viewModel::setReminders,
         onBack = onBack,
         onOpenTaste = onOpenTaste,

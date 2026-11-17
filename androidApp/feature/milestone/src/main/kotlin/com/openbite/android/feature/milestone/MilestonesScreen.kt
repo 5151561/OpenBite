@@ -66,13 +66,12 @@ fun MilestonesRoute(
     viewModel: MilestonesViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val reminders by viewModel.reminders.collectAsStateWithLifecycle()
     MilestonesScreen(
         state,
         onOpenPlace,
         onEditMilestone,
         onAddMilestone,
-        notificationsOn = reminders?.milestones ?: true,
+        notificationsOn = state.reminders?.milestones ?: true,
         onNotifications = viewModel::setMilestoneReminders,
     )
 }

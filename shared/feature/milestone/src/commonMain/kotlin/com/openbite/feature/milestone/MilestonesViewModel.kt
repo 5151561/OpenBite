@@ -23,6 +23,8 @@ data class MilestonesUiState(
     val later: List<MilestoneHighlight> = emptyList(),
     /** 已经过去的一次性纪念日（不再出现在“之后”里，但还能点开改或删）。 */
     val past: List<Milestone> = emptyList(),
+    /** “系统通知”开关：纪念日提醒。加载完之前为 null。 */
+    val reminders: ReminderSettings? = null,
 ) {
     /** 提醒提前几天：取最近一个纪念日的设置。 */
     val remindDaysBefore: Int get() = next?.upcoming?.milestone?.remindDaysBefore ?: DEFAULT_REMIND_DAYS
@@ -39,23 +41,20 @@ class MilestonesViewModel(
     private val setReminders: SetReminderSettingsUseCase,
 ) : ViewModel() {
 
-    /** “系统通知”开关：纪念日提醒。加载完之前为 null。 */
-    val reminders: StateFlow<ReminderSettings?> = observeReminders()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
     fun setMilestoneReminders(enabled: Boolean) {
-        val current = reminders.value ?: return
+        val current = uiState.value.reminders ?: return
         viewModelScope.launch { setReminders(current.copy(milestones = enabled)) }
     }
 
     val uiState: StateFlow<MilestonesUiState> =
-        combine(observeHighlights(daysAhead = DAYS_AHEAD), observeAllMilestones()) { all, every ->
+        combine(observeHighlights(daysAhead = DAYS_AHEAD), observeAllMilestones(), observeReminders()) { all, every, reminders ->
             val upcomingIds = all.map { it.upcoming.milestone.id }.toSet()
             MilestonesUiState(
                 isLoading = false,
                 next = all.firstOrNull(),
                 later = all.drop(1),
                 past = every.filterNot { it.id in upcomingIds }.sortedByDescending { it.date },
+                reminders = reminders,
             )
         }.stateIn(
             scope = viewModelScope,
