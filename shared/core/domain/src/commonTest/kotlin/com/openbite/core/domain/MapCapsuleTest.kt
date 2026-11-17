@@ -65,6 +65,23 @@ class MapCapsuleTest {
     }
 
     @Test
+    fun selectionFollowsFilter() {
+        val lateNight = filterPins(pins, MapFilter.LATE_NIGHT, "")
+        val milestoneOnly = filterPins(pins, MapFilter.MILESTONE, "")
+        // 选中的店还看得见：不变
+        assertEquals("tori", visibleSelection("tori", lateNight, highlights))
+        // 选中的店被筛掉，默认卡片那家可见：换成它
+        assertEquals("minato", visibleSelection("tori", milestoneOnly, highlights))
+        // 选中的店被筛掉，默认那家也不可见：换成第一家可见的
+        assertEquals("tori", visibleSelection("minato", lateNight, highlights))
+        // 一家都不剩
+        assertNull(visibleSelection("minato", emptyList(), highlights))
+        // 卡片跟着换：「深夜食堂」下选中 minato，显示 tori 的卡片
+        val shown = visibleSelection("minato", lateNight, highlights)!!
+        assertEquals("tori", capsuleFor(shown, lateNight, memories, listOf(love), highlights)!!.placeId)
+    }
+
+    @Test
     fun defaultCapsuleIsLastYearsAnniversaryMeal() {
         val capsule = capsuleFor(null, pins, memories, listOf(love), highlights)!!
         assertEquals(CapsuleKind.UPCOMING_MILESTONE, capsule.kind)

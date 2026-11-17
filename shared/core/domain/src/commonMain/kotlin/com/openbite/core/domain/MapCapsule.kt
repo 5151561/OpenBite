@@ -124,6 +124,19 @@ fun placeCapsule(pin: MapPin, memories: List<MemorySummary>, milestones: List<Mi
 }
 
 /**
+ * 筛选后要显示的选中店。选中的店还在 [visiblePins] 里就不变；被筛掉了就换成默认卡片那家（如果可见），
+ * 否则第一家可见的店；一家都不剩返回 null。只影响显示，不改用户的选择，切回「全部」时原来的店会回来。
+ */
+fun visibleSelection(
+    selectedPlaceId: String?,
+    visiblePins: List<MapPin>,
+    highlights: List<MilestoneHighlight>,
+): String? {
+    if (selectedPlaceId != null && visiblePins.any { it.place.id == selectedPlaceId }) return selectedPlaceId
+    return defaultCapsule(highlights, visiblePins)?.placeId ?: visiblePins.firstOrNull()?.place?.id
+}
+
+/**
  * 当前该显示哪张卡片：没选店或选的就是默认卡片那家时显示默认卡片，否则显示选中那家的。
  */
 fun capsuleFor(

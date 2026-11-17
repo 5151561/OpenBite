@@ -9,6 +9,7 @@ import com.openbite.core.domain.ObserveMapUseCase
 import com.openbite.core.domain.SetPlaceLocationUseCase
 import com.openbite.core.domain.TimeCapsule
 import com.openbite.core.domain.capsuleFor
+import com.openbite.core.domain.visibleSelection
 import com.openbite.core.domain.defaultCapsule
 import com.openbite.core.domain.filterCounts
 import com.openbite.core.domain.filterPins
@@ -55,16 +56,18 @@ class MapViewModel(focusPlaceId: String?, observeMap: ObserveMapUseCase) : ViewM
             initialized = true
             defaultCapsule(d.highlights, d.pins)?.let { selected.value = it.placeId }
         }
-        val current = s ?: selected.value
+        val visible = filterPins(d.pins, f, q)
+        // 选中的店被筛掉时，卡片跟着换成还看得见的店
+        val current = visibleSelection(s ?: selected.value, visible, d.highlights)
         MapUiState(
             isLoading = false,
             filter = f,
             query = q,
             counts = filterCounts(d.pins),
-            pins = filterPins(d.pins, f, q),
+            pins = visible,
             allPins = d.pins,
             selectedPlaceId = current,
-            capsule = capsuleFor(current, d.pins, d.memories, d.milestones, d.highlights),
+            capsule = current?.let { capsuleFor(it, visible, d.memories, d.milestones, d.highlights) },
             placesWithoutLocation = d.placesWithoutLocation,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MapUiState())
