@@ -57,4 +57,30 @@ class MilestonesTest {
         assertEquals(10, result.single().daysUntil)
         assertEquals(2, result.single().yearsSince)
     }
+
+    @Test
+    fun oneOffInTheFutureIsItsOwnDate() {
+        assertEquals(LocalDate.parse("2027-01-01"), nextOccurrence(milestone("2027-01-01", Recurrence.NONE), LocalDate.parse("2026-11-17")))
+    }
+
+    @Test
+    fun leapDayInLeapYearStaysOnFeb29() {
+        assertEquals(LocalDate.parse("2028-02-29"), nextOccurrence(milestone("2024-02-29"), LocalDate.parse("2027-03-01")))
+        assertEquals(LocalDate.parse("2028-02-29"), nextOccurrence(milestone("2024-02-29"), LocalDate.parse("2028-01-10")))
+    }
+
+    @Test
+    fun yearlyStartingInTheFutureHasZeroYears() {
+        val result = upcomingMilestones(listOf(milestone("2026-11-20")), LocalDate.parse("2026-11-17"), daysAhead = 30).single()
+        assertEquals(LocalDate.parse("2026-11-20"), result.nextDate)
+        assertEquals(0, result.yearsSince)
+    }
+
+    @Test
+    fun daysAheadBoundaryIsInclusive() {
+        val today = LocalDate.parse("2026-11-17")
+        val m = listOf(milestone("2024-11-27"))
+        assertEquals(1, upcomingMilestones(m, today, daysAhead = 10).size)
+        assertEquals(0, upcomingMilestones(m, today, daysAhead = 9).size)
+    }
 }
