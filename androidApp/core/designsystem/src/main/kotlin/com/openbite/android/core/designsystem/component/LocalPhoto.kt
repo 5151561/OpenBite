@@ -8,6 +8,8 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -22,12 +24,17 @@ sealed interface PhotoLoad {
 /** `seed/` 开头的示例图打包在 assets 里；其余是 App 私有目录（filesDir）下的相对路径。 */
 private const val SEED_PREFIX = "seed/"
 
-/** 在 IO 线程解码 App 里的照片（菜单原照片、饭菜照片、小票）。图片已在拍摄时压到 1568px 长边以内，这里不再缩放。 */
+/**
+ * 在 IO 线程解码 App 里的照片（菜单原照片、饭菜照片、小票）。图片已在拍摄时压到 1568px 长边以内。
+ * 缩略图传 [targetSize]（显示时的边长，按裁剪铺满算）：按它采样解码，80dp 的缩略图不再占一整张原图的内存。
+ * 不传就按原尺寸解码（大图、全屏）。
+ */
 @Composable
-fun rememberLocalPhoto(photoPath: String): State<PhotoLoad> {
+fun rememberLocalPhoto(photoPath: String, targetSize: Dp? = null): State<PhotoLoad> {
     val context = LocalContext.current.applicationContext
-    return produceState<PhotoLoad>(PhotoLoad.Loading, photoPath) {
-        value = withContext(Dispatchers.IO) { decode(context, photoPath) }
+    val targetPx = targetSize?.let { with(LocalDensity.current) { it.roundToPx() } } ?: 0
+    return produceState<PhotoLoad>(PhotoLoad.Loading, photoPath, targetPx) {
+        value = withContext(Dispatchers.IO) { decode(context, photoPath, targetPx) }
     }
 }
 
@@ -41,6 +48,21 @@ private fun openLocalPhoto(context: Context, photoPath: String) = if (photoPath.
 fun readLocalPhotoBytes(context: Context, photoPath: String): ByteArray? =
     runCatching { openLocalPhoto(context, photoPath).use { it.readBytes() } }.getOrNull()
 
-private fun decode(context: Context, photoPath: String): PhotoLoad = runCatching {
-    openLocalPhoto(context, photoPath).use { BitmapFactory.decodeStream(it) }?.asImageBitmap()
+private fun decode(context: Context, photoPath: String, targetPx: Int): PhotoLoad = runCatching {
+    val options = BitmapFactory.Options()
+    if (targetPx > 0) {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        openLocalPhoto(context, photoPath).use { BitmapFactory.decodeStream(it, null, bounds) }
+        options.inSampleSize = sampleSizeFor(bounds.outWidth, bounds.outHeight, targetPx)
+    }
+    openLocalPhoto(context, photoPath).use { BitmapFactory.decodeStream(it, null, options) }?.asImageBitmap()
 }.getOrNull()?.let { PhotoLoad.Loaded(it) } ?: PhotoLoad.Failed
+
+/** 最大的 2 的幂，让短边采样后仍不小于 [targetPx]（裁剪铺满时不发糊）。 */
+internal fun sampleSizeFor(width: Int, height: Int, targetPx: Int): Int {
+    val shortSide = minOf(width, height)
+    if (shortSide <= 0 || targetPx <= 0) return 1
+    var sample = 1
+    while (shortSide / (sample * 2) >= targetPx) sample *= 2
+    return sample
+}

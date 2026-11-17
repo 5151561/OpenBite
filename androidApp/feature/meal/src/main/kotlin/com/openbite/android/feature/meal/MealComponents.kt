@@ -58,7 +58,7 @@ internal fun StarRow(value: Int?, onPick: ((Int) -> Unit)?, size: Dp = 36.dp, mo
 /** 一张本地照片的方形缩略图。 */
 @Composable
 internal fun PhotoThumb(path: String, modifier: Modifier = Modifier, size: Dp = 80.dp, description: String? = null) {
-    val load by rememberLocalPhoto(path)
+    val load by rememberLocalPhoto(path, targetSize = size)
     Box(
         modifier
             .size(size)

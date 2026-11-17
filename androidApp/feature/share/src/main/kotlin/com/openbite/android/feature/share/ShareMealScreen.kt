@@ -221,11 +221,13 @@ fun ShareMealScreen(
     }
 }
 
+private val PhotoChoiceSize = 64.dp
+
 @Composable
 private fun PhotoChoice(path: String, selected: Boolean, onClick: () -> Unit) {
-    val load by rememberLocalPhoto(path)
+    val load by rememberLocalPhoto(path, targetSize = PhotoChoiceSize)
     Box(
-        Modifier.size(64.dp).clip(MaterialTheme.shapes.medium)
+        Modifier.size(PhotoChoiceSize).clip(MaterialTheme.shapes.medium)
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             .border(if (selected) 3.dp else 0.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.medium)
             .clickable(onClick = onClick),
