@@ -1,5 +1,6 @@
 package com.openbite.core.data
 
+import com.openbite.core.model.DiningStatus
 import com.openbite.core.model.MilestoneWithPeople
 import com.openbite.core.model.NewPhoto
 import com.openbite.core.model.MealEdit
@@ -246,7 +247,7 @@ internal class RoomDraftRepository(private val db: OpenBiteDatabase) : DraftRepo
                 visitedAt = log.visitedAt,
                 timezone = log.timezone,
                 localDate = log.localDate,
-                status = "draft",
+                status = DiningStatus.DRAFT.toColumn(),
                 milestoneId = log.milestoneId,
                 note = log.note,
                 createdBy = if (log.byAssistant) "assistant" else "user",
@@ -275,8 +276,8 @@ interface MealRepository {
     fun observeMeal(logId: String): Flow<DiningLog?>
     suspend fun meal(logId: String): DiningLog?
 
-    /** "draft" / "done"；记录不在了返回 null。 */
-    suspend fun statusOf(logId: String): String?
+    /** 记录不在了返回 null。 */
+    suspend fun statusOf(logId: String): DiningStatus?
     fun observePersons(): Flow<List<Person>>
     suspend fun addPerson(person: Person)
     suspend fun save(edit: MealEdit)
@@ -293,7 +294,7 @@ internal class RoomMealRepository(private val db: OpenBiteDatabase) : MealReposi
 
     override suspend fun meal(logId: String) = dao.byId(logId)?.toModel()
 
-    override suspend fun statusOf(logId: String) = dao.statusOf(logId)
+    override suspend fun statusOf(logId: String) = dao.statusOf(logId)?.let(::diningStatusOf)
 
     override fun observePersons() = dao.observePersons().map { rows -> rows.map { Person(it.id, it.displayName) } }
 
@@ -304,7 +305,7 @@ internal class RoomMealRepository(private val db: OpenBiteDatabase) : MealReposi
         rating = edit.rating,
         note = edit.note,
         milestoneId = edit.milestoneId,
-        status = if (edit.done) "done" else "draft",
+        status = (if (edit.done) DiningStatus.DONE else DiningStatus.DRAFT).toColumn(),
         updatedAt = edit.updatedAt,
         // 只用到 id / qty / rating / comment，其余字段 DAO 不写。
         items = edit.items.map { DiningLogItemEntity(it.id, edit.logId, null, "", null, null, it.qty, it.rating, it.comment) },

@@ -133,7 +133,7 @@ class AssistantApiTest {
     private inner class FakePersons : MealRepository {
         override fun observeMeal(logId: String) = flowOf<DiningLog?>(null)
         override suspend fun meal(logId: String): DiningLog? = null
-        override suspend fun statusOf(logId: String): String? = null
+        override suspend fun statusOf(logId: String): com.openbite.core.model.DiningStatus? = null
         override fun observePersons() = flowOf(listOf(wife, roommates))
         override suspend fun addPerson(person: Person) = error("read only")
         override suspend fun save(edit: MealEdit) = error("read only")

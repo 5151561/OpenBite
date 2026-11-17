@@ -51,7 +51,7 @@ internal fun DiningLogWithDetails.toModel() = DiningLog(
     visitedAt = log.visitedAt,
     timezone = log.timezone,
     localDate = LocalDate.parse(log.localDate),
-    status = DiningStatus.valueOf(log.status.uppercase()),
+    status = diningStatusOf(log.status),
     milestoneId = log.milestoneId,
     note = log.note,
     source = LogSource.valueOf(log.createdBy.uppercase()),
@@ -121,3 +121,8 @@ internal fun Milestone.toEntity() = MilestoneEntity(
     recurrence = recurrence.name.lowercase(),
     remindDaysBefore = remindDaysBefore,
 )
+
+// dining_log.status 列里存的字符串只出现在这里，对外一律用 [DiningStatus]。
+internal fun diningStatusOf(column: String): DiningStatus = DiningStatus.valueOf(column.uppercase())
+
+internal fun DiningStatus.toColumn(): String = name.lowercase()
