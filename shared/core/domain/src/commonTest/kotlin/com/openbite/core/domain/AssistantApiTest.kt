@@ -293,4 +293,27 @@ class AssistantApiTest {
         // 0 和 null 仍是默认的 2 公里。
         assertEquals(api.searchPlaces(35.0050, 135.7680, null, emptyList()), api.searchPlaces(35.0050, 135.7680, 0.0, emptyList()))
     }
+
+    @Test
+    fun previousMealsAreAtMostFiveAndBeforeNextDate() = runTest {
+        logs.value = (2015..2025).map { year ->
+            log("love-$year", minato, LocalDate(year, 11, 27), year.toLong(), "ms-love", listOf(wife))
+        } + log("love-2026-early", minato, LocalDate(2026, 11, 27), 3_000L, "ms-love")
+        val love = api.upcomingMilestones(30).single { it.milestoneId == "ms-love" }
+        // 只要下一次之前的（2026-11-27 当天那条不算），最近的 5 条。
+        assertEquals((2025 downTo 2021).map { "love-$it" }, love.previousMeals.map { it.logId })
+    }
+
+    @Test
+    fun blankMilestoneIdMeansNoFilterAndDraftFlagsAreMapped() = runTest {
+        logs.value = logs.value + log("draft", tori, LocalDate(2026, 11, 16), 1_794_000_000_000, source = LogSource.ASSISTANT)
+            .copy(status = DiningStatus.DRAFT, note = "第一行\n第二行")
+        val all = api.queryDiningLogs("  ", null, null, null)
+        assertEquals(logs.value.size, all.size)
+        val draft = all.single { it.logId == "draft" }
+        assertTrue(draft.isDraft)
+        assertTrue(draft.createdByAssistant)
+        assertEquals("第一行\n第二行", draft.note)
+        assertTrue(all.filter { it.logId != "draft" }.none { it.isDraft || it.createdByAssistant })
+    }
 }
