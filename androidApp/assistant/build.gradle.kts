@@ -11,3 +11,8 @@ dependencies {
     implementation(libs.androidx.appfunctions)
     ksp(libs.androidx.appfunctions.compiler)
 }
+
+dependencies {
+    // 错误映射、类型映射和生成的函数说明（XML 快照）的 JVM 单测。
+    testImplementation(kotlin("test-junit"))
+}

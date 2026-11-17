@@ -1,14 +1,11 @@
 package com.openbite.android.assistant
 
+import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.appfunctions.AppFunctionAppUnknownException
 import androidx.appfunctions.AppFunctionDeclaration
-import androidx.appfunctions.AppFunctionElementNotFoundException
-import androidx.appfunctions.AppFunctionInvalidArgumentException
 import androidx.appfunctions.AppFunctionService
 import androidx.appfunctions.AppFunctionServiceEntryPoint
 import com.openbite.core.domain.AssistantApi
-import com.openbite.core.domain.AssistantErrorKind
 import com.openbite.core.domain.AssistantException
 import com.openbite.core.domain.AssistantNewItem
 import kotlinx.coroutines.CancellationException
@@ -123,17 +120,15 @@ abstract class BaseOpenBiteAppFunctionService : AppFunctionService() {
     private suspend fun <T> call(block: suspend AssistantApi.() -> T): T = withContext(Dispatchers.IO) {
         try {
             api.block()
-        } catch (e: AssistantException) {
-            throw when (e.kind) {
-                AssistantErrorKind.INVALID_ARGUMENT -> AppFunctionInvalidArgumentException(e.message)
-                AssistantErrorKind.NOT_FOUND -> AppFunctionElementNotFoundException(e.message)
-            }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            throw AppFunctionAppUnknownException("OpenBite could not read or write its data.")
+            if (e !is AssistantException) Log.w(TAG, "AppFunction failed", e)
+            throw e.toAppFunctionError().toException()
         }
     }
 }
 
 internal fun kotlinx.datetime.LocalDate.toJava(): LocalDate = toJavaLocalDate()
+
+private const val TAG = "OpenBiteAssistant"
