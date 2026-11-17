@@ -83,7 +83,7 @@
     <string name="settings_privacy_note">识别时，去掉 EXIF 的菜单图片会发给你选的模型。其余数据都留在本机。</string>
 
     <string name="settings_assistant_section">手机 AI 助手</string>
-    <string name="settings_appfunctions">AppFunctions</string>
+    <string name="settings_appfunctions" translatable="false">AppFunctions</string>
     <string name="settings_appfunctions_hint">Android 16 及以上</string>
     <string name="settings_appfunctions_count">5 个函数</string>
     <string name="settings_reminders">提醒</string>
@@ -105,7 +105,10 @@
     <string name="settings_msg_sample_skipped">已有记忆，没有载入。想换成示例数据，先清空。</string>
     <string name="settings_msg_cleared">已清空全部记忆</string>
     <string name="settings_msg_failed">操作失败，请重试</string>
-    <string name="settings_currency_section">币种</string>
+    <string name="settings_currency_section">语言和币种</string>
+    <string name="settings_language">语言</string>
+    <string name="settings_language_follow">跟随系统</string>
+    <string name="settings_language_follow_old">跟随系统（Android 13 起可以单独设置）</string>
     <string name="settings_fallback_currency">备用币种</string>
     <string name="settings_fallback_currency_follow">跟随地区 · %1$s</string>
     <string name="settings_fallback_currency_note">菜单、这家店和店铺位置都看不出币种时用它。</string>

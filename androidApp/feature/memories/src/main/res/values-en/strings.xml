@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 英文界面。和 values/strings.xml（简体中文）一一对应，格式参数一致。 -->
+<resources>
+    <string name="memories_title">Memories</string>
+    <string name="memories_search">Search memories</string>
+    <string name="memories_filter_group">Filter memories</string>
+    <string name="memories_filter_all">All</string>
+    <string name="memories_filter_milestone">Milestones</string>
+    <string name="memories_filter_draft">Drafts</string>
+    <string name="memories_scan_menu">Scan menu</string>
+    <string name="memories_empty">No memories yet. Scan a menu, and your order is saved automatically.</string>
+    <string name="memories_empty_filtered">Nothing matches this filter.</string>
+</resources>

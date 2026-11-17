@@ -1,10 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 日期 -->
-    <string name="ds_month_day">%1$d月%2$d日</string>
-    <string name="ds_year_month_day">%1$d年%2$d月%3$d日</string>
-    <string name="ds_month">%1$d月</string>
-    <string name="ds_year_month">%1$d年%2$d月</string>
+    <!-- 日期。月份名按语言给（中文“11月”，英文“Nov”），格式串里的 %s 是月份名。 -->
+    <string-array name="ds_month_names">
+        <item>1月</item>
+        <item>2月</item>
+        <item>3月</item>
+        <item>4月</item>
+        <item>5月</item>
+        <item>6月</item>
+        <item>7月</item>
+        <item>8月</item>
+        <item>9月</item>
+        <item>10月</item>
+        <item>11月</item>
+        <item>12月</item>
+    </string-array>
+    <string name="ds_month_day">%1$s%2$d日</string>
+    <string name="ds_year_month_day">%1$d年%2$s%3$d日</string>
+    <string name="ds_month">%1$s</string>
+    <string name="ds_year_month">%1$d年%2$s</string>
     <string name="ds_date_weekday">%1$s %2$s</string>
     <string-array name="ds_weekdays">
         <item>周一</item>
@@ -21,7 +35,9 @@
     <string name="ds_list_separator">、</string>
 
     <!-- 记忆行 -->
-    <string name="ds_memory_dish_count">%1$d 道菜</string>
+    <plurals name="ds_memory_dish_count">
+        <item quantity="other">%1$d 道菜</item>
+    </plurals>
     <string name="ds_memory_needs_detail">待补记忆</string>
     <string name="ds_memory_visit_number">第 %1$d 次来</string>
     <string name="ds_memory_with">和%1$s</string>
@@ -30,6 +46,8 @@
     <string name="ds_rating_description">%1$s 分</string>
 
     <!-- 纪念日 -->
+    <!-- “N 周年”的 N 怎么写：chinese = 中文数字（两、十二），ordinal = 英文序数（2nd）。 -->
+    <string name="ds_count_style">chinese</string>
     <string name="ds_anniversary_title">%1$s%2$s周年</string>
     <string name="ds_anniversary_suffix">纪念日</string>
     <string-array name="ds_chinese_digits">
@@ -48,7 +66,9 @@
     <string name="ds_ten">十</string>
     <string name="ds_days_after">天后</string>
     <string name="ds_today">今天</string>
-    <string name="ds_days_count">%1$d 天</string>
+    <plurals name="ds_days_count">
+        <item quantity="other">%1$d 天</item>
+    </plurals>
     <string name="ds_recurrence_yearly">每年</string>
     <string name="ds_recurrence_none">不重复</string>
     <string name="ds_previous_last_year">去年在 %1$s</string>
@@ -57,10 +77,10 @@
 
     <!-- 识别模型 -->
     <string name="ds_model_demo">演示模式</string>
-    <string name="ds_provider_anthropic">Anthropic</string>
-    <string name="ds_provider_openai">OpenAI</string>
-    <string name="ds_provider_gemini">Google Gemini</string>
-    <string name="ds_provider_deepseek">DeepSeek</string>
+    <string name="ds_provider_anthropic" translatable="false">Anthropic</string>
+    <string name="ds_provider_openai" translatable="false">OpenAI</string>
+    <string name="ds_provider_gemini" translatable="false">Google Gemini</string>
+    <string name="ds_provider_deepseek" translatable="false">DeepSeek</string>
     <string name="ds_provider_custom">自定义</string>
 
     <!-- 我的口味：选项名。小票上的句子在共享代码 TastePhrases 里，这里只是界面上的按钮。 -->

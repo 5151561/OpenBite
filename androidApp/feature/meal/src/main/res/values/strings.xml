@@ -10,7 +10,9 @@
     <string name="edit_share">分享这一餐</string>
     <string name="edit_prefilled">已自动预填</string>
     <string name="edit_meal_rating">这一餐的总评分</string>
-    <string name="edit_star">%1$d 星</string>
+    <plurals name="edit_star">
+        <item quantity="other">%1$d 星</item>
+    </plurals>
     <string name="edit_tap_to_rate">点一下打分</string>
     <string name="edit_note">短评</string>
     <string name="edit_item_comment">这道菜的短评</string>

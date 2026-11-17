@@ -11,16 +11,24 @@
     <string name="map_filter_late_night">深夜食堂 %1$d</string>
     <string name="map_capsule_upcoming">时间胶囊 · %1$s前的纪念日</string>
     <string name="map_capsule_one_year">一年</string>
-    <string name="map_capsule_years">%1$d 年</string>
+    <plurals name="map_capsule_years">
+        <item quantity="other">%1$d 年</item>
+    </plurals>
     <string name="map_capsule_place_milestone">时间胶囊 · 在这里过的纪念日</string>
     <string name="map_capsule_recent">上次来这里</string>
-    <string name="map_visits">来过 %1$d 次</string>
-    <string name="map_dishes">%1$d 道菜</string>
+    <plurals name="map_visits">
+        <item quantity="other">来过 %1$d 次</item>
+    </plurals>
+    <plurals name="map_dishes">
+        <item quantity="other">%1$d 道菜</item>
+    </plurals>
     <string name="map_draft">草稿</string>
     <string name="map_open_meal">看记录</string>
     <string name="map_no_capsule">点一个图钉，看看那家店的回忆。</string>
     <string name="map_no_pins">还没有带位置的店。拍菜单时开着定位，或在店铺页“设置位置”。</string>
-    <string name="map_missing_locations">另有 %1$d 家店还没有位置</string>
+    <plurals name="map_missing_locations">
+        <item quantity="other">另有 %1$d 家店还没有位置</item>
+    </plurals>
     <string name="map_pin_description">%1$s</string>
 
     <!-- 设置位置 -->

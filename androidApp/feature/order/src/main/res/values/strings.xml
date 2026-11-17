@@ -18,7 +18,9 @@
     <string name="order_taste_none_hint">过敏、忌口和辣度都不写</string>
     <string name="order_taste_change">这次改一下</string>
     <string name="order_allergen_note">过敏原由模型推测，仅供参考，请向店员确认。</string>
-    <string name="order_count">%1$d 件</string>
+    <plurals name="order_count">
+        <item quantity="other">%1$d 件</item>
+    </plurals>
     <string name="order_total_unknown">—</string>
     <string name="order_show_staff">给店员看</string>
     <string name="order_unavailable">这次点单已经失效了（App 被系统关掉过），请重新拍菜单。</string>

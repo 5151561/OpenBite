@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -127,7 +128,7 @@ fun MilestonesScreen(
                         shape = segmentShape(index, state.later.size),
                         modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.xxs / 2),
                         leading = { GlyphAvatar(item.glyph, shape = MilestoneAvatarShape) },
-                        trailing = { TrailingText(stringResource(DsR.string.ds_days_count, item.upcoming.daysUntil)) },
+                        trailing = { TrailingText(pluralStringResource(DsR.plurals.ds_days_count, item.upcoming.daysUntil, item.upcoming.daysUntil)) },
                         onClick = { onEditMilestone(item.upcoming.milestone.id) },
                     )
                 }
@@ -231,7 +232,7 @@ private fun ReminderSection(remindDaysBefore: Int, onEditReminder: () -> Unit, n
                 shape = segmentShape(0, 2),
                 trailing = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        TrailingText(stringResource(DsR.string.ds_days_count, remindDaysBefore))
+                        TrailingText(pluralStringResource(DsR.plurals.ds_days_count, remindDaysBefore, remindDaysBefore))
                         Icon(OpenBiteIcons.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 },

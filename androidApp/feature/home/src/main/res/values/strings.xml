@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="home_title">OpenBite</string>
+    <string name="home_title" translatable="false">OpenBite</string>
     <string name="home_settings">设置</string>
     <string name="home_hero_label">点一次菜，留下一段记忆</string>
     <string name="home_hero_title">看不懂的菜单，拍一下就好</string>

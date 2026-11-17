@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 英文界面。和 values/strings.xml（简体中文）一一对应，格式参数一致。 -->
+<resources>
+    <string name="order_back">Back</string>
+    <string name="order_category_group">Dish categories</string>
+    <string name="order_category_all">All</string>
+    <string name="order_scanning">Still reading · %1$d</string>
+    <string name="order_scanning_estimated">Still reading · %1$d of about %2$d</string>
+    <string name="order_saving">Saving to the place…</string>
+    <string name="order_scan_failed">Reading didn\'t finish. You can order from the dishes found so far.</string>
+    <string name="order_waiting_dishes">Reading the menu. Dishes will appear one by one.</string>
+    <string name="order_decrease">One less %1$s</string>
+    <string name="order_increase">One more %1$s</string>
+    <string name="order_badge">×%1$d</string>
+    <string name="order_taste_applied">My taste is included</string>
+    <string name="order_taste_overridden">Taste for this order</string>
+    <string name="order_taste_none">No taste notes</string>
+    <string name="order_taste_none_hint">No allergies, dislikes or spice level on the receipt</string>
+    <string name="order_taste_change">Change for this order</string>
+    <string name="order_allergen_note">Allergens are guessed by the AI model. Check with the staff.</string>
+    <plurals name="order_count">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
+    <string name="order_total_unknown">—</string>
+    <string name="order_show_staff">Show staff</string>
+    <string name="order_unavailable">This order expired (the system closed the app). Please scan the menu again.</string>
+    <string name="order_sheet_title">Change for this order</string>
+    <string name="order_sheet_hint">Only this order changes. “My taste” stays the same.</string>
+    <string name="order_sheet_apply">Use for this order</string>
+    <string name="order_sheet_reset">Back to my taste</string>
+    <string name="receipt_title">Show staff</string>
+    <string name="receipt_back">Back to order</string>
+    <string name="receipt_placed">Ordered</string>
+    <string name="receipt_edit">Go back and change</string>
+    <string name="receipt_waiting">Still reading and saving the menu. Ordering as soon as it\'s saved…</string>
+    <string name="receipt_placing">Saving this meal…</string>
+    <string name="receipt_failed">Couldn\'t save it. Tap “Ordered” again.</string>
+    <string name="receipt_decision_title">Menu not saved</string>
+    <string name="receipt_decision_text">Reading or saving failed. Retry to link this meal to the place\'s menu, or save only the dish names and prices.</string>
+    <string name="receipt_retry">Retry saving</string>
+    <string name="receipt_without_menu">Save names and prices only</string>
+    <string name="receipt_cancel">Cancel</string>
+    <string name="receipt_qty">×%1$d</string>
+    <string name="receipt_ai_tag">%1$s · AI translation</string>
+    <string name="receipt_translating">Translating into %1$s…</string>
+    <string name="receipt_translate_failed">No connection, can\'t translate into %1$s. Using English for now.</string>
+    <string name="receipt_translate_retry">Retry when online</string>
+</resources>

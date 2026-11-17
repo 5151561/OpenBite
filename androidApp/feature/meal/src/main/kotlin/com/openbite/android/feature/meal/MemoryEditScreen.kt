@@ -54,6 +54,7 @@ import androidx.compose.ui.layout.WindowInsetsRulers
 import androidx.compose.foundation.layout.fitInside
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -320,7 +321,7 @@ private fun ItemRow(item: EditItem, expanded: Boolean, onToggle: () -> Unit, onE
             if (rating != null) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(rating.toString(), style = MaterialTheme.typography.labelLarge, color = scheme.tertiary)
-                    Icon(OpenBiteIcons.Star, contentDescription = stringResource(R.string.edit_star, rating), tint = scheme.tertiary, modifier = Modifier.size(18.dp))
+                    Icon(OpenBiteIcons.Star, contentDescription = pluralStringResource(R.plurals.edit_star, rating, rating), tint = scheme.tertiary, modifier = Modifier.size(18.dp))
                 }
             } else {
                 Text(stringResource(R.string.edit_tap_to_rate), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)

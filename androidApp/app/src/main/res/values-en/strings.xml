@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 英文界面。和 values/strings.xml（简体中文）一一对应，格式参数一致。 -->
+<resources>
+    <string name="tab_today">Today</string>
+    <string name="tab_memories">Memories</string>
+    <string name="tab_places">Places</string>
+    <string name="tab_milestones">Milestones</string>
+    <string name="channel_meal">After-meal reminders</string>
+    <string name="channel_meal_description">About 90 minutes after you order, a reminder to rate the meal and add photos.</string>
+    <string name="channel_milestone">Milestones</string>
+    <string name="channel_milestone_description">A heads-up before a milestone, with last year\'s meal.</string>
+    <string name="notify_meal_title_tonight">Tonight at %1$s: finish the memory</string>
+    <string name="notify_meal_title_today">Earlier at %1$s: finish the memory</string>
+    <plurals name="notify_meal_text">
+        <item quantity="one">%1$d dish is already saved. Add a rating and a photo, it takes a minute.</item>
+        <item quantity="other">%1$d dishes are already saved. Add a rating and a photo, it takes a minute.</item>
+    </plurals>
+    <string name="notify_meal_open">Finish memory</string>
+    <string name="notify_meal_snooze">Remind me in an hour</string>
+    <string name="notify_milestone_today">Today is %1$s</string>
+    <string name="notify_milestone_tomorrow">Tomorrow is %1$s</string>
+    <string name="notify_milestone_days">%3$s is in %1$d days (%2$s)</string>
+    <string name="notify_milestone_text">Last year you were at %1$s. Want to see what you ate?</string>
+    <string name="notify_milestone_text_note">Last year at %1$s: “%2$s”. Want to see what you ate?</string>
+    <string name="notify_milestone_text_first">First time celebrating this one. Find a good place!</string>
+    <string name="notify_milestone_open">See last year</string>
+</resources>

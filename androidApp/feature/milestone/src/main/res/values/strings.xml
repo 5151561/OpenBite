@@ -34,7 +34,9 @@
     <string name="edit_milestone_yearly">每年</string>
     <string name="edit_milestone_once">只一次</string>
     <string name="edit_milestone_remind">提前提醒</string>
-    <string name="edit_milestone_remind_days">%1$d 天</string>
+    <plurals name="edit_milestone_remind_days">
+        <item quantity="other">%1$d 天</item>
+    </plurals>
     <string name="edit_milestone_people">关于谁</string>
     <string name="edit_milestone_add_person">添加</string>
     <string name="edit_milestone_add_person_title">添加一个人</string>
@@ -44,7 +46,9 @@
     <string name="edit_milestone_ok">确定</string>
     <string name="edit_milestone_delete">删除这个纪念日</string>
     <string name="edit_milestone_delete_title">删除纪念日？</string>
-    <string name="edit_milestone_delete_text">有 %1$d 顿饭标了这个纪念日。删除后这些记录还在，只是不再带纪念日标签。</string>
+    <plurals name="edit_milestone_delete_text">
+        <item quantity="other">有 %1$d 顿饭标了这个纪念日。删除后这些记录还在，只是不再带纪念日标签。</item>
+    </plurals>
     <string name="edit_milestone_delete_text_none">还没有记录标了这个纪念日。</string>
     <string name="edit_milestone_delete_confirm">删除</string>
     <string name="edit_milestone_error_title">名称不能为空</string>

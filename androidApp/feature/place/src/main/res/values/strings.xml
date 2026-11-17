@@ -5,7 +5,9 @@
     <string name="places_search">搜索店铺</string>
     <string name="places_more">更多</string>
     <string name="places_import">导入店铺</string>
-    <string name="places_count">%1$d 家店 · 菜单都留着</string>
+    <plurals name="places_count">
+        <item quantity="other">%1$d 家店 · 菜单都留着</item>
+    </plurals>
     <string name="places_on_map">在地图上看</string>
     <string name="places_meta">菜单 %1$d 道 · 原照片 %2$d 张 · 来过 %3$d 次</string>
     <string name="places_badge_tonight">今晚</string>
@@ -17,7 +19,9 @@
     <!-- 店铺详情（08） -->
     <string name="place_back">返回</string>
     <string name="place_share">分享这家店</string>
-    <string name="place_visits">来过 %1$d 次</string>
+    <plurals name="place_visits">
+        <item quantity="other">来过 %1$d 次</item>
+    </plurals>
     <string name="place_add_tag">加标签</string>
     <string name="place_remove_tag">删掉标签 %1$s</string>
     <string name="place_tag_hint">比如“适合约会”</string>
@@ -28,11 +32,17 @@
     <string name="place_set_location">设置位置</string>
     <string name="place_history">历次记录</string>
     <string name="place_no_visits">还没来吃过。</string>
-    <string name="place_visit_dishes">%1$d 道菜</string>
+    <plurals name="place_visit_dishes">
+        <item quantity="other">%1$d 道菜</item>
+    </plurals>
     <string name="place_ordered_dishes">点过的菜</string>
     <string name="place_full_menu">完整菜单与原照片</string>
-    <string name="place_times_ordered">点过 %1$d 次</string>
-    <string name="place_cups_ordered">点过 %1$d 杯</string>
+    <plurals name="place_times_ordered">
+        <item quantity="other">点过 %1$d 次</item>
+    </plurals>
+    <plurals name="place_cups_ordered">
+        <item quantity="other">点过 %1$d 杯</item>
+    </plurals>
     <string name="place_scan_again">又来了，拍今天的菜单</string>
     <string name="place_missing">这家店已经不在了。</string>
     <string name="place_more">更多</string>
@@ -46,8 +56,12 @@
     <string name="menu_back">返回</string>
     <string name="menu_tab_digital">电子菜单</string>
     <string name="menu_tab_photo">原照片</string>
-    <string name="menu_header_scanned">%1$s 拍摄 · %2$d 道菜 · 价格以店内为准</string>
-    <string name="menu_header">%1$d 道菜 · 价格以店内为准</string>
+    <plurals name="menu_header_scanned">
+        <item quantity="other">%1$s 拍摄 · %2$d 道菜 · 价格以店内为准</item>
+    </plurals>
+    <plurals name="menu_header">
+        <item quantity="other">%1$d 道菜 · 价格以店内为准</item>
+    </plurals>
     <string name="menu_not_ordered">还没点过</string>
     <string name="menu_rating_and_times">%1$s 分 · %2$s</string>
     <string name="menu_rescan">菜单换了？补拍一页</string>

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 英文界面。和 values/strings.xml（简体中文）一一对应，格式参数一致。 -->
+<resources>
+    <string-array name="ds_month_names">
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mar</item>
+        <item>Apr</item>
+        <item>May</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Aug</item>
+        <item>Sep</item>
+        <item>Oct</item>
+        <item>Nov</item>
+        <item>Dec</item>
+    </string-array>
+    <string name="ds_month_day">%1$s %2$d</string>
+    <string name="ds_year_month_day">%2$s %3$d, %1$d</string>
+    <string name="ds_month">%1$s</string>
+    <string name="ds_year_month">%2$s %1$d</string>
+    <string name="ds_date_weekday">%2$s, %1$s</string>
+    <string-array name="ds_weekdays">
+        <item>Mon</item>
+        <item>Tue</item>
+        <item>Wed</item>
+        <item>Thu</item>
+        <item>Fri</item>
+        <item>Sat</item>
+        <item>Sun</item>
+    </string-array>
+    <string name="ds_tonight_time">Tonight %1$s</string>
+    <string name="ds_today_time">Today %1$s</string>
+    <string name="ds_separator">" · "</string>
+    <string name="ds_list_separator">", "</string>
+    <plurals name="ds_memory_dish_count">
+        <item quantity="one">%1$d dish</item>
+        <item quantity="other">%1$d dishes</item>
+    </plurals>
+    <string name="ds_memory_needs_detail">Needs details</string>
+    <string name="ds_memory_visit_number">Visit #%1$d</string>
+    <string name="ds_memory_with">With %1$s</string>
+    <string name="ds_memory_draft">Draft</string>
+    <string name="ds_assistant_mark">By assistant</string>
+    <string name="ds_rating_description">%1$s stars</string>
+    <string name="ds_count_style">ordinal</string>
+    <string name="ds_anniversary_title">%1$s%2$s anniversary</string>
+    <string name="ds_anniversary_suffix">anniversary</string>
+    <string-array name="ds_chinese_digits">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+    </string-array>
+    <string name="ds_two_standalone">2</string>
+    <string name="ds_ten">10</string>
+    <string name="ds_days_after">days to go</string>
+    <string name="ds_today">Today</string>
+    <plurals name="ds_days_count">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+    <string name="ds_recurrence_yearly">Every year</string>
+    <string name="ds_recurrence_none">One time</string>
+    <string name="ds_previous_last_year">Last year at %1$s</string>
+    <string name="ds_previous_in_year">In %1$d at %2$s</string>
+    <string name="ds_quote">“%1$s”</string>
+    <string name="ds_model_demo">Demo mode</string>
+    <string name="ds_provider_custom">Custom</string>
+    <string name="ds_taste_allergens">Allergies</string>
+    <string name="ds_taste_avoids">Don\'t eat / leave out</string>
+    <string name="ds_taste_spice">Spice level</string>
+    <string-array name="ds_allergen_names">
+        <item>Peanuts</item>
+        <item>Shellfish</item>
+        <item>Eggs</item>
+        <item>Dairy</item>
+        <item>Wheat</item>
+        <item>Soy</item>
+        <item>Fish</item>
+        <item>Tree nuts</item>
+        <item>Sesame</item>
+        <item>Buckwheat</item>
+    </string-array>
+    <string-array name="ds_avoid_names">
+        <item>Green onion</item>
+        <item>Cilantro</item>
+        <item>Offal</item>
+        <item>Raw food</item>
+        <item>Beef</item>
+        <item>Pork</item>
+    </string-array>
+    <string-array name="ds_spice_names">
+        <item>Not spicy</item>
+        <item>Mild</item>
+        <item>Medium</item>
+        <item>Extra hot</item>
+    </string-array>
+    <string name="ds_may_contain">May contain %1$s</string>
+    <string name="ds_currency">Currency</string>
+    <string name="ds_currency_from_receipt">From: receipt</string>
+    <string name="ds_currency_from_menu">From: menu</string>
+    <string name="ds_currency_from_place">From: this place</string>
+    <string name="ds_currency_from_place_country">From: place location</string>
+    <string name="ds_currency_from_settings">From: settings</string>
+    <string name="ds_currency_from_phone_region">From: phone region</string>
+    <string name="ds_currency_picker_title">Choose currency</string>
+    <string name="ds_currency_search">Search code or name</string>
+    <string name="ds_currency_recent">Recently used</string>
+    <string name="ds_currency_all">All currencies</string>
+    <string name="ds_currency_follow_region">Follow region · %1$s</string>
+    <string name="ds_currency_not_found">Nothing found for “%1$s”</string>
+    <string name="ds_currency_cancel">Cancel</string>
+    <string name="ds_currency_clear_search">Clear search</string>
+</resources>

@@ -1,6 +1,13 @@
 package com.openbite.android.feature.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import android.app.LocaleManager
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import androidx.compose.ui.platform.LocalContext
 import com.openbite.android.core.designsystem.text.providerLabel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -190,13 +197,14 @@ fun SettingsScreen(
 
             SectionHeader(stringResource(R.string.settings_currency_section), color = MaterialTheme.colorScheme.primary)
             SegmentedList {
+                LanguageRow(shape = segmentShape(0, 2))
                 SegmentedListItem(
                     headline = stringResource(R.string.settings_fallback_currency),
                     supporting = currency?.takeIf { !it.isLoading }?.let { c ->
                         c.fallback?.let { currencyLabel(it, ComposeLocale.current.toLanguageTag()) }
                             ?: stringResource(R.string.settings_fallback_currency_follow, c.regionCurrency)
                     },
-                    shape = segmentShape(0, 1),
+                    shape = segmentShape(1, 2),
                     trailing = { Icon(OpenBiteIcons.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                     onClick = if (currency != null) ({ pickingCurrency = true }) else null,
                 )
@@ -271,6 +279,39 @@ fun SettingsScreen(
             }
         }
     }
+}
+
+/**
+ * App 语言：Android 13 起可以单独给 App 设语言，点开系统的“应用语言”页（中文 / English，见 locales_config.xml）。
+ * 没单独设时显示“跟随系统”；更早的系统只能跟随系统语言，这一行不能点。
+ */
+@Composable
+private fun LanguageRow(shape: androidx.compose.ui.graphics.Shape) {
+    val context = LocalContext.current
+    val canPick = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+    // 从系统设置改完语言回来时 Activity 会重建，这里每次组合时读一次就够。
+    val chosen = remember(context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.getSystemService(LocaleManager::class.java)?.applicationLocales?.takeIf { !it.isEmpty }?.get(0)
+        } else {
+            null
+        }
+    }
+    SegmentedListItem(
+        headline = stringResource(R.string.settings_language),
+        supporting = chosen?.let { it.getDisplayName(it).replaceFirstChar { c -> c.titlecase(it) } }
+            ?: stringResource(if (canPick) R.string.settings_language_follow else R.string.settings_language_follow_old),
+        shape = shape,
+        trailing = if (canPick) ({ Icon(OpenBiteIcons.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }) else null,
+        onClick = if (canPick) ({ openAppLanguageSettings(context) }) else null,
+    )
+}
+
+private fun openAppLanguageSettings(context: Context) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+    val intent = Intent(Settings.ACTION_APP_LOCALE_SETTINGS, Uri.fromParts("package", context.packageName, null))
+    runCatching { context.startActivity(intent) }
+        .onFailure { runCatching { context.startActivity(Intent(Settings.ACTION_LOCALE_SETTINGS)) } }
 }
 
 @Composable

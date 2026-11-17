@@ -8,5 +8,7 @@
     <string name="search_places_idle">输入关键词找一家店，比如“深夜”“中京区”“拉面”。</string>
     <string name="search_no_result">没有找到“%1$s”。</string>
     <string name="search_place_meta">菜单 %1$d 道 · 来过 %2$d 次</string>
-    <string name="search_result_count">%1$d 条结果</string>
+    <plurals name="search_result_count">
+        <item quantity="other">%1$d 条结果</item>
+    </plurals>
 </resources>

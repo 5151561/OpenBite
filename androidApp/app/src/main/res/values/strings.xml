@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">OpenBite</string>
+    <string name="app_name" translatable="false">OpenBite</string>
     <string name="tab_today">今天</string>
     <string name="tab_memories">记忆</string>
     <string name="tab_places">店铺</string>
@@ -13,7 +13,9 @@
     <string name="channel_milestone_description">纪念日快到时提醒，附上去年那顿饭。</string>
     <string name="notify_meal_title_tonight">今晚的 %1$s，补一下记忆</string>
     <string name="notify_meal_title_today">刚才的 %1$s，补一下记忆</string>
-    <string name="notify_meal_text">%1$d 道菜已经记好了。打个分、加张合影，一分钟就行。</string>
+    <plurals name="notify_meal_text">
+        <item quantity="other">%1$d 道菜已经记好了。打个分、加张合影，一分钟就行。</item>
+    </plurals>
     <string name="notify_meal_open">补记忆</string>
     <string name="notify_meal_snooze">一小时后提醒</string>
     <string name="notify_milestone_today">今天是%1$s</string>

@@ -75,6 +75,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -203,9 +204,9 @@ private fun DigitalMenu(menu: PlaceMenu, currentYear: Int, onRescan: () -> Unit,
         item(key = "header") {
             val scanned = menu.lastScannedAt
             val header = if (scanned != null) {
-                stringResource(R.string.menu_header_scanned, monthDay(scanned.date, currentYear), menu.entries.size)
+                pluralStringResource(R.plurals.menu_header_scanned, menu.entries.size, monthDay(scanned.date, currentYear), menu.entries.size)
             } else {
-                stringResource(R.string.menu_header, menu.entries.size)
+                pluralStringResource(R.plurals.menu_header, menu.entries.size, menu.entries.size)
             }
             Text(
                 header,

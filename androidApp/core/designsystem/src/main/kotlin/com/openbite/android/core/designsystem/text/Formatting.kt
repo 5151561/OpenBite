@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.platform.LocalResources
 import com.openbite.android.core.designsystem.R
 import com.openbite.core.model.MemorySummary
 import com.openbite.core.model.Milestone
@@ -15,11 +17,16 @@ import com.openbite.core.model.ModelUse
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
-/** “11月27日”；不是今年时写“2025年11月27日”。 */
+/** 月份名：中文“11月”，英文“Nov”。[month] 从 1 开始。 */
+@Composable
+@ReadOnlyComposable
+fun monthName(month: Int): String = stringArrayResource(R.array.ds_month_names)[month - 1]
+
+/** “11月27日”（英文“Nov 27”）；不是今年时写“2025年11月27日”（“Nov 27, 2025”）。 */
 @Composable
 @ReadOnlyComposable
 fun monthDay(date: LocalDate, currentYear: Int? = null): String {
-    val month = date.month.ordinal + 1
+    val month = monthName(date.month.ordinal + 1)
     return if (currentYear != null && date.year != currentYear) {
         stringResource(R.string.ds_year_month_day, date.year, month, date.day)
     } else {
@@ -31,7 +38,7 @@ fun monthDay(date: LocalDate, currentYear: Int? = null): String {
 @Composable
 @ReadOnlyComposable
 fun fullDate(date: LocalDate): String =
-    stringResource(R.string.ds_year_month_day, date.year, date.month.ordinal + 1, date.day)
+    stringResource(R.string.ds_year_month_day, date.year, monthName(date.month.ordinal + 1), date.day)
 
 /** “11月27日 周五”。 */
 @Composable
@@ -43,23 +50,14 @@ fun monthDayWeekday(date: LocalDate): String =
 @Composable
 @ReadOnlyComposable
 fun monthHeader(year: Int, month: Int, currentYear: Int): String =
-    if (year == currentYear) stringResource(R.string.ds_month, month) else stringResource(R.string.ds_year_month, year, month)
+    if (year == currentYear) stringResource(R.string.ds_month, monthName(month)) else stringResource(R.string.ds_year_month, year, monthName(month))
 
 fun LocalTime.hhmm(): String = "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
 
-/** 中文计数：2 -> 两，12 -> 十二，21 -> 二十一。只用于“N 周年”。 */
+/** “N 周年”的 N：中文界面 2 -> 两、12 -> 十二；英文界面 2 -> 2nd。 */
 @Composable
 @ReadOnlyComposable
-fun chineseCount(n: Int): String {
-    if (n == 2) return stringResource(R.string.ds_two_standalone)
-    if (n !in 1..99) return n.toString()
-    val digits = stringArrayResource(R.array.ds_chinese_digits)
-    val ten = stringResource(R.string.ds_ten)
-    return when {
-        n < 10 -> digits[n]
-        else -> (if (n >= 20) digits[n / 10] else "") + ten + (if (n % 10 != 0) digits[n % 10] else "")
-    }
-}
+fun chineseCount(n: Int): String = PlainText.chineseCount(LocalResources.current, n)
 
 /** “恋爱纪念日”第 2 年显示成“恋爱两周年”；其余纪念日原样显示标题。 */
 @Composable
@@ -120,7 +118,7 @@ fun memorySupportingText(memory: MemorySummary, currentYear: Int): String {
     }
     val details = buildList {
         if (memory.isDraft) {
-            add(stringResource(R.string.ds_memory_dish_count, memory.dishCount))
+            add(pluralStringResource(R.plurals.ds_memory_dish_count, memory.dishCount, memory.dishCount))
             add(stringResource(R.string.ds_memory_needs_detail))
         } else {
             if (memory.companions.isNotEmpty()) {

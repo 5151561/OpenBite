@@ -46,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -339,7 +340,7 @@ private fun TotalBar(state: OrderUiState, onShowStaff: () -> Unit) {
                 }
                 Text(total, style = MaterialTheme.typography.headlineSmall)
                 Text(
-                    stringResource(R.string.order_count, state.count),
+                    pluralStringResource(R.plurals.order_count, state.count, state.count),
                     modifier = Modifier.padding(bottom = Spacing.xs),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

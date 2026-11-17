@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 英文界面。和 values/strings.xml（简体中文）一一对应，格式参数一致。 -->
+<resources>
+    <string name="share_meal_title">Share this meal</string>
+    <string name="share_back">Back</string>
+    <string name="share_preview_description">Share image preview</string>
+    <string name="share_photo">Photo</string>
+    <string name="share_photo_none">No photo</string>
+    <string name="share_photo_empty">This meal has no photos yet, so the card has none.</string>
+    <string name="share_color">Background color</string>
+    <string-array name="share_color_names">
+        <item>Deep teal</item>
+        <item>Light teal</item>
+        <item>Light blue</item>
+        <item>Light gray</item>
+    </string-array>
+    <string name="share_show_place">Show place and city</string>
+    <string name="share_show_amount">Show amount and party size</string>
+    <string name="share_save_image">Save image</string>
+    <string name="share_send">Share</string>
+    <string name="share_saved">Saved to the OpenBite album</string>
+    <string name="share_save_failed">Couldn\'t save. Please try again</string>
+    <string name="share_save_old_android">This Android version needs storage permission to save images. Use “Share” instead.</string>
+    <string name="share_meal_text">A meal at %1$s, saved with OpenBite.</string>
+    <string name="share_meal_text_no_place">A meal saved with OpenBite.</string>
+    <string name="share_chooser">Share to</string>
+    <string name="card_place_date">%1$s · %2$s</string>
+    <string name="card_more_dishes">+%1$d more</string>
+    <plurals name="card_amount_people">
+        <item quantity="one">%1$s · %2$d person</item>
+        <item quantity="other">%1$s · %2$d people</item>
+    </plurals>
+    <string name="share_place_title">Share place</string>
+    <string name="share_place_menu_chip">Menu · %1$d</string>
+    <string name="share_place_location_chip">Location</string>
+    <string name="share_place_include">Include</string>
+    <string name="share_place_menu">Digital menu</string>
+    <plurals name="share_place_menu_hint">
+        <item quantity="one">%1$d dish, with translation and price</item>
+        <item quantity="other">%1$d dishes, with translations and prices</item>
+    </plurals>
+    <string name="share_place_location">Location</string>
+    <string name="share_place_location_hint">%1$s · shows on the map after import</string>
+    <string name="share_place_no_location">This place has no location yet</string>
+    <string name="share_place_tags">Tags</string>
+    <string name="share_place_no_tags">No tags</string>
+    <string name="share_place_photos">Original menu photos</string>
+    <plurals name="share_place_photos_hint">
+        <item quantity="one">%1$d photo, the file gets bigger</item>
+        <item quantity="other">%1$d photos, the file gets bigger</item>
+    </plurals>
+    <string name="share_place_no_photos">No original photos</string>
+    <string name="share_place_private">My records, ratings, milestones</string>
+    <string name="share_place_private_value">Never shared</string>
+    <string name="share_place_note">Your friend opens this file with OpenBite to import it and can order right away, no scanning needed.</string>
+    <string name="share_place_send">Share place file</string>
+    <string name="share_place_preview">See what they\'ll get</string>
+    <string name="share_place_text">The menu of %1$s. Open it with OpenBite to order right away.</string>
+    <string name="share_place_failed">Couldn\'t create the place file. Please try again</string>
+    <string name="import_title">A friend shared a place</string>
+    <string name="import_preview_title">They\'ll see this</string>
+    <string name="import_reading">Reading place file…</string>
+    <string name="import_includes">Includes</string>
+    <string name="import_excludes">Doesn\'t include</string>
+    <string name="import_menu">Digital menu</string>
+    <plurals name="import_menu_count">
+        <item quantity="one">%1$d dish</item>
+        <item quantity="other">%1$d dishes</item>
+    </plurals>
+    <string name="import_location">Location and tags</string>
+    <string name="import_location_yes">Shows on the map</string>
+    <string name="import_location_tags_only">Tags only, no location</string>
+    <string name="import_photos">Original menu photos</string>
+    <plurals name="import_photos_count">
+        <item quantity="one">%1$d photo</item>
+        <item quantity="other">%1$d photos</item>
+    </plurals>
+    <string name="import_photos_none">Not included</string>
+    <string name="import_note">It\'s imported as a brand-new place with none of your friend\'s records. Your own taste is used when you order.</string>
+    <string name="import_cancel">Cancel</string>
+    <string name="import_confirm">Import to my places</string>
+    <string name="import_close">Close</string>
+    <string name="import_failed_title">Can\'t import this file</string>
+    <string name="import_error_not_openbite">This isn\'t an OpenBite place file.</string>
+    <string name="import_error_too_large">The file is too large (limit 20 MB).</string>
+    <string name="import_error_damaged">The file is damaged, or wasn\'t made by OpenBite.</string>
+    <string name="import_error_unsafe">The file has unsafe content and was rejected.</string>
+    <string name="import_error_version">This file is from a newer OpenBite. Please update the app first.</string>
+    <string name="import_error_invalid">The place info in the file is wrong (name, location or prices out of range).</string>
+    <string name="import_error_photo">Can\'t read the menu photos in the file.</string>
+    <string name="import_error_read">Can\'t read this file. Please share it again.</string>
+    <string name="import_error_save">Couldn\'t save it. Please try again.</string>
+    <string name="places_import">Import place</string>
+    <string name="places_more">More</string>
+</resources>

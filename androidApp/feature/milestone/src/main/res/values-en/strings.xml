@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 英文界面。和 values/strings.xml（简体中文）一一对应，格式参数一致。 -->
+<resources>
+    <string name="milestone_title">Milestones</string>
+    <string name="milestone_next">Next up</string>
+    <string name="milestone_later">Later</string>
+    <string name="milestone_reminders">Reminders</string>
+    <string name="milestone_remind_before">Remind me before</string>
+    <string name="milestone_notifications">System notifications</string>
+    <string name="milestone_previous_rating">%1$s · %2$s stars</string>
+    <string name="milestone_add">New milestone</string>
+    <string name="milestone_empty">No milestones yet.</string>
+    <string name="milestone_footer">Reminders are local notifications, checked once a day. On Android 16 and later, the AI assistant on your phone can use AppFunctions to see upcoming milestones and the meals you had for them.</string>
+    <string name="milestone_past">Past</string>
+    <string name="milestone_edit">Edit milestone</string>
+    <string name="milestone_remind_days_none">Same day</string>
+    <string name="edit_milestone_new">New milestone</string>
+    <string name="edit_milestone_title">Edit milestone</string>
+    <string name="edit_milestone_close">Close</string>
+    <string name="edit_milestone_save">Save</string>
+    <string name="edit_milestone_name">Name</string>
+    <string name="edit_milestone_name_hint">For example “Dating anniversary” or “Mom\'s birthday”</string>
+    <string name="edit_milestone_type">Type</string>
+    <string-array name="milestone_type_names">
+        <item>Anniversary</item>
+        <item>Birthday</item>
+        <item>Celebration</item>
+        <item>Other</item>
+    </string-array>
+    <string name="edit_milestone_date">First date</string>
+    <string name="edit_milestone_pick_date">Pick a date</string>
+    <string name="edit_milestone_repeat">Repeat</string>
+    <string name="edit_milestone_yearly">Every year</string>
+    <string name="edit_milestone_once">Just once</string>
+    <string name="edit_milestone_remind">Remind me before</string>
+    <plurals name="edit_milestone_remind_days">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+    <string name="edit_milestone_people">Who it\'s about</string>
+    <string name="edit_milestone_add_person">Add</string>
+    <string name="edit_milestone_add_person_title">Add a person</string>
+    <string name="edit_milestone_add_person_hint">What you call them, like “Mom”</string>
+    <string name="edit_milestone_confirm">Add</string>
+    <string name="edit_milestone_cancel">Cancel</string>
+    <string name="edit_milestone_ok">OK</string>
+    <string name="edit_milestone_delete">Delete this milestone</string>
+    <string name="edit_milestone_delete_title">Delete milestone?</string>
+    <plurals name="edit_milestone_delete_text">
+        <item quantity="one">%1$d meal is tagged with this milestone. It stays, just without the tag.</item>
+        <item quantity="other">%1$d meals are tagged with this milestone. They stay, just without the tag.</item>
+    </plurals>
+    <string name="edit_milestone_delete_text_none">No meals are tagged with this milestone yet.</string>
+    <string name="edit_milestone_delete_confirm">Delete</string>
+    <string name="edit_milestone_error_title">Name can\'t be empty</string>
+    <string name="edit_milestone_error_title_long">Name can be up to 30 characters</string>
+    <string name="edit_milestone_error_date">Pick a date</string>
+    <string name="edit_milestone_error_remind">Invalid number of days</string>
+    <string name="edit_milestone_missing">This milestone no longer exists.</string>
+    <string name="edit_milestone_reminder_note">If you change the date or reminder days, this year\'s reminder follows the new setting.</string>
+</resources>

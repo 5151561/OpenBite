@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 英文界面。和 values/strings.xml（简体中文）一一对应，格式参数一致。 -->
+<resources>
+    <string name="scan_title">Read menu</string>
+    <string name="scan_back">Back</string>
+    <string name="scan_photo_description">Menu photo being read</string>
+    <string name="scan_default_place_name">New place %1$s</string>
+    <string name="scan_preparing">Preparing photo</string>
+    <string name="scan_reading">Reading menu</string>
+    <string name="scan_saving">Saving to place</string>
+    <string name="scan_done">Done</string>
+    <string name="scan_failed">Couldn\'t read it</string>
+    <string name="scan_progress_label">Reading progress</string>
+    <string name="scan_count_estimated">%1$d of about %2$d dishes</string>
+    <plurals name="scan_count">
+        <item quantity="one">%1$d dish</item>
+        <item quantity="other">%1$d dishes</item>
+    </plurals>
+    <string name="scan_chip_exif_location">EXIF removed, location kept</string>
+    <string name="scan_chip_exif">EXIF removed</string>
+    <string name="scan_saved_new">Saved as a new place: %1$s</string>
+    <string name="scan_saved_existing">Saved to %1$s · %2$d new, %3$d updated</string>
+    <string name="scan_rename">Rename</string>
+    <string name="scan_rename_title">Place name</string>
+    <string name="scan_rename_confirm">Save</string>
+    <string name="scan_cancel">Cancel</string>
+    <string name="scan_order">Order while reading</string>
+    <plurals name="scan_order_partial">
+        <item quantity="one">Order from the %1$d dish found</item>
+        <item quantity="other">Order from the %1$d dishes found</item>
+    </plurals>
+    <string name="scan_allergens_note">Allergens are guessed by the AI model. Check with the staff.</string>
+    <string name="scan_retry">Retry</string>
+    <string name="scan_connect_ai">Connect an AI provider</string>
+    <string name="scan_check_key">Check the key</string>
+    <string name="scan_pick_model">Choose another model</string>
+    <string name="scan_retake">Retake</string>
+    <string name="scan_no_camera">No camera app found.</string>
+    <string name="scan_error_no_model">No model chosen yet. Connect an AI provider, pick a model, then come back and retry.</string>
+    <string name="scan_error_invalid_api_key">The API key is invalid or has no access. Check it, then come back and retry.</string>
+    <string name="scan_error_model_gone">The provider no longer offers this model. Pick another one, then retry.</string>
+    <string name="scan_error_rate_limited">Too many requests or out of quota. Try again later.</string>
+    <string name="scan_error_service_unavailable">The model service is busy. Try again later.</string>
+    <string name="scan_error_timeout">Reading timed out. The connection may be slow.</string>
+    <string name="scan_error_network">No connection. Check your network and try again.</string>
+    <string name="scan_error_incomplete">The menu wasn\'t fully read (the connection dropped or the menu is too long), so nothing was saved. Retry, or scan it in parts.</string>
+    <string name="scan_error_image_unreadable">Can\'t read this photo. Try another one.</string>
+    <string name="scan_error_no_dishes">No dishes found. The photo may be blurry, or it isn\'t a menu.</string>
+    <string name="scan_error_place_missing">This place no longer exists.</string>
+    <string name="scan_error_unknown">Reading failed. Please retry.</string>
+</resources>

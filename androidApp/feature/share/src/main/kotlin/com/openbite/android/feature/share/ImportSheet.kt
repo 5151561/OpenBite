@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.openbite.android.core.designsystem.component.GlyphAvatar
@@ -122,7 +123,7 @@ internal fun ImportSheetContent(preview: ImportPreview, title: String, busy: Boo
             }
         }
         Column(Modifier.fillMaxWidth().background(scheme.surfaceContainer, MaterialTheme.shapes.large).padding(vertical = Spacing.s)) {
-            IncludeRow(stringResource(R.string.import_menu), stringResource(R.string.import_menu_count, preview.dishCount), included = preview.dishCount > 0)
+            IncludeRow(stringResource(R.string.import_menu), pluralStringResource(R.plurals.import_menu_count, preview.dishCount, preview.dishCount), included = preview.dishCount > 0)
             val hasTags = preview.tags.isNotEmpty()
             IncludeRow(
                 stringResource(R.string.import_location),
@@ -135,7 +136,7 @@ internal fun ImportSheetContent(preview: ImportPreview, title: String, busy: Boo
             )
             IncludeRow(
                 stringResource(R.string.import_photos),
-                if (preview.photoCount > 0) stringResource(R.string.import_photos_count, preview.photoCount) else stringResource(R.string.import_photos_none),
+                if (preview.photoCount > 0) pluralStringResource(R.plurals.import_photos_count, preview.photoCount, preview.photoCount) else stringResource(R.string.import_photos_none),
                 included = preview.photoCount > 0,
             )
         }

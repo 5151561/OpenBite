@@ -60,6 +60,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -254,7 +255,7 @@ private fun PlaceDetailContent(
 
 @Composable
 internal fun timesOrdered(stats: DishStats): String =
-    stringResource(if (stats.isDrink) R.string.place_cups_ordered else R.string.place_times_ordered, stats.timesOrdered)
+    pluralStringResource(if (stats.isDrink) R.plurals.place_cups_ordered else R.plurals.place_times_ordered, stats.timesOrdered, stats.timesOrdered)
 
 /** 彩色头部：大号淡色单字、返回和分享、店名、来过几次、标签。 */
 @Composable
@@ -309,7 +310,7 @@ private fun Header(detail: PlaceDetail, onBack: () -> Unit, onShare: () -> Unit,
                 verticalArrangement = Arrangement.spacedBy(Spacing.xs),
             ) {
                 Text(detail.place.name, style = MaterialTheme.typography.headlineLarge, color = scheme.onPrimaryContainer)
-                val meta = listOfNotNull(stringResource(R.string.place_visits, detail.visitCount), detail.area)
+                val meta = listOfNotNull(pluralStringResource(R.plurals.place_visits, detail.visitCount, detail.visitCount), detail.area)
                     .joinToString(stringResource(DsR.string.ds_separator))
                 Text(meta, style = MaterialTheme.typography.bodyMedium, color = scheme.onPrimaryContainer)
                 val hasLocation = detail.place.lat != null && detail.place.lon != null
@@ -434,7 +435,7 @@ private fun VisitCard(visit: PlaceVisit, index: Int, count: Int, onClick: () -> 
         val separator = stringResource(DsR.string.ds_separator)
         val listSeparator = stringResource(DsR.string.ds_list_separator)
         val meta = buildList {
-            add(stringResource(R.string.place_visit_dishes, memory.dishCount))
+            add(pluralStringResource(R.plurals.place_visit_dishes, memory.dishCount, memory.dishCount))
             memory.total?.let { add(formatMoney(it)) }
             if (memory.companions.isNotEmpty()) {
                 add(stringResource(DsR.string.ds_memory_with, memory.companions.joinToString(listSeparator)))

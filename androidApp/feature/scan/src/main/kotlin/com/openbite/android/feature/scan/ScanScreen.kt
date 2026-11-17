@@ -72,6 +72,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
@@ -281,7 +282,7 @@ private fun StatusRow(state: ScanUiState) {
             val count = if (estimate != null && state.phase != ScanPhase.DONE) {
                 stringResource(R.string.scan_count_estimated, state.dishes.size, estimate)
             } else {
-                stringResource(R.string.scan_count, state.dishes.size)
+                pluralStringResource(R.plurals.scan_count, state.dishes.size, state.dishes.size)
             }
             Text(count, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
         }
@@ -403,7 +404,7 @@ private fun Actions(
                 if (state.dishes.isNotEmpty()) {
                     // 识别没完成也能用已经认出的菜点单，下单时只存名字和价格。
                     TextButton(onClick = onOrder) {
-                        Text(stringResource(R.string.scan_order_partial, state.dishes.size))
+                        Text(pluralStringResource(R.plurals.scan_order_partial, state.dishes.size, state.dishes.size))
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {

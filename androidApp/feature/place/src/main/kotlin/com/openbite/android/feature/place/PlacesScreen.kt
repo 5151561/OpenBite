@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -129,7 +130,7 @@ fun PlacesScreen(
                     horizontalArrangement = Arrangement.spacedBy(Spacing.m),
                 ) {
                     Text(
-                        stringResource(R.string.places_count, state.places.size),
+                        pluralStringResource(R.plurals.places_count, state.places.size, state.places.size),
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

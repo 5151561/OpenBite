@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.openbite.android.core.designsystem.component.GlyphAvatar
@@ -136,7 +137,7 @@ fun SharePlaceScreen(
             Column(Modifier.padding(horizontal = Spacing.l).fillMaxWidth().background(scheme.surfaceContainer, MaterialTheme.shapes.large)) {
                 OptionRow(
                     stringResource(R.string.share_place_menu),
-                    stringResource(R.string.share_place_menu_hint, state.dishCount),
+                    pluralStringResource(R.plurals.share_place_menu_hint, state.dishCount, state.dishCount),
                     o.menu,
                     enabled = state.dishCount > 0,
                 ) { onOptions(o.copy(menu = it)) }
@@ -155,7 +156,7 @@ fun SharePlaceScreen(
                 ) { onOptions(o.copy(tags = it)) }
                 OptionRow(
                     stringResource(R.string.share_place_photos),
-                    if (state.photoCount > 0) stringResource(R.string.share_place_photos_hint, state.photoCount) else stringResource(R.string.share_place_no_photos),
+                    if (state.photoCount > 0) pluralStringResource(R.plurals.share_place_photos_hint, state.photoCount, state.photoCount) else stringResource(R.string.share_place_no_photos),
                     o.photos && state.photoCount > 0,
                     enabled = state.photoCount > 0,
                 ) { onOptions(o.copy(photos = it)) }

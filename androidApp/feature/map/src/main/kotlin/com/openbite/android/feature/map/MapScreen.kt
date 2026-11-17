@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -143,7 +144,7 @@ fun MapScreen(
         ) {
             if (state.placesWithoutLocation > 0 && !state.isLoading) {
                 Text(
-                    stringResource(R.string.map_missing_locations, state.placesWithoutLocation),
+                    pluralStringResource(R.plurals.map_missing_locations, state.placesWithoutLocation, state.placesWithoutLocation),
                     modifier = Modifier.background(scheme.surfaceContainerLow, MaterialTheme.shapes.small).padding(horizontal = Spacing.s, vertical = Spacing.xxs),
                     style = MaterialTheme.typography.labelMedium,
                     color = scheme.onSurfaceVariant,
@@ -235,13 +236,13 @@ private fun CapsuleCard(capsule: TimeCapsule, onOpenPlace: (String) -> Unit, onO
                 val label = when (capsule.kind) {
                     CapsuleKind.UPCOMING_MILESTONE -> stringResource(
                         R.string.map_capsule_upcoming,
-                        if (capsule.yearsAgo == 1) stringResource(R.string.map_capsule_one_year) else stringResource(R.string.map_capsule_years, capsule.yearsAgo),
+                        if (capsule.yearsAgo == 1) stringResource(R.string.map_capsule_one_year) else pluralStringResource(R.plurals.map_capsule_years, capsule.yearsAgo, capsule.yearsAgo),
                     )
                     CapsuleKind.PLACE_MILESTONE -> stringResource(R.string.map_capsule_place_milestone)
                     CapsuleKind.PLACE_RECENT -> stringResource(R.string.map_capsule_recent)
                 }
                 Text(label, Modifier.weight(1f), style = MaterialTheme.typography.labelLarge, color = scheme.primary)
-                Text(stringResource(R.string.map_visits, capsule.visitCount), style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
+                Text(pluralStringResource(R.plurals.map_visits, capsule.visitCount, capsule.visitCount), style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
             }
             Text(
                 capsule.placeName,
@@ -261,7 +262,7 @@ private fun CapsuleCard(capsule: TimeCapsule, onOpenPlace: (String) -> Unit, onO
                     memory.isDraft -> Text(stringResource(R.string.map_draft), style = MaterialTheme.typography.labelLarge, color = scheme.onSurfaceVariant)
                     memory.rating != null -> RatingDisplay(formatRating(memory.rating!!), color = scheme.tertiary, starColor = scheme.tertiary)
                 }
-                val money = listOfNotNull(stringResource(R.string.map_dishes, memory.dishCount), memory.total?.let(::formatMoney))
+                val money = listOfNotNull(pluralStringResource(R.plurals.map_dishes, memory.dishCount, memory.dishCount), memory.total?.let(::formatMoney))
                 Text(money.joinToString(separator), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
                 FilledTonalButton(onClick = { onOpenMeal(memory.logId, memory.isDraft) }, modifier = Modifier.height(48.dp)) {
                     Text(stringResource(R.string.map_open_meal))

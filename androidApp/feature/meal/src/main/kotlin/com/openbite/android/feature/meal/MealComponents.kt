@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
@@ -46,7 +47,7 @@ internal fun StarRow(value: Int?, onPick: ((Int) -> Unit)?, size: Dp = 36.dp, mo
             val icon = if (on) OpenBiteIcons.Star else OpenBiteIcons.StarBorder
             if (onPick != null) {
                 IconButton(onClick = { onPick(n) }, modifier = Modifier.size(size + 8.dp)) {
-                    Icon(icon, contentDescription = stringResource(R.string.edit_star, n), tint = tint, modifier = Modifier.size(size))
+                    Icon(icon, contentDescription = pluralStringResource(R.plurals.edit_star, n, n), tint = tint, modifier = Modifier.size(size))
                 }
             } else {
                 Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(size))

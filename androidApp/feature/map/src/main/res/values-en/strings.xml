@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 英文界面。和 values/strings.xml（简体中文）一一对应，格式参数一致。 -->
+<resources>
+    <string name="map_search_hint">Search places, tags</string>
+    <string name="map_list">Switch to place list</string>
+    <string name="map_clear_search">Clear search</string>
+    <string name="map_filter_group">Filter places</string>
+    <string name="map_filter_all">All %1$d</string>
+    <string name="map_filter_milestone">Milestones %1$d</string>
+    <string name="map_filter_date">Date night %1$d</string>
+    <string name="map_filter_late_night">Late night %1$d</string>
+    <string name="map_capsule_upcoming">Time capsule · milestone %1$s ago</string>
+    <string name="map_capsule_one_year">a year</string>
+    <plurals name="map_capsule_years">
+        <item quantity="one">%1$d year</item>
+        <item quantity="other">%1$d years</item>
+    </plurals>
+    <string name="map_capsule_place_milestone">Time capsule · a milestone celebrated here</string>
+    <string name="map_capsule_recent">Last time here</string>
+    <plurals name="map_visits">
+        <item quantity="one">Visited once</item>
+        <item quantity="other">Visited %1$d times</item>
+    </plurals>
+    <plurals name="map_dishes">
+        <item quantity="one">%1$d dish</item>
+        <item quantity="other">%1$d dishes</item>
+    </plurals>
+    <string name="map_draft">Draft</string>
+    <string name="map_open_meal">View meal</string>
+    <string name="map_no_capsule">Tap a pin to see memories from that place.</string>
+    <string name="map_no_pins">No places with a location yet. Keep location on when you scan a menu, or use “Set location” on a place.</string>
+    <plurals name="map_missing_locations">
+        <item quantity="one">%1$d more place has no location yet</item>
+        <item quantity="other">%1$d more places have no location yet</item>
+    </plurals>
+    <string name="map_pin_description">%1$s</string>
+    <string name="pick_title">Set location</string>
+    <string name="pick_back">Back</string>
+    <string name="pick_hint">Drag the map so the crosshair is on %1$s, or long-press that spot on the map.</string>
+    <string name="pick_confirm">Set here</string>
+</resources>

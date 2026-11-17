@@ -45,6 +45,7 @@ import androidx.compose.ui.layout.WindowInsetsRulers
 import androidx.compose.foundation.layout.fitInside
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.openbite.android.core.designsystem.component.SectionHeader
 import com.openbite.android.core.designsystem.icon.OpenBiteIcons
@@ -90,7 +91,7 @@ fun MilestoneEditRoute(
             title = { Text(stringResource(R.string.edit_milestone_delete_title)) },
             text = {
                 Text(
-                    if (count > 0) stringResource(R.string.edit_milestone_delete_text, count)
+                    if (count > 0) pluralStringResource(R.plurals.edit_milestone_delete_text, count, count)
                     else stringResource(R.string.edit_milestone_delete_text_none),
                 )
             },
@@ -195,7 +196,7 @@ fun MilestoneEditScreen(
                             onClick = { onEdit { it.copy(remindDaysBefore = days) } },
                             shape = SegmentedButtonDefaults.itemShape(i, REMIND_DAY_OPTIONS.size),
                             label = {
-                                Text(if (days == 0) stringResource(R.string.milestone_remind_days_none) else stringResource(R.string.edit_milestone_remind_days, days))
+                                Text(if (days == 0) stringResource(R.string.milestone_remind_days_none) else pluralStringResource(R.plurals.edit_milestone_remind_days, days, days))
                             },
                         )
                     }

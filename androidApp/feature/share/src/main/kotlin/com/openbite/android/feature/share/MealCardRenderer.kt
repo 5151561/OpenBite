@@ -16,6 +16,7 @@ import android.text.TextUtils
 import com.openbite.android.core.designsystem.R as DsR
 import com.openbite.core.domain.MealCard
 import com.openbite.core.model.formatMoney
+import com.openbite.android.core.designsystem.text.PlainText
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.max
@@ -94,15 +95,15 @@ object MealCardRenderer {
         val brandPaint = textPaint(dp(14f), content, bold = true)
         canvas.drawText(res.getString(R.string.card_brand), pad, footer + dp(12f), brandPaint)
         val amount = card.amount
-        if (amount != null && card.headcount != null) {
+        val headcount = card.headcount
+        if (amount != null && headcount != null) {
             val right = textPaint(dp(13f), withAlpha(content, 0.85f), bold = false).apply { textAlign = Paint.Align.RIGHT }
-            canvas.drawText(res.getString(R.string.card_amount_people, formatMoney(amount), card.headcount), w - pad, footer + dp(12f), right)
+            canvas.drawText(res.getQuantityString(R.plurals.card_amount_people, headcount, formatMoney(amount), headcount), w - pad, footer + dp(12f), right)
         }
         return bitmap
     }
 
-    private fun fullDate(res: Resources, card: MealCard): String =
-        res.getString(DsR.string.ds_year_month_day, card.date.year, card.date.month.ordinal + 1, card.date.day)
+    private fun fullDate(res: Resources, card: MealCard): String = PlainText.fullDate(res, card.date)
 
     private fun textPaint(size: Float, color: Int, bold: Boolean) = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = size
