@@ -1,5 +1,7 @@
 package com.openbite.core.domain
 
+import com.openbite.core.testing.FakeReminders
+import com.openbite.core.testing.FakeDrafts
 import com.openbite.core.model.OrderMenu
 import com.openbite.core.model.OrderDish
 import com.openbite.core.model.MenuStatus
@@ -113,21 +115,6 @@ class OrderTest {
         session.resetForNewPhoto()
         assertTrue(session.menu.value.dishes.isEmpty())
         assertTrue(session.lines().isEmpty())
-    }
-
-    private class FakeDrafts : DraftRepository {
-        var place: Place? = null
-        var log: NewDraftLog? = null
-        override suspend fun createDraft(newPlace: Place?, log: NewDraftLog) {
-            place = newPlace
-            this.log = log
-        }
-    }
-
-    private class FakeReminders : com.openbite.core.data.platform.ReminderScheduler {
-        val meals = mutableListOf<Pair<String, Int>>()
-        override fun scheduleMealFollowUp(logId: String, delayMinutes: Int) { meals += logId to delayMinutes }
-        override fun scheduleMilestoneCheck() = Unit
     }
 
     private val reminders = FakeReminders()

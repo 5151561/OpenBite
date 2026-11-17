@@ -1,5 +1,7 @@
 package com.openbite.core.domain
 
+import com.openbite.core.testing.FakePreferences
+import com.openbite.core.testing.FakeMilestones
 import com.openbite.core.data.MilestoneRepository
 import com.openbite.core.model.MilestoneWithPeople
 import com.openbite.core.model.Milestone
@@ -16,23 +18,8 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class MilestoneManageTest {
-    private class FakeMilestones : MilestoneRepository {
-        val rows = MutableStateFlow<Map<String, MilestoneWithPeople>>(emptyMap())
-        var tagged = mutableMapOf<String, Int>()
-        override fun observeMilestones() = rows.map { m -> m.values.map { it.milestone } }
-        override suspend fun milestone(id: String) = rows.value[id]
-        override suspend fun save(milestone: Milestone, personIds: List<String>) {
-            rows.value += milestone.id to MilestoneWithPeople(milestone, personIds)
-        }
-        override suspend fun delete(id: String) {
-            rows.value -= id
-            tagged.remove(id)
-        }
-        override suspend fun taggedMealCount(id: String) = tagged[id] ?: 0
-    }
-
     private val repo = FakeMilestones()
-    private val prefs = ScanMenuUseCaseTest.FakePrefs()
+    private val prefs = FakePreferences()
     private val save = SaveMilestoneUseCase(repo, prefs, { "new-id" })
     private val love = MilestoneDraft(title = " 恋爱纪念日 ", date = LocalDate(2024, 11, 27), personIds = setOf("wife"))
 

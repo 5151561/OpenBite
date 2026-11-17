@@ -1,5 +1,9 @@
 package com.openbite.core.domain
 
+import com.openbite.core.testing.FakePhotoStore
+import com.openbite.core.testing.FakeImageProcessor
+import com.openbite.core.testing.FakeImport
+import com.openbite.core.testing.FakePlaces
 import com.openbite.core.data.NewMenuScan
 import com.openbite.core.data.PlaceCounts
 import com.openbite.core.data.PlaceImportRepository
@@ -40,41 +44,7 @@ class OpenBiteFileTest {
         MenuScan("s2", "minato", "photos/s2.jpg", 2, "ja"),
     )
 
-    private class FakePlaces(val place: Place?, val menu: List<Dish>, val scans: List<MenuScan>) : PlaceRepository {
-        override fun observePlaces(): Flow<List<Place>> = flowOf(listOfNotNull(place))
-        override fun observePlace(placeId: String) = flowOf(place)
-        override fun observeMenu(placeId: String) = flowOf(menu)
-        override fun observeScans(placeId: String) = flowOf(scans)
-        override fun observeCounts(): Flow<Map<String, PlaceCounts>> = flowOf(emptyMap())
-        override suspend fun rename(placeId: String, name: String) = Unit
-        override suspend fun setLocation(placeId: String, lat: Double, lon: Double) = Unit
-        override suspend fun addTag(placeId: String, tag: String) = Unit
-        override suspend fun removeTag(placeId: String, tag: String) = Unit
-        override fun observeAllTags(): Flow<List<String>> = flowOf(emptyList())
-        override suspend fun updateDish(dishId: String, nameTranslated: String, category: String, price: Money?) = Unit
-        override suspend fun searchIds(pattern: String, limit: Int) = emptyList<String>()
-    }
-
-    private class FakeImport : PlaceImportRepository {
-        var place: Place? = null
-        var scans: List<NewMenuScan> = emptyList()
-        var dishes: List<Dish> = emptyList()
-        var fail = false
-        override suspend fun importPlace(place: Place, scans: List<NewMenuScan>, dishes: List<Dish>, createdAt: Long) {
-            if (fail) error("disk full")
-            this.place = place
-            this.scans = scans
-            this.dishes = dishes
-        }
-    }
-
-    private class FakeImages(val fail: Boolean = false) : ImageProcessor {
-        override suspend fun process(sourceUri: String, maxLongEdgePx: Int) = ProcessedImage(byteArrayOf(), null, null)
-        override suspend fun reencode(jpegBytes: ByteArray, maxLongEdgePx: Int): ByteArray =
-            if (fail) error("decode") else byteArrayOf(0xFF.toByte(), 0xD8.toByte(), 0xFF.toByte(), 9)
-    }
-
-    private fun importer(repo: FakeImport, photos: ScanMenuUseCaseTest.FakePhotos, images: ImageProcessor = FakeImages()): ImportPlaceUseCase {
+    private fun importer(repo: FakeImport, photos: FakePhotoStore, images: ImageProcessor = FakeImageProcessor()): ImportPlaceUseCase {
         var n = 0
         return ImportPlaceUseCase(images, photos, repo, { "new-${++n}" }, { 5_000L })
     }
@@ -87,11 +57,11 @@ class OpenBiteFileTest {
 
     @Test
     fun roundTripKeepsShopAndMenu() = runTest {
-        val photos = ScanMenuUseCaseTest.FakePhotos().apply {
+        val photos = FakePhotoStore().apply {
             files["seed/menus/minato-1.jpg"] = jpeg
             files["photos/s2.jpg"] = jpeg
         }
-        val exported = ExportPlaceUseCase(FakePlaces(minato, menu, scans), photos)("minato", ShareOptions(photos = true))!!
+        val exported = ExportPlaceUseCase(FakePlaces(listOf(minato), mapOf(minato.id to menu), mapOf(minato.id to scans)), photos)("minato", ShareOptions(photos = true))!!
         assertEquals("みなと.openbite", exported.fileName)
 
         val pkg = OpenBiteCodec.decode(exported.bytes)
@@ -99,7 +69,7 @@ class OpenBiteFileTest {
         assertEquals("ja", pkg.manifest.menuLanguage)
 
         val repo = FakeImport()
-        val target = ScanMenuUseCaseTest.FakePhotos()
+        val target = FakePhotoStore()
         val placeId = importer(repo, target)(pkg)
         val place = repo.place!!
         assertEquals(placeId, place.id)
@@ -225,10 +195,10 @@ class OpenBiteFileTest {
             listOf(SharedPhoto("photos/1.jpg", jpeg)),
         )
         val repo = FakeImport()
-        val photos = ScanMenuUseCaseTest.FakePhotos()
+        val photos = FakePhotoStore()
         assertEquals(
             ImportError.BAD_PHOTO,
-            assertFailsWith<ImportException> { importer(repo, photos, FakeImages(fail = true))(pkg) }.error,
+            assertFailsWith<ImportException> { importer(repo, photos, FakeImageProcessor(reencodeFails = true))(pkg) }.error,
         )
         assertNull(repo.place)
         assertTrue(photos.files.isEmpty())

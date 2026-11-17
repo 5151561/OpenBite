@@ -1,5 +1,10 @@
 package com.openbite.core.domain
 
+import com.openbite.core.testing.FakeMeals
+import com.openbite.core.testing.FakeDrafts
+import com.openbite.core.testing.FakeMilestones
+import com.openbite.core.testing.FakePlaces
+import com.openbite.core.testing.FakeLogs
 import com.openbite.core.data.DiningLogRepository
 import com.openbite.core.data.DraftRepository
 import com.openbite.core.model.MealEdit
@@ -89,66 +94,22 @@ class AssistantApiTest {
         ),
     )
 
-    private inner class FakeLogs : DiningLogRepository {
-        override fun observeLogs(): Flow<List<DiningLog>> = logs
-        override suspend fun searchIds(pattern: String, limit: Int) = emptyList<String>()
-        override suspend fun logsOfMilestone(milestoneId: String) = logs.value.filter { it.milestoneId == milestoneId }
-    }
-
-    private inner class FakePlaces : PlaceRepository {
-        val all = listOf(minato, tori, far, noLocation)
-        override fun observePlaces() = flowOf(all)
-        override fun observePlace(placeId: String) = flowOf(all.firstOrNull { it.id == placeId })
-        override fun observeMenu(placeId: String) = flowOf(if (placeId == minato.id) menuMinato else emptyList())
-        override fun observeScans(placeId: String) =
-            flowOf(if (placeId == minato.id) listOf(MenuScan("scan-1", placeId, "photos/menu-secret.jpg", 1L, "ja")) else emptyList())
-        override fun observeCounts() = flowOf(emptyMap<String, PlaceCounts>())
-        override suspend fun rename(placeId: String, name: String) = error("read only")
-        override suspend fun setLocation(placeId: String, lat: Double, lon: Double) = error("read only")
-        override suspend fun updateDish(dishId: String, nameTranslated: String, category: String, price: Money?) = error("read only")
-        override suspend fun searchIds(pattern: String, limit: Int) = emptyList<String>()
-        override suspend fun addTag(placeId: String, tag: String) = error("read only")
-        override suspend fun removeTag(placeId: String, tag: String) = error("read only")
-        override fun observeAllTags() = flowOf(emptyList<String>())
-    }
-
-    private inner class FakeMilestones : MilestoneRepository {
-        val all = listOf(love, birthday)
-        override fun observeMilestones() = flowOf(all)
-        override suspend fun milestone(id: String) =
-            all.firstOrNull { it.id == id }?.let { MilestoneWithPeople(it, if (it.id == love.id) listOf(wife.id) else emptyList()) }
-        override suspend fun save(milestone: Milestone, personIds: List<String>) = error("read only")
-        override suspend fun delete(id: String) = error("read only")
-        override suspend fun taggedMealCount(id: String) = 0
-    }
-
-    private class FakeDrafts : DraftRepository {
-        val created = mutableListOf<NewDraftLog>()
-        override suspend fun createDraft(newPlace: Place?, log: NewDraftLog) {
-            check(newPlace == null)
-            created += log
-        }
-    }
-
-    private inner class FakePersons : MealRepository {
-        override fun observeMeal(logId: String) = flowOf<DiningLog?>(null)
-        override suspend fun meal(logId: String): DiningLog? = null
-        override suspend fun statusOf(logId: String): com.openbite.core.model.DiningStatus? = null
-        override fun observePersons() = flowOf(listOf(wife, roommates))
-        override suspend fun addPerson(person: Person) = error("read only")
-        override suspend fun save(edit: MealEdit) = error("read only")
-        override suspend fun receiptPhotoPaths(logId: String) = error("read only")
-        override suspend fun saveReceipt(logId: String, photo: NewPhoto?, total: Money?, updatedAt: Long) = error("read only")
-    }
-
     private val drafts = FakeDrafts()
     private var nextId = 0
     private val api = AssistantApi(
-        logs = FakeLogs(),
-        places = FakePlaces(),
-        milestones = FakeMilestones(),
+        logs = FakeLogs(logs),
+        places = FakePlaces(
+            listOf(minato, tori, far, noLocation),
+            menus = mapOf(minato.id to menuMinato),
+            scans = mapOf(minato.id to listOf(MenuScan("scan-1", minato.id, "photos/menu-secret.jpg", 1L, "ja"))),
+            readOnly = true,
+        ),
+        milestones = FakeMilestones(
+            listOf(MilestoneWithPeople(love, listOf(wife.id)), MilestoneWithPeople(birthday, emptyList())),
+            readOnly = true,
+        ),
         drafts = drafts,
-        persons = FakePersons(),
+        persons = FakeMeals(persons = listOf(wife, roommates), readOnly = true),
         today = { LocalDate(2026, 11, 17) },
         ids = { "id-${nextId++}" },
         // 2026-11-17 20:00 东京
@@ -274,7 +235,8 @@ class AssistantApiTest {
             "ms-love",
             " 助手记的 ",
         )
-        val draft = drafts.created.single()
+        val (newPlace, draft) = drafts.created.single()
+        assertNull(newPlace)
         assertEquals(id, draft.id)
         assertTrue(draft.byAssistant)
         assertEquals("place-minato", draft.placeId)

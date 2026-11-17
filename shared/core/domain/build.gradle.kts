@@ -17,6 +17,8 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
         }
         commonTest.dependencies {
+            // 共用的 Fake（Repository、平台能力）。
+            implementation(project(":shared:core:testing"))
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.ktor.client.mock)
         }

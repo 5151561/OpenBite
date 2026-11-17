@@ -1,5 +1,11 @@
 package com.openbite.core.domain
 
+import com.openbite.core.testing.noNetworkClient
+import com.openbite.core.testing.FakeSecrets
+import com.openbite.core.testing.FakeTempFiles
+import com.openbite.core.testing.FakePhotoStore
+import com.openbite.core.testing.FakePreferences
+import com.openbite.core.testing.FakeMenuScans
 import com.openbite.core.model.ReminderSettings
 import com.openbite.core.data.MenuScanRepository
 import com.openbite.core.data.NewMenuScan
@@ -39,65 +45,17 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class ScanMenuUseCaseTest {
-    private class FakeSecrets(initial: String? = null) : SecretStore {
-        val values = MutableStateFlow(initial?.let { mapOf(SecretKeys.ANTHROPIC_API_KEY to it) } ?: emptyMap())
-        override fun observe(key: String): Flow<String?> = values.map { it[key] }
-        override suspend fun get(key: String) = values.value[key]
-        override suspend fun put(key: String, value: String) { values.value += key to value }
-        override suspend fun remove(key: String) { values.value -= key }
-    }
-
-    internal class FakePrefs(initial: VisionModelChoice? = null) : PreferencesStore {
-        var seedDone = false
-        override suspend fun isSeedAutoImported() = seedDone
-        override suspend fun markSeedAutoImported() {
-            seedDone = true
-        }
-        val value = MutableStateFlow(initial)
-        override fun observeVisionModel() = value
-        override suspend fun setVisionModel(choice: VisionModelChoice) { value.value = choice }
-        val taste = MutableStateFlow(TasteProfile.EMPTY)
-        override fun observeTasteProfile() = taste
-        override suspend fun setTasteProfile(profile: TasteProfile) { taste.value = profile }
-        val reminderSettings = MutableStateFlow(com.openbite.core.model.ReminderSettings())
-        override fun observeReminderSettings() = reminderSettings
-        override suspend fun setReminderSettings(settings: com.openbite.core.model.ReminderSettings) { reminderSettings.value = settings }
-        val sent = mutableSetOf<String>()
-        override suspend fun sentMilestoneReminders(): Set<String> = sent.toSet()
-        override suspend fun markMilestoneRemindersSent(keys: Set<String>) { sent += keys }
-        override suspend fun clearMilestoneReminders(milestoneId: String) { sent.removeAll { it.startsWith("$milestoneId:") } }
-        val keepLocation = MutableStateFlow(true)
-        override fun observeKeepLocation() = keepLocation
-        override suspend fun setKeepLocation(keep: Boolean) { keepLocation.value = keep }
-    }
-
-    private class FakeRepo(val places: MutableMap<String, Place> = mutableMapOf(), val menus: Map<String, List<Dish>> = emptyMap()) :
-        MenuScanRepository {
-        var saved: Triple<Place?, NewMenuScan, List<Dish>>? = null
-        override suspend fun place(placeId: String) = places[placeId]
-        override suspend fun menuOf(placeId: String) = menus[placeId].orEmpty()
-        override suspend fun save(newPlace: Place?, scan: NewMenuScan, dishes: List<Dish>) { saved = Triple(newPlace, scan, dishes) }
-    }
-
-    internal class FakePhotos : PhotoStore {
-        val files = mutableMapOf<String, ByteArray>()
-        override suspend fun save(id: String, jpegBytes: ByteArray) = "photos/$id.jpg".also { files[it] = jpegBytes }
-        override suspend fun delete(relativePath: String) { files.remove(relativePath) }
-        override suspend fun deleteAll() = files.clear()
-        override suspend fun read(relativePath: String) = files[relativePath]
-    }
-
-    private val noNetwork = HttpClient(MockEngine { respondError(HttpStatusCode.Unauthorized) })
+    private val noNetwork = noNetworkClient()
 
     private fun useCase(
-        repo: FakeRepo = FakeRepo(),
-        photos: FakePhotos = FakePhotos(),
+        repo: FakeMenuScans = FakeMenuScans(),
+        photos: FakePhotoStore = FakePhotoStore(),
         gps: Pair<Double, Double>? = null,
         current: Pair<Double, Double>? = 35.0 to 135.7,
-        prefs: FakePrefs = FakePrefs(),
+        prefs: FakePreferences = FakePreferences(),
         secrets: FakeSecrets = FakeSecrets(),
         client: HttpClient = noNetwork,
-        temp: FakeTemp = FakeTemp(),
+        temp: FakeTempFiles = FakeTempFiles(),
     ): ScanMenuUseCase {
         var n = 0
         return ScanMenuUseCase(
@@ -119,24 +77,13 @@ class ScanMenuUseCaseTest {
         )
     }
 
-    internal class FakeTemp : TempFiles {
-        val discarded = mutableListOf<String>()
-        var cleared = 0
-        override suspend fun discardCapture(sourceUri: String) {
-            discarded += sourceUri
-        }
-        override suspend fun clearAll() {
-            cleared++
-        }
-    }
-
     @Test
     fun capturedOriginalIsDeletedOnlyAfterSuccessfulSave() = runTest {
-        val ok = FakeTemp()
+        val ok = FakeTempFiles()
         useCase(temp = ok).invoke(request()) { true }.toList()
         assertEquals(listOf("content://photo/1"), ok.discarded)
 
-        val failed = FakeTemp()
+        val failed = FakeTempFiles()
         assertFailsWith<ScanException> {
             useCase(secrets = FakeSecrets("sk-ant-bad"), temp = failed).invoke(request()) { true }.toList()
         }
@@ -148,8 +95,8 @@ class ScanMenuUseCaseTest {
 
     @Test
     fun noKeyFallsBackToSampleAndCreatesPlaceFromHeader() = runTest {
-        val repo = FakeRepo()
-        val photos = FakePhotos()
+        val repo = FakeMenuScans()
+        val photos = FakePhotoStore()
         var asked = false
         val updates = useCase(repo, photos, gps = 35.01 to 135.77).invoke(request()) { asked = true; true }.toList()
 
@@ -175,7 +122,7 @@ class ScanMenuUseCaseTest {
 
     @Test
     fun withoutGpsAsksPermissionThenUsesCurrentLocation() = runTest {
-        val repo = FakeRepo()
+        val repo = FakeMenuScans()
         var asked = 0
         val updates = useCase(repo, current = 34.99 to 135.75).invoke(request()) { asked++; true }.toList()
         assertEquals(1, asked)
@@ -185,7 +132,7 @@ class ScanMenuUseCaseTest {
 
     @Test
     fun deniedPermissionMeansNoLocation() = runTest {
-        val repo = FakeRepo()
+        val repo = FakeMenuScans()
         val updates = useCase(repo).invoke(request()) { false }.toList()
         assertFalse(updates.filterIsInstance<ScanUpdate.Prepared>().single().hasLocation)
         assertEquals(null, repo.saved!!.first!!.lat)
@@ -195,7 +142,7 @@ class ScanMenuUseCaseTest {
     fun scanFromPlaceAttachesAndMergesWithoutAskingLocation() = runTest {
         val place = Place("p", "おばんざい 小春", 35.0, 135.0, null)
         val oldDish = Dish("d-old", "p", "一品", "湯葉刺し", "豆腐皮", Money(600, "JPY"))
-        val repo = FakeRepo(mutableMapOf("p" to place), mapOf("p" to listOf(oldDish)))
+        val repo = FakeMenuScans(mutableMapOf("p" to place), mapOf("p" to listOf(oldDish)))
         var asked = false
         val updates = useCase(repo).invoke(request(placeId = "p")) { asked = true; true }.toList()
         assertFalse(asked)
@@ -213,8 +160,8 @@ class ScanMenuUseCaseTest {
 
     @Test
     fun keepLocationOffIgnoresGpsAndNeverAsks() = runTest {
-        val repo = FakeRepo()
-        val prefs = FakePrefs().apply { keepLocation.value = false }
+        val repo = FakeMenuScans()
+        val prefs = FakePreferences().apply { keepLocation.value = false }
         var asked = false
         val updates = useCase(repo, gps = 35.01 to 135.77, prefs = prefs).invoke(request()) { asked = true; true }.toList()
         assertFalse(asked)
@@ -239,8 +186,8 @@ class ScanMenuUseCaseTest {
 
     @Test
     fun invalidKeyMapsToErrorAndSavesNothing() = runTest {
-        val repo = FakeRepo()
-        val photos = FakePhotos()
+        val repo = FakeMenuScans()
+        val photos = FakePhotoStore()
         val error = assertFailsWith<ScanException> {
             useCase(repo, photos, secrets = FakeSecrets("sk-ant-bad")).invoke(request()) { true }.toList()
         }
@@ -252,7 +199,7 @@ class ScanMenuUseCaseTest {
     @Test
     fun visionSettingsMaskKeyAndFallBack() = runTest {
         val secrets = FakeSecrets()
-        val prefs = FakePrefs(VisionModelChoice.CLAUDE_SONNET)
+        val prefs = FakePreferences(VisionModelChoice.CLAUDE_SONNET)
         val observe = ObserveVisionSettingsUseCase(prefs, secrets)
         assertEquals(VisionModelChoice.SAMPLE, observe().first().effective)
         assertFalse(SaveApiKeyUseCase(secrets)("  "))

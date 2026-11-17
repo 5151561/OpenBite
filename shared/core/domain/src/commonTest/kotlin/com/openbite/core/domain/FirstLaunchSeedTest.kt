@@ -1,5 +1,7 @@
 package com.openbite.core.domain
 
+import com.openbite.core.testing.FakePreferences
+import com.openbite.core.testing.FakeSampleData
 import com.openbite.core.data.SampleDataRepository
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -7,19 +9,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class FirstLaunchSeedTest {
-    private class FakeSample : SampleDataRepository {
-        var loads = 0
-        override suspend fun loadSampleIfEmpty(): Boolean {
-            loads++
-            return true
-        }
-        override suspend fun clearAll() = Unit
-    }
-
     @Test
     fun importsOnceThenRemembers() = runTest {
-        val sample = FakeSample()
-        val prefs = ScanMenuUseCaseTest.FakePrefs()
+        val sample = FakeSampleData()
+        val prefs = FakePreferences()
         val seed = FirstLaunchSeedUseCase(LoadSampleDataUseCase(sample), prefs)
         seed()
         seed()
@@ -29,8 +22,8 @@ class FirstLaunchSeedTest {
 
     @Test
     fun alreadyImportedSkips() = runTest {
-        val sample = FakeSample()
-        val prefs = ScanMenuUseCaseTest.FakePrefs().apply { seedDone = true }
+        val sample = FakeSampleData()
+        val prefs = FakePreferences().apply { seedDone = true }
         FirstLaunchSeedUseCase(LoadSampleDataUseCase(sample), prefs)()
         assertEquals(0, sample.loads)
     }
