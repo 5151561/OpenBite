@@ -44,7 +44,7 @@ const val DATABASE_NAME = "openbite.db"
         DiningLogPersonEntity::class,
         PhotoEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 @ConstructedBy(OpenBiteDatabaseConstructor::class)
@@ -69,6 +69,6 @@ expect object OpenBiteDatabaseConstructor : RoomDatabaseConstructor<OpenBiteData
 
 /** 两端共用的收尾配置；平台只负责给出 Builder（文件路径、驱动）。 */
 fun RoomDatabase.Builder<OpenBiteDatabase>.buildOpenBite(): OpenBiteDatabase =
-    addMigrations(MIGRATION_1_2)
+    addMigrations(MIGRATION_1_2, MIGRATION_2_3)
         .setQueryCoroutineContext(Dispatchers.IO)
         .build()

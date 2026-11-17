@@ -94,4 +94,21 @@
         <item>特辣</item>
     </string-array>
     <string name="ds_may_contain">可能含 %1$s</string>
+
+    <!-- 币种 -->
+    <string name="ds_currency">币种</string>
+    <string name="ds_currency_from_receipt">来自：小票</string>
+    <string name="ds_currency_from_menu">来自：菜单</string>
+    <string name="ds_currency_from_place">来自：这家店</string>
+    <string name="ds_currency_from_place_country">来自：店铺位置</string>
+    <string name="ds_currency_from_settings">来自：设置</string>
+    <string name="ds_currency_from_phone_region">来自：手机地区</string>
+    <string name="ds_currency_picker_title">选择币种</string>
+    <string name="ds_currency_search">搜索代码或名称</string>
+    <string name="ds_currency_recent">最近用过</string>
+    <string name="ds_currency_all">全部币种</string>
+    <string name="ds_currency_follow_region">跟随地区 · %1$s</string>
+    <string name="ds_currency_not_found">没有找到“%1$s”</string>
+    <string name="ds_currency_cancel">取消</string>
+    <string name="ds_currency_clear_search">清空搜索</string>
 </resources>

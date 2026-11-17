@@ -10,5 +10,5 @@ import org.koin.dsl.module
 val placeFeatureModule = module {
     factoryOf(::PlacesViewModel)
     factory { (placeId: String) -> PlaceDetailViewModel(placeId, get(), get(), get(), get(), get(), get(), get()) }
-    factory { (placeId: String, tab: MenuTab) -> PlaceMenuViewModel(placeId, tab, get(), get(), get()) }
+    factory { (placeId: String, tab: MenuTab) -> PlaceMenuViewModel(placeId, tab, get(), get(), get(), get(), get()) }
 }

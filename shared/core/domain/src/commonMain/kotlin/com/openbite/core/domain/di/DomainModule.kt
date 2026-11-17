@@ -61,7 +61,13 @@ val sharedCoreModule: Module = module {
     factory { ClearAllDataUseCase(get(), get(), get()) }
     single<IdGenerator> { UuidGenerator() }
     single<NowProvider> { SystemNowProvider() }
-    factory { ScanMenuUseCase(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory {
+        ScanMenuUseCase(
+            get(), get(), get(), get(), get(), get(), get(), get(), get(), get(),
+            countries = get<com.openbite.core.domain.ResolvePlaceCountryUseCase>(),
+            currencyDefaults = get<com.openbite.core.domain.DefaultCurrencyUseCase>(),
+        )
+    }
     factory { com.openbite.core.domain.ActiveVisionModel(get(), get(), get()) }
     factory { com.openbite.core.domain.ObserveAiOverviewUseCase(get(), get()) }
     factory { com.openbite.core.domain.ConnectProviderUseCase(get(), get(), get(), get()) }
@@ -86,7 +92,11 @@ val sharedCoreModule: Module = module {
     factory { MealFollowUpUseCase(get(), get()) }
     factory { MilestoneRemindersUseCase(get(), get()) }
     factory { com.openbite.core.domain.ObserveMapUseCase(get(), get(), get(), get(), get()) }
-    factory { com.openbite.core.domain.SetPlaceLocationUseCase(get()) }
+    factory { com.openbite.core.domain.SetPlaceLocationUseCase(get(), get(), get()) }
+    single<com.openbite.core.domain.PhoneRegionProvider> { com.openbite.core.domain.SystemPhoneRegion() }
+    factory { com.openbite.core.domain.ResolvePlaceCountryUseCase(get(), get()) }
+    factory { com.openbite.core.domain.DefaultCurrencyUseCase(get(), get(), get(), get()) }
+    factory { com.openbite.core.domain.CurrencyPreferencesUseCase(get()) }
     factory { com.openbite.core.domain.AddPlaceTagUseCase(get()) }
     factory { com.openbite.core.domain.RemovePlaceTagUseCase(get()) }
     factory { com.openbite.core.domain.ObserveAllTagsUseCase(get()) }

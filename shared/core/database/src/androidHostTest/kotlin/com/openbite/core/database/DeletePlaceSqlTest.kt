@@ -15,7 +15,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * 在 JVM 上用 SQLite 跑删除店铺的真实 SQL（表按导出的 schemas/2.json 建）。
+ * 在 JVM 上用 SQLite 跑删除店铺的真实 SQL（表按导出的 schemas/3.json 建）。
  * 故意不开 foreign_keys：确认不靠级联也能删干净；开着跑一遍确认不会违反外键。
  */
 class DeletePlaceSqlTest {
@@ -25,13 +25,13 @@ class DeletePlaceSqlTest {
     private fun open(foreignKeys: Boolean) {
         db = DriverManager.getConnection("jdbc:sqlite::memory:")
         exec("PRAGMA foreign_keys = ${if (foreignKeys) "ON" else "OFF"}")
-        val database = Json.parseToJsonElement(File(schemaDir, "2.json").readText()).jsonObject.getValue("database").jsonObject
+        val database = Json.parseToJsonElement(File(schemaDir, "3.json").readText()).jsonObject.getValue("database").jsonObject
         database.getValue("entities").jsonArray.forEach { entity ->
             val table = entity.jsonObject.getValue("tableName").jsonPrimitive.content
             exec(entity.jsonObject.getValue("createSql").jsonPrimitive.content.replace("\${TABLE_NAME}", table))
         }
-        exec("INSERT INTO place VALUES ('minato', '割烹 みなと', NULL, NULL, NULL, 0)")
-        exec("INSERT INTO place VALUES ('tori', '炭火焼鳥 とり松', NULL, NULL, NULL, 0)")
+        exec("INSERT INTO place VALUES ('minato', '割烹 みなと', NULL, NULL, NULL, 0, NULL)")
+        exec("INSERT INTO place VALUES ('tori', '炭火焼鳥 とり松', NULL, NULL, NULL, 0, NULL)")
         exec("INSERT INTO place_tag VALUES ('minato', '纪念日')")
         exec("INSERT INTO place_tag VALUES ('tori', '深夜食堂')")
         exec("INSERT INTO menu_scan (id, placeId, photoPath, model, sourceLang, targetLang, rawJson, createdAt) VALUES ('s1', 'minato', 'photos/s1.jpg', 'sample', 'ja', 'zh-CN', '{}', 0)")

@@ -4,6 +4,7 @@ import android.content.Context
 import com.openbite.core.data.platform.ImageProcessor
 import com.openbite.core.data.platform.IncomingFileSource
 import com.openbite.core.data.platform.LocationProvider
+import com.openbite.core.data.platform.CountryGeocoder
 import com.openbite.core.data.platform.PhotoStore
 import com.openbite.core.data.platform.PreferencesStore
 import com.openbite.core.data.platform.ReminderScheduler
@@ -25,6 +26,7 @@ val androidPlatformModule = module {
     single<HttpClient> { createVisionHttpClient(OkHttp.create()) }
     single<ImageProcessor> { AndroidImageProcessor(androidContext()) }
     single<LocationProvider> { AndroidLocationProvider(androidContext()) }
+    single<CountryGeocoder> { AndroidCountryGeocoder(androidContext()) }
     single<PhotoStore> { FilePhotoStore(androidContext()) }
     single<SecretStore> { KeystoreSecretStore(androidContext()) }
     single<PreferencesStore> { DataStorePreferencesStore(androidContext()) }

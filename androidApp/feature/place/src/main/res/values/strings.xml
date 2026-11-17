@@ -59,14 +59,13 @@
     <string name="menu_edit_category">分类</string>
     <string name="menu_edit_price">价格</string>
     <string name="menu_edit_price_hint">留空表示时价</string>
-    <string name="menu_edit_currency">币种</string>
     <string name="menu_edit_save">保存</string>
     <string name="menu_edit_cancel">取消</string>
     <string name="menu_edit_note">只改菜单。以前的用餐记录里存的是当时的名字和价格，不会变。</string>
     <string name="menu_edit_error_name">译名最多 120 个字</string>
     <string name="menu_edit_error_category">分类最多 60 个字</string>
     <string name="menu_edit_error_price">价格格式不对（比如 980 或 12.50）</string>
-    <string name="menu_edit_error_currency">币种要三个字母，比如 JPY</string>
+    <string name="menu_edit_error_currency">不认识这个币种，换一个</string>
     <string name="menu_order">用这份菜单点单</string>
     <string name="menu_empty">这家店还没有电子菜单。</string>
     <string name="menu_photo_caption">%1$s %2$s 拍摄 · 原图只存在本机，已剥离 EXIF</string>

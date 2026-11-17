@@ -105,4 +105,8 @@
     <string name="settings_msg_sample_skipped">已有记忆，没有载入。想换成示例数据，先清空。</string>
     <string name="settings_msg_cleared">已清空全部记忆</string>
     <string name="settings_msg_failed">操作失败，请重试</string>
+    <string name="settings_currency_section">币种</string>
+    <string name="settings_fallback_currency">备用币种</string>
+    <string name="settings_fallback_currency_follow">跟随地区 · %1$s</string>
+    <string name="settings_fallback_currency_note">菜单、这家店和店铺位置都看不出币种时用它。</string>
 </resources>

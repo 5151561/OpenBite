@@ -47,6 +47,14 @@ import com.openbite.core.domain.AiOverview
 import com.openbite.feature.settings.SettingsMessage
 import com.openbite.feature.settings.SettingsUiState
 import com.openbite.feature.settings.SettingsViewModel
+import com.openbite.feature.settings.CurrencySettingsUiState
+import com.openbite.feature.settings.CurrencySettingsViewModel
+import com.openbite.android.core.designsystem.component.CurrencyPickerDialog
+import com.openbite.core.model.currencyLabel
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.text.intl.Locale as ComposeLocale
 import org.koin.compose.viewmodel.koinViewModel
 
 /** 设置页：口味、识别模型（入口到 AI 服务商）、演示模式、隐私、手机助手、提醒、示例数据。 */
@@ -56,9 +64,13 @@ fun SettingsRoute(
     onOpenTaste: () -> Unit,
     onOpenProviders: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
+    currencyViewModel: CurrencySettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val currency by currencyViewModel.uiState.collectAsStateWithLifecycle()
     SettingsScreen(
+        currency = currency,
+        onFallbackCurrency = currencyViewModel::setFallback,
         keepLocation = state.keepLocation,
         onKeepLocation = viewModel::setKeepLocation,
         state = state,
@@ -83,6 +95,8 @@ fun SettingsRoute(
 fun SettingsScreen(
     state: SettingsUiState,
     ai: AiOverview? = null,
+    currency: CurrencySettingsUiState? = null,
+    onFallbackCurrency: (String?) -> Unit = {},
     tasteSummary: String? = null,
     reminders: ReminderSettings? = null,
     keepLocation: Boolean? = null,
@@ -99,6 +113,19 @@ fun SettingsScreen(
     onMessageShown: () -> Unit = {},
 ) {
     val snackbar = remember { SnackbarHostState() }
+    var pickingCurrency by rememberSaveable { mutableStateOf(false) }
+    if (pickingCurrency && currency != null) {
+        CurrencyPickerDialog(
+            selected = currency.fallback,
+            recent = currency.recent,
+            followRegion = currency.regionCurrency,
+            onPick = {
+                onFallbackCurrency(it)
+                pickingCurrency = false
+            },
+            onDismiss = { pickingCurrency = false },
+        )
+    }
     val resources = LocalResources.current
     LaunchedEffect(state.message) {
         val message = state.message ?: return@LaunchedEffect
@@ -160,6 +187,21 @@ fun SettingsScreen(
 
             SectionHeader(stringResource(R.string.settings_model_section), color = MaterialTheme.colorScheme.primary)
             if (ai != null) ModelSection(ai, onOpenProviders, onDemoMode)
+
+            SectionHeader(stringResource(R.string.settings_currency_section), color = MaterialTheme.colorScheme.primary)
+            SegmentedList {
+                SegmentedListItem(
+                    headline = stringResource(R.string.settings_fallback_currency),
+                    supporting = currency?.takeIf { !it.isLoading }?.let { c ->
+                        c.fallback?.let { currencyLabel(it, ComposeLocale.current.toLanguageTag()) }
+                            ?: stringResource(R.string.settings_fallback_currency_follow, c.regionCurrency)
+                    },
+                    shape = segmentShape(0, 1),
+                    trailing = { Icon(OpenBiteIcons.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                    onClick = if (currency != null) ({ pickingCurrency = true }) else null,
+                )
+            }
+            Note(stringResource(R.string.settings_fallback_currency_note))
 
             SectionHeader(stringResource(R.string.settings_privacy_section), color = MaterialTheme.colorScheme.primary)
             SegmentedList {

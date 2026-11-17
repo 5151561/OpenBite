@@ -11,6 +11,8 @@ import com.openbite.core.model.OrderMenu
 import com.openbite.core.domain.OrderSession
 import com.openbite.core.domain.OrderSessions
 import com.openbite.core.domain.PlaceOrderUseCase
+import com.openbite.core.domain.DefaultCurrencyUseCase
+import kotlinx.coroutines.flow.filterNotNull
 import com.openbite.core.domain.Receipt
 import com.openbite.core.domain.ReceiptLine
 import com.openbite.core.domain.buildReceipt
@@ -57,7 +59,12 @@ data class OrderUiState(
     val total: Money? = null,
     val count: Int = 0,
     val dishCount: Int = 0,
+    /** 菜单的币种；菜单没写时按 店铺 → 国家 → 备用币种 → 手机地区 推的。空单的“合计 0”用它。 */
+    val currency: String? = null,
 ) {
+    /** 还没点菜时显示的合计 0。 */
+    val emptyTotal: Money? get() = currency?.let { Money(0, it) }
+
     val visibleItems: List<OrderItem> get() = if (category == null) items else items.filter { it.dish.category == category }
 }
 
@@ -75,7 +82,10 @@ class OrderViewModel(
     private val sessions: OrderSessions,
     observeMenu: ObservePlaceMenuUseCase,
     observeTaste: ObserveTasteProfileUseCase,
+    /** 菜单没写币种时推一个；null（测试）时空单不显示金额。 */
+    private val defaultCurrency: DefaultCurrencyUseCase? = null,
 ) : ViewModel() {
+    private val fallbackCurrency = MutableStateFlow<String?>(null)
     private val ownedSessionId = MutableStateFlow<String?>(null)
     private val sessionFlow = MutableStateFlow(sessionId?.let { sessions[it] })
     private val category = MutableStateFlow<String?>(null)
@@ -101,6 +111,12 @@ class OrderViewModel(
         } else if (sessionId == null) {
             missing.value = true
         }
+        defaultCurrency?.let { pick ->
+            viewModelScope.launch {
+                val menu = sessionFlow.filterNotNull().first().menu.value
+                fallbackCurrency.value = pick(placeId = menu.placeId ?: placeId).code
+            }
+        }
     }
 
     private val taste = observeTaste()
@@ -115,7 +131,7 @@ class OrderViewModel(
                 orderState(menu, quantities, profile, override, selected)
             }
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), OrderUiState())
+    }.combine(fallbackCurrency) { state, fallback -> state.copy(currency = state.currency ?: fallback) }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), OrderUiState())
 
     fun setQuantity(key: String, qty: Int) {
         sessionFlow.value?.setQuantity(key, qty)
@@ -161,6 +177,7 @@ internal fun orderState(
         total = orderTotal(lines),
         count = lines.sumOf { it.qty },
         dishCount = menu.dishes.size,
+        currency = menu.currency,
     )
 }
 

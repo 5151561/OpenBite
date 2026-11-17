@@ -37,6 +37,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.WindowInsetsRulers
@@ -53,6 +56,10 @@ import com.openbite.android.core.designsystem.theme.OpenBiteTheme
 import com.openbite.android.core.designsystem.theme.Spacing
 import com.openbite.core.model.Money
 import com.openbite.core.model.formatMoney
+import com.openbite.core.model.currencySymbol
+import com.openbite.android.core.designsystem.component.CurrencyField
+import com.openbite.android.core.designsystem.component.CurrencyPickerDialog
+import androidx.compose.ui.text.intl.Locale as ComposeLocale
 import com.openbite.core.domain.sampleReceipt
 import com.openbite.feature.meal.ReceiptArchiveUiState
 import com.openbite.feature.meal.ReceiptArchiveViewModel
@@ -85,6 +92,7 @@ fun ReceiptArchiveRoute(
         onPickPhoto = sources.pickPhoto,
         onRetry = viewModel::retryReading,
         onTotal = viewModel::setTotalText,
+        onCurrency = viewModel::setCurrency,
         onSave = viewModel::save,
     )
 }
@@ -98,8 +106,21 @@ fun ReceiptArchiveScreen(
     onPickPhoto: () -> Unit = {},
     onRetry: () -> Unit = {},
     onTotal: (String) -> Unit = {},
+    onCurrency: (String) -> Unit = {},
     onSave: () -> Unit = {},
 ) {
+    var pickingCurrency by rememberSaveable { mutableStateOf(false) }
+    if (pickingCurrency) {
+        CurrencyPickerDialog(
+            selected = state.currency,
+            recent = state.recentCurrencies,
+            onPick = { code ->
+                code?.let(onCurrency)
+                pickingCurrency = false
+            },
+            onDismiss = { pickingCurrency = false },
+        )
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -137,7 +158,7 @@ fun ReceiptArchiveScreen(
                 PhotoPanel(state, onTakePhoto, onPickPhoto)
                 Status(state, onRetry)
                 state.reading?.let { Lines(state) }
-                Amounts(state, onTotal)
+                Amounts(state, onTotal, onPickCurrency = { pickingCurrency = true })
                 Text(
                     stringResource(R.string.receipt_note),
                     style = MaterialTheme.typography.bodySmall,
@@ -224,15 +245,16 @@ private fun Lines(state: ReceiptArchiveUiState) {
 }
 
 @Composable
-private fun Amounts(state: ReceiptArchiveUiState, onTotal: (String) -> Unit) {
+private fun Amounts(state: ReceiptArchiveUiState, onTotal: (String) -> Unit, onPickCurrency: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
+    CurrencyField(state.currency, state.currencySource, onClick = onPickCurrency, enabled = state.phase != ReceiptPhase.SAVING)
     OutlinedTextField(
         value = state.totalText,
         onValueChange = onTotal,
         modifier = Modifier.fillMaxWidth(),
         label = { Text(stringResource(R.string.receipt_paid)) },
         placeholder = { Text(stringResource(R.string.receipt_paid_hint, state.currency)) },
-        prefix = { Text(formatMoney(Money(0, state.currency)).filterNot { it.isDigit() || it == '.' || it == ',' }.trim()) },
+        prefix = { Text(currencySymbol(state.currency, ComposeLocale.current.toLanguageTag())) },
         singleLine = true,
         isError = state.totalInvalid,
         supportingText = if (state.totalInvalid) ({ Text(stringResource(R.string.receipt_paid_invalid)) }) else null,

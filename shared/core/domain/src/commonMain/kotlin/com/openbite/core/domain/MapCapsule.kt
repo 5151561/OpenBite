@@ -181,15 +181,6 @@ class ObserveMapUseCase(
     }
 }
 
-class SetPlaceLocationUseCase(private val places: PlaceRepository) {
-    /** 经纬度超出范围返回 false。 */
-    suspend operator fun invoke(placeId: String, lat: Double, lon: Double): Boolean {
-        if (lat !in -90.0..90.0 || lon !in -180.0..180.0) return false
-        places.setLocation(placeId, lat, lon)
-        return true
-    }
-}
-
 /** 标签：去掉首尾空白、合并空白，最长 [MAX_TAG_LENGTH] 个字。不合法返回 null。 */
 fun normalizeTag(raw: String): String? = raw.trim().replace(Regex("\\s+"), " ").takeIf { it.isNotEmpty() && it.length <= MAX_TAG_LENGTH }
 

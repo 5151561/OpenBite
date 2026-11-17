@@ -26,6 +26,7 @@ import com.openbite.core.data.platform.LocationProvider
 import com.openbite.core.data.platform.PhotoStore
 import com.openbite.core.data.platform.PreferencesStore
 import com.openbite.core.data.platform.SecretStore
+import com.openbite.core.data.platform.withRecentCurrency
 import com.openbite.core.model.TasteProfile
 import com.openbite.core.model.AiSettings
 import kotlinx.serialization.json.Json
@@ -101,6 +102,23 @@ internal class DataStorePreferencesStore(context: Context) : PreferencesStore {
         store.edit { it[keepLocation] = keep }
     }
 
+    override fun observeFallbackCurrency(): Flow<String?> = store.data.map { it[fallbackCurrency] }
+
+    override suspend fun setFallbackCurrency(code: String?) {
+        store.edit { prefs -> if (code == null) prefs.remove(fallbackCurrency) else prefs[fallbackCurrency] = code }
+    }
+
+    override fun observeRecentCurrencies(): Flow<List<String>> = store.data.map { prefs ->
+        prefs[recentCurrencies]?.split(',')?.filter { it.length == 3 }.orEmpty()
+    }
+
+    override suspend fun addRecentCurrency(code: String) {
+        store.edit { prefs ->
+            val current = prefs[recentCurrencies]?.split(',')?.filter { it.length == 3 }.orEmpty()
+            prefs[recentCurrencies] = current.withRecentCurrency(code).joinToString(",")
+        }
+    }
+
     override suspend fun isSeedAutoImported(): Boolean {
         if (store.data.first()[seedAutoImported] == true) return true
         // 兼容老版本：标志以前存在 SharedPreferences（openbite_app / seed_auto_import_done）。
@@ -117,6 +135,10 @@ internal class DataStorePreferencesStore(context: Context) : PreferencesStore {
 
     private companion object {
         val keepLocation = booleanPreferencesKey("privacy_keep_location")
+        val fallbackCurrency = stringPreferencesKey("fallback_currency")
+
+        /** 逗号分隔，最近的在前（DataStore 的字符串集合不保序）。 */
+        val recentCurrencies = stringPreferencesKey("recent_currencies")
         val seedAutoImported = booleanPreferencesKey("seed_auto_import_done")
         const val LEGACY_PREFS = "openbite_app"
         const val LEGACY_SEED_DONE = "seed_auto_import_done"

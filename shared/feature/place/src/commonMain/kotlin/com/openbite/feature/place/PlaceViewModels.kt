@@ -9,6 +9,11 @@ import com.openbite.core.domain.DishEditError
 import com.openbite.core.domain.DishEditInput
 import com.openbite.core.domain.DishEditResult
 import com.openbite.core.domain.UpdateDishUseCase
+import com.openbite.core.domain.CurrencyPreferencesUseCase
+import com.openbite.core.domain.DefaultCurrencyUseCase
+import com.openbite.core.model.CurrencyChoice
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import com.openbite.core.domain.ObserveAllTagsUseCase
 import com.openbite.core.domain.ObservePlaceDetailUseCase
 import com.openbite.core.domain.RemovePlaceTagUseCase
@@ -139,6 +144,10 @@ data class PlaceMenuUiState(
     /** 原照片 Tab 正在看第几张（从 0 开始）。 */
     val photoIndex: Int = 0,
     val currentYear: Int = 0,
+    /** 没标价的菜改价格时默认用的币种和来源；还没算出来为 null。 */
+    val defaultCurrency: CurrencyChoice? = null,
+    /** 币种选择器里“最近用过”。 */
+    val recentCurrencies: List<String> = emptyList(),
 )
 
 class PlaceMenuViewModel(
@@ -147,6 +156,8 @@ class PlaceMenuViewModel(
     observeMenu: ObservePlaceMenuUseCase,
     todayProvider: TodayProvider,
     private val updateDish: UpdateDishUseCase,
+    defaultCurrency: DefaultCurrencyUseCase,
+    private val currencyPrefs: CurrencyPreferencesUseCase,
 ) : ViewModel() {
     private val tab = MutableStateFlow(initialTab)
 
@@ -154,16 +165,25 @@ class PlaceMenuViewModel(
     fun updateDish(dishId: String, input: DishEditInput, onResult: (DishEditError?) -> Unit) {
         viewModelScope.launch {
             when (val result = updateDish.invoke(dishId, input)) {
-                is DishEditResult.Valid -> onResult(null)
+                is DishEditResult.Valid -> {
+                    result.price?.let { currencyPrefs.remember(it.currency) }
+                    onResult(null)
+                }
                 is DishEditResult.Invalid -> onResult(result.error)
             }
         }
     }
 
+    /** 店里已有的菜 → 店铺国家 → 备用币种 → 手机地区。打开页面时算一次。 */
+    private val currencyDefault: Flow<CurrencyChoice?> = flow {
+        emit(null)
+        emit(defaultCurrency(placeId))
+    }
+
     private val photoIndex = MutableStateFlow(0)
 
     val uiState: StateFlow<PlaceMenuUiState> =
-        combine(observeMenu(placeId), tab, photoIndex) { menu, selectedTab, index ->
+        combine(observeMenu(placeId), tab, photoIndex, currencyDefault, currencyPrefs.recent()) { menu, selectedTab, index, currency, recent ->
             val lastIndex = (menu?.photos?.size ?: 0) - 1
             PlaceMenuUiState(
                 isLoading = false,
@@ -171,6 +191,8 @@ class PlaceMenuViewModel(
                 tab = selectedTab,
                 photoIndex = index.coerceIn(0, lastIndex.coerceAtLeast(0)),
                 currentYear = todayProvider.today().year,
+                defaultCurrency = currency,
+                recentCurrencies = recent,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PlaceMenuUiState(tab = initialTab))
 

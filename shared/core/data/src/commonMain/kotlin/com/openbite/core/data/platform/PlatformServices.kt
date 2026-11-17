@@ -48,6 +48,14 @@ fun interface LocationProvider {
     suspend fun currentLocation(): Pair<Double, Double>?
 }
 
+/**
+ * 经纬度 -> 国家/地区（ISO 3166 两位字母），用来推默认币种。
+ * Android 用系统 Geocoder（可能要联网）；没网、没有地理编码服务或超时返回 null，之后用到时再查。
+ */
+fun interface CountryGeocoder {
+    suspend fun countryCode(lat: Double, lon: Double): String?
+}
+
 /** API Key 存储：Android Keystore / iOS Keychain。不进数据库，不进日志。 */
 interface SecretStore {
     /** 当前值；没有存过或解不开时发 null。 */
@@ -119,10 +127,27 @@ interface PreferencesStore {
     fun observeKeepLocation(): Flow<Boolean>
     suspend fun setKeepLocation(keep: Boolean)
 
+    /** 设置里的“备用币种”；null 表示跟随地区（手机地区的币种）。 */
+    fun observeFallbackCurrency(): Flow<String?>
+    suspend fun setFallbackCurrency(code: String?)
+
+    /** 最近用过的币种，最近的在前，最多 [RECENT_CURRENCY_LIMIT] 个。 */
+    fun observeRecentCurrencies(): Flow<List<String>>
+
+    /** 记一次用过 [code]：挪到最前面，超出上限的丢掉。 */
+    suspend fun addRecentCurrency(code: String)
+
     /** 首次启动时已经自动导入过示例数据（不管导没导成，库里本来有数据也算）。清空记忆后不再自动导回来。 */
     suspend fun isSeedAutoImported(): Boolean
     suspend fun markSeedAutoImported()
 }
+
+/** “最近用过”的币种最多记几个。 */
+const val RECENT_CURRENCY_LIMIT = 5
+
+/** 把 [code] 放到最近用过的最前面。 */
+fun List<String>.withRecentCurrency(code: String): List<String> =
+    (listOf(code.uppercase()) + filterNot { it.equals(code, ignoreCase = true) }).take(RECENT_CURRENCY_LIMIT)
 
 /** SecretStore 里的键名。 */
 object SecretKeys {

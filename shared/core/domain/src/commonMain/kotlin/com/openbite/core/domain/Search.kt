@@ -6,6 +6,7 @@ import com.openbite.core.model.MemorySummary
 import com.openbite.core.model.Money
 import com.openbite.core.model.PlaceSummary
 import com.openbite.core.model.parseMoneyInput
+import com.openbite.core.model.isKnownCurrency
 import kotlinx.coroutines.flow.first
 
 const val SEARCH_RESULT_LIMIT = 50
@@ -46,7 +47,6 @@ class SearchPlacesUseCase(private val places: PlaceRepository, private val list:
 
 const val MAX_DISH_NAME = 120
 const val MAX_DISH_CATEGORY = 60
-private val CURRENCY_CODE = Regex("[A-Z]{3}")
 
 /** 改一道菜时的输入（都是用户打的原始文字）。 */
 data class DishEditInput(val nameTranslated: String, val category: String, val priceText: String, val currency: String)
@@ -58,7 +58,7 @@ sealed interface DishEditResult {
     data class Invalid(val error: DishEditError) : DishEditResult
 }
 
-/** 校验：价格可以留空（时价）；填了就按币种的小数位解析，币种必须是三个大写字母。 */
+/** 校验：价格可以留空（时价）；填了就按币种的小数位解析，币种必须是 ISO 4217 认识的代码。 */
 fun validateDishEdit(input: DishEditInput): DishEditResult {
     val name = input.nameTranslated.trim()
     val category = input.category.trim()
@@ -66,7 +66,7 @@ fun validateDishEdit(input: DishEditInput): DishEditResult {
     if (name.length > MAX_DISH_NAME) return DishEditResult.Invalid(DishEditError.NAME_TOO_LONG)
     if (category.length > MAX_DISH_CATEGORY) return DishEditResult.Invalid(DishEditError.CATEGORY_TOO_LONG)
     if (input.priceText.isBlank()) return DishEditResult.Valid(name, category, null)
-    if (!CURRENCY_CODE.matches(currency)) return DishEditResult.Invalid(DishEditError.BAD_CURRENCY)
+    if (!isKnownCurrency(currency)) return DishEditResult.Invalid(DishEditError.BAD_CURRENCY)
     val price = parseMoneyInput(input.priceText, currency) ?: return DishEditResult.Invalid(DishEditError.BAD_PRICE)
     return DishEditResult.Valid(name, category, price)
 }

@@ -18,6 +18,8 @@ data class PlaceEntity(
     val lon: Double?,
     val address: String?,
     val createdAt: Long,
+    /** ISO 3166 两位字母，按经纬度反查（离线查不到时为 null，之后再查）。v3 加的。 */
+    val countryCode: String? = null,
 )
 
 @Entity(

@@ -33,3 +33,17 @@ val MIGRATION_1_2: Migration = object : Migration(1, 2) {
         MIGRATION_1_2_SQL.forEach { connection.execSQL(it) }
     }
 }
+
+/**
+ * v2 -> v3：place 加 countryCode（店铺位置所在的国家/地区，ISO 3166 两位字母），
+ * 用来推默认币种。老数据为 NULL，用到时按经纬度再反查。
+ */
+val MIGRATION_2_3_SQL: List<String> = listOf(
+    "ALTER TABLE `place` ADD COLUMN `countryCode` TEXT",
+)
+
+val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+    override fun migrate(connection: SQLiteConnection) {
+        MIGRATION_2_3_SQL.forEach { connection.execSQL(it) }
+    }
+}

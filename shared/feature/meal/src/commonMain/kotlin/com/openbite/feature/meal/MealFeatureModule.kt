@@ -9,5 +9,5 @@ import org.koin.dsl.module
 val mealFeatureModule = module {
     factory { (logId: String) -> MealViewModel(logId, get(), get()) }
     factory { (logId: String) -> MemoryEditViewModel(logId, get(), get(), get(), get(), get(), get(), get()) }
-    factory { (logId: String) -> ReceiptArchiveViewModel(logId, get(), get(), get(), get(), get()) }
+    factory { (logId: String) -> ReceiptArchiveViewModel(logId, get(), get(), get(), get(), get(), get(), get()) }
 }

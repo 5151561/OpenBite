@@ -109,6 +109,10 @@ class ScanMenuUseCase(
     private val now: NowProvider,
     private val tempFiles: TempFiles,
     private val dispatchers: AppDispatchers = AppDispatchers(),
+    /** 新店有位置时反查国家/地区，存进店铺。null（测试）时不查。 */
+    private val countries: ResolvePlaceCountryUseCase? = null,
+    /** 菜单抬头和菜都没写币种时推默认币种。null（测试）时没写就不带价格币种。 */
+    private val currencyDefaults: DefaultCurrencyUseCase? = null,
 ) {
     /**
      * [ensureLocationPermission]：只有照片没有 GPS、又要新建店铺时才调用，界面在这时弹定位权限。
@@ -178,17 +182,25 @@ class ScanMenuUseCase(
                 lat = location?.first,
                 lon = location?.second,
                 address = null,
+                // 新店有位置就顺手反查国家/地区（推默认币种用）；查不到以后再查。
+                countryCode = location?.let { countries?.lookup(it.first, it.second) },
             )
         } else {
             null
         }
         val place = existingPlace ?: newPlace!!
+        // 抬头没写币种、又有菜没写时，按 店里已有的菜 → 店铺国家 → 备用币种 → 手机地区 推一个。
+        val defaultCurrency = header?.currency ?: if (dishes.any { it.priceMinor != null && it.currency == null }) {
+            currencyDefaults?.invoke(placeId = existingPlace?.id, country = newPlace?.countryCode)?.code
+        } else {
+            null
+        }
         val merge = mergeMenu(
             placeId = place.id,
             scanId = scanId,
             existing = existingPlace?.let { scans.menuOf(it.id) }.orEmpty(),
             scanned = dishes,
-            defaultCurrency = header?.currency,
+            defaultCurrency = defaultCurrency,
             newId = ids::newId,
         )
         val photoPath = photoStore.save(scanId, image.jpegBytes)

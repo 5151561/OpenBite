@@ -8,6 +8,6 @@ import org.koin.dsl.module
  */
 val orderFeatureModule = module {
     // sessionId 和 placeId 都可能为 null，包成一个参数对象传，不靠位置和强转区分。
-    factory { (args: OrderArgs) -> OrderViewModel(args.sessionId, args.placeId, get(), get(), get()) }
+    factory { (args: OrderArgs) -> OrderViewModel(args.sessionId, args.placeId, get(), get(), get(), get()) }
     factory { (sessionId: String) -> ReceiptViewModel(sessionId, get(), get(), get()) }
 }

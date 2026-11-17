@@ -14,9 +14,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
- * 在 JVM 上用 SQLite（sqlite-jdbc）验证 v1 -> v2 迁移：
- * 按导出的 schemas/1.json 建 v1 表、塞数据，跑 [MIGRATION_1_2_SQL]，
- * 再检查数据搬对了、表结构和 Room 导出的 schemas/2.json 一致（列名、类型、非空、默认值）。
+ * 在 JVM 上用 SQLite（sqlite-jdbc）验证 v1 -> v2 -> v3 迁移：
+ * 按导出的 schemas/1.json 建 v1 表、塞数据，跑 [MIGRATION_1_2_SQL]、[MIGRATION_2_3_SQL]，
+ * 再检查数据搬对了、表结构和 Room 导出的 schemas/2.json、3.json 一致（列名、类型、非空、默认值）。
  * 没用 Room 的 MigrationTestHelper：它要 Android 运行时或 JVM 版 bundled 驱动，本机缓存里都没有。
  */
 class MigrationSqlTest {
@@ -141,6 +141,36 @@ class MigrationSqlTest {
 
         // 全部表都比：列（类型、非空、默认值）、索引（唯一、列顺序）、外键（引用、级联）。
         assertEquals(fresh.columns.keys, migrated.columns.keys)
+        assertEquals(fresh.columns, migrated.columns)
+        assertEquals(fresh.indices, migrated.indices)
+        assertEquals(fresh.foreignKeys, migrated.foreignKeys)
+    }
+
+    @Test
+    fun v2ToV3AddsEmptyCountryAndKeepsPlaces() {
+        seedV1()
+        MIGRATION_1_2_SQL.forEach(::exec)
+        exec("UPDATE place SET lat = 35.0, lon = 135.7 WHERE id = 'p'")
+        MIGRATION_2_3_SQL.forEach(::exec)
+
+        assertEquals(listOf(listOf("p", "割烹 みなと", "35.0", null)), query("SELECT id, name, lat, countryCode FROM place"))
+        // 菜和记录不受影响。
+        assertEquals(listOf(listOf<String?>("2800", "JPY")), query("SELECT priceMinor, currency FROM dish"))
+        exec("UPDATE place SET countryCode = 'JP' WHERE id = 'p'")
+        assertEquals(listOf(listOf<String?>("JP")), query("SELECT countryCode FROM place"))
+    }
+
+    @Test
+    fun migratedSchemaMatchesExportedV3() {
+        MIGRATION_1_2_SQL.forEach(::exec)
+        MIGRATION_2_3_SQL.forEach(::exec)
+        val migrated = schema()
+
+        db.close()
+        db = DriverManager.getConnection("jdbc:sqlite::memory:")
+        createSqls(3).forEach(::exec)
+        val fresh = schema()
+
         assertEquals(fresh.columns, migrated.columns)
         assertEquals(fresh.indices, migrated.indices)
         assertEquals(fresh.foreignKeys, migrated.foreignKeys)

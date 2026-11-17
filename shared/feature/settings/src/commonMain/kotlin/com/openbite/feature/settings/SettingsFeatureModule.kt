@@ -10,6 +10,7 @@ import org.koin.dsl.module
 val settingsFeatureModule = module {
     factoryOf(::SettingsViewModel)
     factoryOf(::TasteViewModel)
+    factoryOf(::CurrencySettingsViewModel)
     factoryOf(::AiProvidersViewModel)
     factory { params -> ProviderDetailViewModel(params.get<com.openbite.core.model.AiProvider>(), get(), get(), get(), get(), get()) }
 }

@@ -46,7 +46,11 @@ interface PlaceRepository {
 
     suspend fun rename(placeId: String, name: String)
 
+    /** 改位置；原来反查的国家/地区清掉。 */
     suspend fun setLocation(placeId: String, lat: Double, lon: Double)
+
+    /** 存反查到的国家/地区。位置在这期间又变了（[lat]/[lon] 对不上）就不写。 */
+    suspend fun setCountry(placeId: String, lat: Double, lon: Double, countryCode: String)
 
     /** 改一道菜的译名、分类、价格（用餐记录里的快照不变）。 */
     suspend fun updateDish(dishId: String, nameTranslated: String, category: String, price: Money?)
@@ -174,6 +178,9 @@ internal class RoomPlaceRepository(private val db: OpenBiteDatabase) : PlaceRepo
     override suspend fun rename(placeId: String, name: String) = db.placeDao().rename(placeId, name)
 
     override suspend fun setLocation(placeId: String, lat: Double, lon: Double) = db.placeDao().setLocation(placeId, lat, lon)
+
+    override suspend fun setCountry(placeId: String, lat: Double, lon: Double, countryCode: String) =
+        db.placeDao().setCountry(placeId, lat, lon, countryCode)
 
     override suspend fun updateDish(dishId: String, nameTranslated: String, category: String, price: Money?) =
         db.placeDao().updateDish(dishId, nameTranslated, category, price?.amountMinor, price?.currency)

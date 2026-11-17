@@ -110,8 +110,13 @@ interface PlaceDao {
     @Query("UPDATE place SET name = :name WHERE id = :placeId")
     suspend fun rename(placeId: String, name: String)
 
-    @Query("UPDATE place SET lat = :lat, lon = :lon WHERE id = :placeId")
+    /** 换了位置，原来反查的国家作废，等重新反查。 */
+    @Query("UPDATE place SET lat = :lat, lon = :lon, countryCode = NULL WHERE id = :placeId")
     suspend fun setLocation(placeId: String, lat: Double, lon: Double)
+
+    /** 反查到的国家/地区；只在位置没再变过时写（经纬度对得上）。 */
+    @Query("UPDATE place SET countryCode = :countryCode WHERE id = :placeId AND lat = :lat AND lon = :lon")
+    suspend fun setCountry(placeId: String, lat: Double, lon: Double, countryCode: String)
 
     @Query(
         "UPDATE dish SET nameTranslated = :nameTranslated, category = :category, priceMinor = :priceMinor, currency = :currency " +

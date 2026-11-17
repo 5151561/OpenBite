@@ -15,6 +15,8 @@ data class Place(
     val lon: Double?,
     val address: String?,
     val tags: List<String> = emptyList(),
+    /** 店铺位置所在的国家/地区（ISO 3166 两位字母），按经纬度反查；还没查到为 null。 */
+    val countryCode: String? = null,
 )
 
 @Serializable

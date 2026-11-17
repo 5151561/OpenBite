@@ -32,6 +32,7 @@ internal fun PlaceWithTags.toModel() = Place(
     lon = place.lon,
     address = place.address,
     tags = tags.map { it.tag },
+    countryCode = place.countryCode,
 )
 
 internal fun DiningLogItemEntity.toModel() = DiningLogItem(
@@ -111,7 +112,7 @@ internal fun Dish.toEntity() = DishEntity(
     allergensJson = json.encodeToString(allergens),
 )
 
-internal fun Place.toEntity(createdAt: Long) = PlaceEntity(id, name, lat, lon, address, createdAt)
+internal fun Place.toEntity(createdAt: Long) = PlaceEntity(id, name, lat, lon, address, createdAt, countryCode)
 
 internal fun Milestone.toEntity() = MilestoneEntity(
     id = id,

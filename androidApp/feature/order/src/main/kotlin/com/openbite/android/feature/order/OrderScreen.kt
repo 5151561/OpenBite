@@ -332,7 +332,11 @@ private fun TotalBar(state: OrderUiState, onShowStaff: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(Spacing.m),
         ) {
             Row(Modifier.weight(1f), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                val total = state.total?.let(::formatMoney) ?: if (state.count == 0) formatMoney(Money(0, "JPY")) else stringResource(R.string.order_total_unknown)
+                val total = state.total?.let { formatMoney(it) } ?: if (state.count == 0) {
+                    state.emptyTotal?.let { formatMoney(it) }.orEmpty()
+                } else {
+                    stringResource(R.string.order_total_unknown)
+                }
                 Text(total, style = MaterialTheme.typography.headlineSmall)
                 Text(
                     stringResource(R.string.order_count, state.count),

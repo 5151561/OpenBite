@@ -2,6 +2,13 @@ package com.openbite.android.feature.place
 
 import androidx.compose.foundation.BorderStroke
 import com.openbite.core.model.moneyInputText
+import com.openbite.core.model.CurrencyChoice
+import com.openbite.core.model.CurrencySource
+import com.openbite.core.model.currencySymbol
+import com.openbite.core.domain.LAST_RESORT_CURRENCY
+import com.openbite.android.core.designsystem.component.CurrencyField
+import com.openbite.android.core.designsystem.component.CurrencyPickerDialog
+import androidx.compose.ui.text.intl.Locale as ComposeLocale
 import com.openbite.core.model.Dish
 import com.openbite.core.domain.DishEditInput
 import com.openbite.core.domain.DishEditError
@@ -129,7 +136,13 @@ fun PlaceMenuScreen(
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
     val editingDish = menu?.entries?.firstOrNull { it.dish.id == editing }?.dish
     if (editingDish != null) {
-        DishEditDialog(editingDish, onSave = { input, onResult -> onSaveDish(editingDish.id, input, onResult) }, onDismiss = { editing = null })
+        DishEditDialog(
+            editingDish,
+            defaultCurrency = state.defaultCurrency,
+            recentCurrencies = state.recentCurrencies,
+            onSave = { input, onResult -> onSaveDish(editingDish.id, input, onResult) },
+            onDismiss = { editing = null },
+        )
     }
     Scaffold(
         topBar = {
@@ -453,15 +466,39 @@ private fun PlaceMenuPhotoDarkPreview() {
     }
 }
 
-/** 改一道菜：译名、分类、价格、币种。原名不改（它是和菜单照片对应的依据）。 */
+/**
+ * 改一道菜：译名、分类、价格、币种。原名不改（它是和菜单照片对应的依据）。
+ * 币种用选择器：已经标价的用这道菜自己的；没标价的用 [defaultCurrency]（来自这家店 / 店铺位置 / 设置 / 手机地区）。
+ */
 @Composable
-private fun DishEditDialog(dish: Dish, onSave: (DishEditInput, (DishEditError?) -> Unit) -> Unit, onDismiss: () -> Unit) {
+private fun DishEditDialog(
+    dish: Dish,
+    defaultCurrency: CurrencyChoice?,
+    recentCurrencies: List<String>,
+    onSave: (DishEditInput, (DishEditError?) -> Unit) -> Unit,
+    onDismiss: () -> Unit,
+) {
     var name by rememberSaveable(dish.id) { mutableStateOf(dish.nameTranslated) }
     var category by rememberSaveable(dish.id) { mutableStateOf(dish.category) }
-    var price by rememberSaveable(dish.id) { mutableStateOf(dish.price?.let(::moneyInputText).orEmpty()) }
-    var currency by rememberSaveable(dish.id) { mutableStateOf(dish.price?.currency ?: "JPY") }
+    var price by rememberSaveable(dish.id) { mutableStateOf(dish.price?.let { moneyInputText(it) }.orEmpty()) }
+    // null：还没选过，跟着默认值走（默认值可能晚一点才算出来）。
+    var picked by rememberSaveable(dish.id) { mutableStateOf(dish.price?.currency) }
+    val currency = picked ?: defaultCurrency?.code ?: LAST_RESORT_CURRENCY
+    val source = if (picked != null) CurrencySource.MANUAL else defaultCurrency?.source
+    var picking by rememberSaveable { mutableStateOf(false) }
     var error by remember { mutableStateOf<DishEditError?>(null) }
     var saving by remember { mutableStateOf(false) }
+    if (picking) {
+        CurrencyPickerDialog(
+            selected = currency,
+            recent = recentCurrencies,
+            onPick = { code ->
+                if (code != null) picked = code
+                picking = false
+            },
+            onDismiss = { picking = false },
+        )
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(dish.nameOriginal) },
@@ -481,26 +518,18 @@ private fun DishEditDialog(dish: Dish, onSave: (DishEditInput, (DishEditError?) 
                     singleLine = true,
                     isError = error == DishEditError.CATEGORY_TOO_LONG,
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                    OutlinedTextField(
-                        value = price,
-                        onValueChange = { price = it },
-                        label = { Text(stringResource(R.string.menu_edit_price)) },
-                        placeholder = { Text(stringResource(R.string.menu_edit_price_hint)) },
-                        singleLine = true,
-                        isError = error == DishEditError.BAD_PRICE,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f),
-                    )
-                    OutlinedTextField(
-                        value = currency,
-                        onValueChange = { currency = it.uppercase().take(3) },
-                        label = { Text(stringResource(R.string.menu_edit_currency)) },
-                        singleLine = true,
-                        isError = error == DishEditError.BAD_CURRENCY,
-                        modifier = Modifier.width(96.dp),
-                    )
-                }
+                OutlinedTextField(
+                    value = price,
+                    onValueChange = { price = it },
+                    label = { Text(stringResource(R.string.menu_edit_price)) },
+                    placeholder = { Text(stringResource(R.string.menu_edit_price_hint)) },
+                    prefix = { Text(currencySymbol(currency, ComposeLocale.current.toLanguageTag())) },
+                    singleLine = true,
+                    isError = error == DishEditError.BAD_PRICE,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                CurrencyField(currency, source, onClick = { picking = true })
                 error?.let {
                     val message = when (it) {
                         DishEditError.NAME_TOO_LONG -> R.string.menu_edit_error_name

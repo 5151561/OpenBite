@@ -14,7 +14,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/** 在 JVM 上用 SQLite 跑真实的搜索 SQL（表按导出的 schemas/2.json 建）。 */
+/** 在 JVM 上用 SQLite 跑真实的搜索 SQL（表按导出的 schemas/3.json 建）。 */
 class SearchSqlTest {
     private lateinit var db: Connection
     private val schemaDir = File(System.getProperty("user.dir"), "schemas/com.openbite.core.database.OpenBiteDatabase")
@@ -22,14 +22,14 @@ class SearchSqlTest {
     @BeforeTest
     fun setUp() {
         db = DriverManager.getConnection("jdbc:sqlite::memory:")
-        val database = Json.parseToJsonElement(File(schemaDir, "2.json").readText()).jsonObject.getValue("database").jsonObject
+        val database = Json.parseToJsonElement(File(schemaDir, "3.json").readText()).jsonObject.getValue("database").jsonObject
         database.getValue("entities").jsonArray.forEach { entity ->
             val table = entity.jsonObject.getValue("tableName").jsonPrimitive.content
             exec(entity.jsonObject.getValue("createSql").jsonPrimitive.content.replace("\${TABLE_NAME}", table))
         }
-        exec("INSERT INTO place VALUES ('minato', '割烹 みなと', NULL, NULL, '京都市中京区', 0)")
-        exec("INSERT INTO place VALUES ('tori', '炭火焼鳥 とり松', NULL, NULL, '先斗町', 0)")
-        exec("INSERT INTO place VALUES ('pct', '100% Cafe', NULL, NULL, NULL, 0)")
+        exec("INSERT INTO place VALUES ('minato', '割烹 みなと', NULL, NULL, '京都市中京区', 0, NULL)")
+        exec("INSERT INTO place VALUES ('tori', '炭火焼鳥 とり松', NULL, NULL, '先斗町', 0, NULL)")
+        exec("INSERT INTO place VALUES ('pct', '100% Cafe', NULL, NULL, NULL, 0, NULL)")
         exec("INSERT INTO place_tag VALUES ('tori', '深夜食堂')")
         exec("INSERT INTO dish (id, placeId, scanId, category, nameOriginal, nameTranslated, priceMinor, currency, allergensJson) VALUES ('d1', 'minato', NULL, '', 'うに茶碗蒸し', '海胆茶碗蒸', 2800, 'JPY', '[]')")
         exec("INSERT INTO person VALUES ('wife', '老婆')")

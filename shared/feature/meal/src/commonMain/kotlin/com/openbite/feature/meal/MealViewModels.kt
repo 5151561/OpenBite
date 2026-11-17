@@ -20,6 +20,11 @@ import com.openbite.core.model.ScanError
 import com.openbite.core.model.ScanException
 import com.openbite.core.model.ModelUse
 import com.openbite.core.model.moneyInputText
+import com.openbite.core.model.CurrencySource
+import com.openbite.core.model.isKnownCurrency
+import com.openbite.core.domain.CurrencyPreferencesUseCase
+import com.openbite.core.domain.DefaultCurrencyUseCase
+import com.openbite.core.domain.LAST_RESORT_CURRENCY
 import com.openbite.core.model.parseMoneyInput
 import com.openbite.core.model.ScannedReceipt
 import kotlinx.coroutines.CancellationException
@@ -27,6 +32,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -186,7 +192,12 @@ data class ReceiptArchiveUiState(
     val reading: ScannedReceipt? = null,
     val model: ModelUse? = null,
     val error: ScanError? = null,
-    val currency: String = DEFAULT_CURRENCY,
+    /** 实付金额的币种；加载前为 [CurrencyChoice] 的兜底值，界面不显示。 */
+    val currency: String = LAST_RESORT_CURRENCY,
+    /** 币种从哪里来的（界面显示“来自：…”）；用户自己选的是 MANUAL。 */
+    val currencySource: CurrencySource? = null,
+    /** 币种选择器里“最近用过”。 */
+    val recentCurrencies: List<String> = emptyList(),
     /** 实付金额输入框里的字。 */
     val totalText: String = "",
     /** 按点单算的合计，用来显示“比点单多”。 */
@@ -199,10 +210,6 @@ data class ReceiptArchiveUiState(
 
     /** 输入了字但解析不出来。 */
     val totalInvalid: Boolean get() = totalText.isNotBlank() && total == null
-
-    companion object {
-        const val DEFAULT_CURRENCY = "JPY"
-    }
 }
 
 /** 小票存档（设计稿 19）：拍店家的纸质小票让模型读金额，或者不拍照只填实付。 */
@@ -213,9 +220,16 @@ class ReceiptArchiveViewModel(
     private val readReceipt: ReadReceiptUseCase,
     private val saveReceipt: SaveReceiptUseCase,
     private val discardPhotos: DiscardPhotosUseCase,
+    private val defaultCurrency: DefaultCurrencyUseCase,
+    private val currencyPrefs: CurrencyPreferencesUseCase,
 ) : ViewModel() {
     private val state = MutableStateFlow(ReceiptArchiveUiState())
-    val uiState: StateFlow<ReceiptArchiveUiState> = state.asStateFlow()
+    val uiState: StateFlow<ReceiptArchiveUiState> = combine(state, currencyPrefs.recent()) { s, recent ->
+        s.copy(recentCurrencies = recent)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), state.value)
+
+    /** 这次打开页面后用户自己选过币种：小票读出来的不再覆盖它。 */
+    private var userPickedCurrency = false
     private var lastBytes: ByteArray? = null
     private var targetLang: String = "zh-CN"
 
@@ -228,13 +242,19 @@ class ReceiptArchiveViewModel(
             }
             val log = detail.log
             val ordered = MealEditor.from(log).orderedTotal
-            val currency = log.paidTotal?.currency ?: ordered?.currency ?: ReceiptArchiveUiState.DEFAULT_CURRENCY
+            // 存过的实付 → 点的菜的币种 → 这家店 → 店铺国家 → 备用币种 → 手机地区。
+            val choice = defaultCurrency(
+                placeId = log.place.id,
+                manual = log.paidTotal?.currency,
+                menu = ordered?.currency ?: log.items.firstNotNullOfOrNull { item -> item.price?.currency },
+            )
             state.update {
                 it.copy(
                     isLoading = false,
                     placeName = log.place.name,
                     savedPhotoPath = log.photos.lastOrNull { p -> p.kind == PhotoKind.RECEIPT }?.path,
-                    currency = currency,
+                    currency = choice.code,
+                    currencySource = choice.source,
                     totalText = log.paidTotal?.let(::moneyInputText).orEmpty(),
                     orderedTotal = ordered,
                 )
@@ -274,12 +294,14 @@ class ReceiptArchiveViewModel(
             val result = readReceipt(bytes, targetLang)
             val receipt = result.receipt
             state.update {
-                val currency = receipt.currency ?: it.currency
+                val fromReceipt = receipt.currency?.takeIf { code -> !userPickedCurrency && isKnownCurrency(code) }
+                val currency = fromReceipt ?: it.currency
                 it.copy(
                     phase = ReceiptPhase.READ,
                     reading = receipt,
                     model = result.model,
                     currency = currency,
+                    currencySource = if (fromReceipt != null) CurrencySource.RECEIPT else it.currencySource,
                     totalText = receipt.totalMinor?.let { t -> moneyInputText(Money(t, currency)) } ?: it.totalText,
                 )
             }
@@ -295,6 +317,13 @@ class ReceiptArchiveViewModel(
 
     fun setTotalText(text: String) = state.update { it.copy(totalText = text) }
 
+    /** 用户在选择器里换了币种。已经填的数字不动，按新币种的小数位重新校验。 */
+    fun setCurrency(code: String) {
+        if (!isKnownCurrency(code)) return
+        userPickedCurrency = true
+        state.update { it.copy(currency = code.uppercase(), currencySource = CurrencySource.MANUAL) }
+    }
+
     fun save() {
         val s = state.value
         if (s.totalInvalid || s.phase == ReceiptPhase.SAVING) return
@@ -302,6 +331,7 @@ class ReceiptArchiveViewModel(
         viewModelScope.launch {
             try {
                 saveReceipt(logId, s.newPhoto, s.total)
+                s.total?.let { currencyPrefs.remember(it.currency) }
                 state.update { it.copy(phase = ReceiptPhase.SAVED, newPhoto = null) }
             } catch (e: CancellationException) {
                 throw e

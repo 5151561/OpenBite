@@ -23,6 +23,8 @@ import com.openbite.core.data.platform.ReminderScheduler
 import com.openbite.core.data.platform.SecretKeys
 import com.openbite.core.data.platform.SecretStore
 import com.openbite.core.data.platform.TempFiles
+import com.openbite.core.data.platform.CountryGeocoder
+import com.openbite.core.data.platform.withRecentCurrency
 import com.openbite.core.domain.ApplicationScope
 import com.openbite.core.domain.IdGenerator
 import com.openbite.core.model.DiningLog
@@ -86,8 +88,23 @@ class FakePreferences(initialAi: AiSettings = AiSettings()) : PreferencesStore {
     override suspend fun clearMilestoneReminders(milestoneId: String) { sent.removeAll { it.startsWith("$milestoneId:") } }
     override fun observeKeepLocation(): Flow<Boolean> = keepLocation
     override suspend fun setKeepLocation(keep: Boolean) { keepLocation.value = keep }
+    val fallbackCurrency = MutableStateFlow<String?>(null)
+    val recentCurrencies = MutableStateFlow<List<String>>(emptyList())
+    override fun observeFallbackCurrency(): Flow<String?> = fallbackCurrency
+    override suspend fun setFallbackCurrency(code: String?) { fallbackCurrency.value = code }
+    override fun observeRecentCurrencies(): Flow<List<String>> = recentCurrencies
+    override suspend fun addRecentCurrency(code: String) { recentCurrencies.update { it.withRecentCurrency(code) } }
     override suspend fun isSeedAutoImported() = seedDone
     override suspend fun markSeedAutoImported() { seedDone = true }
+}
+
+/** 反查国家：按经纬度查表，查不到返回 null；[offline] 为 true 时一律 null（模拟没网）。记下每次调用。 */
+class FakeGeocoder(val countries: Map<Pair<Double, Double>, String> = emptyMap(), var offline: Boolean = false) : CountryGeocoder {
+    val calls = mutableListOf<Pair<Double, Double>>()
+    override suspend fun countryCode(lat: Double, lon: Double): String? {
+        calls += lat to lon
+        return if (offline) null else countries[lat to lon]
+    }
 }
 
 /** [keys]：一开始就存好的 Key，按服务商。 */
@@ -213,7 +230,11 @@ class FakePlaces(
     override fun observeCounts(): Flow<Map<String, PlaceCounts>> =
         places.map { all -> all.associate { it.id to PlaceCounts(menus.value[it.id].orEmpty().size, scans.value[it.id].orEmpty().size) } }
     override suspend fun rename(placeId: String, name: String) = write { updatePlace(placeId) { it.copy(name = name) } }
-    override suspend fun setLocation(placeId: String, lat: Double, lon: Double) = write { updatePlace(placeId) { it.copy(lat = lat, lon = lon) } }
+    override suspend fun setLocation(placeId: String, lat: Double, lon: Double) =
+        write { updatePlace(placeId) { it.copy(lat = lat, lon = lon, countryCode = null) } }
+    override suspend fun setCountry(placeId: String, lat: Double, lon: Double, countryCode: String) = write {
+        updatePlace(placeId) { if (it.lat == lat && it.lon == lon) it.copy(countryCode = countryCode) else it }
+    }
     override suspend fun updateDish(dishId: String, nameTranslated: String, category: String, price: Money?) = write {
         menus.update { m -> m.mapValues { (_, dishes) -> dishes.map { if (it.id == dishId) it.copy(nameTranslated = nameTranslated, category = category, price = price) else it } } }
     }
