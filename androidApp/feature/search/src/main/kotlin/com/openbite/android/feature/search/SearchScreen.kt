@@ -23,6 +23,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.WindowInsetsRulers
+import androidx.compose.foundation.layout.fitInside
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
@@ -102,7 +104,7 @@ fun SearchScreen(
             )
         },
     ) { padding ->
-        LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(bottom = Spacing.xxl)) {
+        LazyColumn(Modifier.fillMaxSize().padding(padding).fitInside(WindowInsetsRulers.Ime.current), contentPadding = PaddingValues(bottom = Spacing.xxl)) {
             when (val r = state.results) {
                 SearchResults.Idle -> item {
                     Hint(stringResource(if (state.kind == SearchKind.MEMORIES) R.string.search_memories_idle else R.string.search_places_idle))

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fitInside
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -35,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.WindowInsetsRulers
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -125,7 +127,7 @@ fun ReceiptArchiveScreen(
             state.isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             state.missing -> Text(stringResource(R.string.receipt_missing), Modifier.padding(padding).padding(Spacing.xxl))
             else -> Column(
-                Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(horizontal = Spacing.l),
+                Modifier.fillMaxSize().padding(padding).fitInside(WindowInsetsRulers.Ime.current).verticalScroll(rememberScrollState()).padding(horizontal = Spacing.l),
                 verticalArrangement = Arrangement.spacedBy(Spacing.m),
             ) {
                 PhotoPanel(state, onTakePhoto, onPickPhoto)

@@ -41,6 +41,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.WindowInsetsRulers
+import androidx.compose.foundation.layout.fitInside
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -135,7 +137,7 @@ fun MilestoneEditScreen(
         when {
             state.isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             state.missing -> Text(stringResource(R.string.edit_milestone_missing), Modifier.padding(padding).padding(Spacing.xxl))
-            else -> Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(bottom = Spacing.xxl)) {
+            else -> Column(Modifier.fillMaxSize().padding(padding).fitInside(WindowInsetsRulers.Ime.current).verticalScroll(rememberScrollState()).padding(bottom = Spacing.xxl)) {
                 val error = state.error
                 OutlinedTextField(
                     value = draft.title,
