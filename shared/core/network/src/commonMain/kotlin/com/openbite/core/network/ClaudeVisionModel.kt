@@ -122,12 +122,15 @@ class ClaudeVisionModel(
                 }
                 val channel = response.bodyAsChannel()
                 val sse = SseParser()
+                val stream = StreamState()
                 while (true) {
                     val line = channel.readLine() ?: break
                     val event = sse.feedLine(line) ?: continue
-                    if (handle(event, onText)) return@execute
+                    if (handle(event, stream, onText)) return@execute
                 }
-                sse.flush()?.let { handle(it, onText) }
+                if (sse.flush()?.let { handle(it, stream, onText) } == true) return@execute
+                // 没等到 message_stop 连接就断了（代理截断、网络中途断开）：结果不完整。
+                throw VisionException.Truncated("eof")
             }
         } catch (e: CancellationException) {
             throw e
@@ -144,11 +147,19 @@ class ClaudeVisionModel(
         }
     }
 
-    /** 处理一条 SSE；返回 true 表示流结束。 */
-    private suspend fun handle(event: SseEvent, onText: suspend (String) -> Unit): Boolean =
+    private class StreamState {
+        var stopReason: String? = null
+    }
+
+    /** 处理一条 SSE；返回 true 表示流正常结束。写到 max_tokens 被截断时抛 [VisionException.Truncated]。 */
+    private suspend fun handle(event: SseEvent, stream: StreamState, onText: suspend (String) -> Unit): Boolean =
         when (val part = parseAnthropicEvent(event)) {
             is AnthropicStreamPart.TextDelta -> {
                 onText(part.text)
+                false
+            }
+            is AnthropicStreamPart.StopReason -> {
+                stream.stopReason = part.reason
                 false
             }
             is AnthropicStreamPart.Error -> throw when (part.type) {
@@ -157,7 +168,10 @@ class ClaudeVisionModel(
                 "authentication_error", "permission_error" -> VisionException.Unauthorized(401)
                 else -> VisionException.StreamError(part.type, part.message)
             }
-            AnthropicStreamPart.Stop -> true
+            AnthropicStreamPart.Stop -> {
+                if (stream.stopReason == "max_tokens") throw VisionException.Truncated("max_tokens")
+                true
+            }
             null -> false
         }
 

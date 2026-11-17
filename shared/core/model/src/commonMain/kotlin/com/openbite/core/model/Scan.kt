@@ -38,6 +38,9 @@ enum class ScanError {
     /** 没有网络或连不上。 */
     NETWORK,
 
+    /** 模型输出没写完（连接中途断了，或写到长度上限），结果不完整，没有保存。 */
+    INCOMPLETE,
+
     /** 照片读不出来。 */
     IMAGE_UNREADABLE,
 
@@ -53,7 +56,7 @@ enum class ScanError {
     /** 换成示例菜单就能继续体验。 */
     val sampleHelps: Boolean get() = this == NO_API_KEY || this == INVALID_API_KEY || this == RATE_LIMITED
 
-    val retryable: Boolean get() = this in setOf(RATE_LIMITED, SERVICE_UNAVAILABLE, TIMEOUT, NETWORK, NO_DISHES, UNKNOWN)
+    val retryable: Boolean get() = this in setOf(RATE_LIMITED, SERVICE_UNAVAILABLE, TIMEOUT, NETWORK, INCOMPLETE, NO_DISHES, UNKNOWN)
 }
 
 class ScanException(val error: ScanError, cause: Throwable? = null) : Exception(error.name, cause)

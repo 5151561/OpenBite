@@ -241,6 +241,7 @@ internal fun VisionException.toScanError(): ScanError = when (this) {
     is VisionException.Unavailable -> ScanError.SERVICE_UNAVAILABLE
     is VisionException.Timeout -> ScanError.TIMEOUT
     is VisionException.Network -> ScanError.NETWORK
+    is VisionException.Truncated -> ScanError.INCOMPLETE
     is VisionException.BadRequest, is VisionException.StreamError -> ScanError.UNKNOWN
 }
 

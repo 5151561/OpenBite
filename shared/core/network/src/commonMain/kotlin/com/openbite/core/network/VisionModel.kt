@@ -98,6 +98,12 @@ sealed class VisionException(message: String, cause: Throwable? = null) : Except
 
     /** 流里的 error 事件（如 overloaded_error）。 */
     class StreamError(val type: String, detail: String?) : VisionException("$type ${detail.orEmpty()}")
+
+    /**
+     * 输出没写完：连接在 message_stop 之前断了（[reason] = "eof"），
+     * 或者模型写到 max_tokens 被截断（[reason] = "max_tokens"）。结果不完整，不能当成功保存。
+     */
+    class Truncated(val reason: String) : VisionException("truncated $reason")
 }
 
 /** HTTP 状态码 -> 异常。200 返回 null。 */

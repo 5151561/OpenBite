@@ -480,6 +480,7 @@ private fun ScanError.message(): Int = when (this) {
     ScanError.SERVICE_UNAVAILABLE -> R.string.scan_error_service_unavailable
     ScanError.TIMEOUT -> R.string.scan_error_timeout
     ScanError.NETWORK -> R.string.scan_error_network
+    ScanError.INCOMPLETE -> R.string.scan_error_incomplete
     ScanError.IMAGE_UNREADABLE -> R.string.scan_error_image_unreadable
     ScanError.NO_DISHES -> R.string.scan_error_no_dishes
     ScanError.PLACE_MISSING -> R.string.scan_error_place_missing

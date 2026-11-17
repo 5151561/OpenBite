@@ -58,6 +58,9 @@ sealed interface AnthropicStreamPart {
     data class TextDelta(val text: String) : AnthropicStreamPart
     data class Error(val type: String, val message: String?) : AnthropicStreamPart
     data object Stop : AnthropicStreamPart
+
+    /** message_delta 里带的 stop_reason（end_turn、max_tokens…）。 */
+    data class StopReason(val reason: String) : AnthropicStreamPart
 }
 
 /** 把一条 SSE 事件翻译成文本增量 / 错误 / 结束；ping、message_start 等返回 null。 */
@@ -73,6 +76,7 @@ fun parseAnthropicEvent(event: SseEvent): AnthropicStreamPart? {
             val error = obj["error"]?.jsonObject
             AnthropicStreamPart.Error(error?.string("type") ?: "error", error?.string("message"))
         }
+        "message_delta" -> obj["delta"]?.jsonObject?.string("stop_reason")?.let { AnthropicStreamPart.StopReason(it) }
         "message_stop" -> AnthropicStreamPart.Stop
         else -> null
     }

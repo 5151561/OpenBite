@@ -39,6 +39,7 @@
     <string name="scan_error_service_unavailable">模型服务暂时忙不过来，稍后再试。</string>
     <string name="scan_error_timeout">识别超时了，网络可能不太好。</string>
     <string name="scan_error_network">连不上网络，检查一下再试。</string>
+    <string name="scan_error_incomplete">菜单没识别完（连接断了或菜单太长），没有保存。可以重试，或者分几次拍。</string>
     <string name="scan_error_image_unreadable">这张照片读不出来，换一张试试。</string>
     <string name="scan_error_no_dishes">没认出菜品。照片可能太糊，或者不是菜单。</string>
     <string name="scan_error_place_missing">这家店已经不在了。</string>

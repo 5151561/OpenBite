@@ -95,6 +95,20 @@ class ClaudeVisionModelTest {
     }
 
     @Test
+    fun streamCutBeforeMessageStopIsTruncated() = runTest {
+        val cut = CLAUDE_SSE_FIXTURE.substringBefore("event: content_block_stop")
+        val e = assertFailsWith<VisionException.Truncated> { model(HttpStatusCode.OK, cut).scanMenu(request).toList() }
+        assertEquals("eof", e.reason)
+    }
+
+    @Test
+    fun maxTokensStopIsTruncated() = runTest {
+        val capped = CLAUDE_SSE_FIXTURE.replace("\"stop_reason\":\"end_turn\"", "\"stop_reason\":\"max_tokens\"")
+        val e = assertFailsWith<VisionException.Truncated> { model(HttpStatusCode.OK, capped).scanMenu(request).toList() }
+        assertEquals("max_tokens", e.reason)
+    }
+
+    @Test
     fun missingKeyFailsWithoutRequest() = runTest {
         var called = false
         assertFailsWith<VisionException.Unauthorized> {
