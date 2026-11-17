@@ -1,30 +1,21 @@
 package com.openbite.core.model
 
-/** 用户在设置里选的识别模型。真实的 API 模型 id 在 :shared:core:network 的 AnthropicModels 里。 */
-enum class VisionModelChoice(val needsApiKey: Boolean) {
-    CLAUDE_HAIKU(needsApiKey = true),
-    CLAUDE_SONNET(needsApiKey = true),
-
-    /** 本地流式吐出打包好的示例菜单，不调用模型、不联网。 */
-    SAMPLE(needsApiKey = false),
-    ;
-
-    companion object {
-        val DEFAULT = CLAUDE_HAIKU
-    }
+/** 这次识别用的是什么：演示模式（不联网），或者某一家的某个模型。 */
+sealed interface ModelUse {
+    data object Demo : ModelUse
+    data class Real(val ref: ModelRef) : ModelUse
 }
-
-/** 没填 Key 时，需要 Key 的模型自动退回示例菜单。 */
-fun effectiveVisionModel(choice: VisionModelChoice, hasApiKey: Boolean): VisionModelChoice =
-    if (choice.needsApiKey && !hasApiKey) VisionModelChoice.SAMPLE else choice
 
 /** 识别失败的原因，界面按它给出提示和下一步。 */
 enum class ScanError {
-    /** 选了真实模型但没有 Key。 */
-    NO_API_KEY,
+    /** 演示模式关着，又还没选识别模型（或选的那家 Key 被清掉了）。 */
+    NO_MODEL,
 
     /** 401 / 403：Key 无效或没权限。 */
     INVALID_API_KEY,
+
+    /** 选的模型这家已经没有了（404 / model_not_found）。 */
+    MODEL_GONE,
 
     /** 429：请求太频繁或额度用完。 */
     RATE_LIMITED,
@@ -53,8 +44,8 @@ enum class ScanError {
     UNKNOWN,
     ;
 
-    /** 换成示例菜单就能继续体验。 */
-    val sampleHelps: Boolean get() = this == NO_API_KEY || this == INVALID_API_KEY || this == RATE_LIMITED
+    /** 要去设置里连一家、换 Key 或换模型才能好。 */
+    val needsSettings: Boolean get() = this == NO_MODEL || this == INVALID_API_KEY || this == MODEL_GONE
 
     val retryable: Boolean get() = this in setOf(RATE_LIMITED, SERVICE_UNAVAILABLE, TIMEOUT, NETWORK, INCOMPLETE, NO_DISHES, UNKNOWN)
 }
@@ -65,7 +56,7 @@ class ScanException(val error: ScanError, cause: Throwable? = null) : Exception(
 fun maskApiKey(key: String): String {
     val trimmed = key.trim()
     if (trimmed.length < 12) return "•".repeat(8)
-    // Anthropic 的 Key 形如 sk-ant-api03-…，保留前两段方便认出是哪家的。
+    // Key 形如 sk-ant-api03-… / sk-proj-…，保留前两段方便认出是哪家的。
     val parts = trimmed.split('-')
     val prefix = if (parts.size >= 3) "${parts[0]}-${parts[1]}-" else ""
     return prefix + "••••" + trimmed.takeLast(4)

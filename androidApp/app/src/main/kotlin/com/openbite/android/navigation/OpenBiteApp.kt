@@ -34,6 +34,8 @@ import com.openbite.android.feature.place.PlaceMenuRoute
 import com.openbite.android.feature.place.PlacesRoute
 import com.openbite.android.feature.scan.ScanRoute
 import com.openbite.android.feature.search.SearchRoute
+import com.openbite.android.feature.settings.AiProvidersRoute
+import com.openbite.android.feature.settings.ProviderDetailRoute
 import com.openbite.android.feature.settings.SettingsRoute
 import com.openbite.android.feature.share.ImportSheetRoute
 import com.openbite.android.feature.share.ShareMealRoute
@@ -107,7 +109,22 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
             SettingsRoute(
                 onBack = { navigator.pop(key) },
                 onOpenTaste = { navigator.navigate(TasteKey) },
+                onOpenProviders = { navigator.navigate(AiProvidersKey) },
             )
+        }
+        entry<AiProvidersKey> { key ->
+            AiProvidersRoute(
+                onBack = { navigator.pop(key) },
+                onOpenProvider = { navigator.navigate(AiProviderKey(it.name)) },
+            )
+        }
+        entry<AiProviderKey> { key ->
+            val provider = com.openbite.core.model.AiProvider.entries.firstOrNull { it.name == key.provider }
+            if (provider == null) {
+                LaunchedEffect(key) { navigator.pop(key) }
+            } else {
+                ProviderDetailRoute(provider = provider, onBack = { navigator.pop(key) })
+            }
         }
         entry<ScanKey> { key ->
             ScanRoute(
@@ -115,7 +132,8 @@ fun OpenBiteApp(deepLink: DeepLink? = null, onDeepLinkHandled: () -> Unit = {}) 
                 fromGallery = key.fromGallery,
                 onBack = { navigator.pop(key) },
                 onOrder = { sessionId -> navigator.navigate(OrderKey(sessionId = sessionId)) },
-                onOpenSettings = { navigator.navigate(SettingsKey) },
+                // 没模型、Key 不对、模型下架：直接去服务商列表。
+                onOpenSettings = { navigator.navigate(AiProvidersKey) },
             )
         }
         entry<OrderKey> { key ->

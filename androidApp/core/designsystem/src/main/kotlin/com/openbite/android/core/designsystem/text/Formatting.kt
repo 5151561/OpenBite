@@ -10,7 +10,8 @@ import com.openbite.core.model.Milestone
 import com.openbite.core.model.MilestoneHighlight
 import com.openbite.core.model.MilestoneType
 import com.openbite.core.model.Recurrence
-import com.openbite.core.model.VisionModelChoice
+import com.openbite.core.model.AiProvider
+import com.openbite.core.model.ModelUse
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
@@ -133,13 +134,23 @@ fun memorySupportingText(memory: MemorySummary, currentYear: Int): String {
     return (listOf(date) + details).joinToString(separator)
 }
 
-/** 识别模型在界面上的名字。 */
+/** 这次识别用的模型在界面上的名字：演示模式，或服务商给的模型 id。 */
 @Composable
 @ReadOnlyComposable
-fun visionModelLabel(choice: VisionModelChoice): String = stringResource(
-    when (choice) {
-        VisionModelChoice.CLAUDE_HAIKU -> R.string.ds_model_claude_haiku
-        VisionModelChoice.CLAUDE_SONNET -> R.string.ds_model_claude_sonnet
-        VisionModelChoice.SAMPLE -> R.string.ds_model_sample
+fun modelUseLabel(use: ModelUse): String = when (use) {
+    ModelUse.Demo -> stringResource(R.string.ds_model_demo)
+    is ModelUse.Real -> use.ref.modelId
+}
+
+/** 服务商的名字。 */
+@Composable
+@ReadOnlyComposable
+fun providerLabel(provider: AiProvider): String = stringResource(
+    when (provider) {
+        AiProvider.ANTHROPIC -> R.string.ds_provider_anthropic
+        AiProvider.OPENAI -> R.string.ds_provider_openai
+        AiProvider.GEMINI -> R.string.ds_provider_gemini
+        AiProvider.DEEPSEEK -> R.string.ds_provider_deepseek
+        AiProvider.CUSTOM -> R.string.ds_provider_custom
     },
 )

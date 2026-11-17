@@ -2,20 +2,17 @@ package com.openbite.feature.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.openbite.core.domain.AiOverview
 import com.openbite.core.domain.ClearAllDataUseCase
-import com.openbite.core.domain.ClearApiKeyUseCase
+import com.openbite.core.domain.ObserveAiOverviewUseCase
+import com.openbite.core.domain.SetDemoModeUseCase
 import com.openbite.core.model.ReminderSettings
 import com.openbite.core.domain.ObserveKeepLocationUseCase
 import com.openbite.core.domain.ObserveReminderSettingsUseCase
 import com.openbite.core.domain.SetKeepLocationUseCase
 import com.openbite.core.domain.ObserveTasteProfileUseCase
 import com.openbite.core.domain.SetReminderSettingsUseCase
-import com.openbite.core.domain.ObserveVisionSettingsUseCase
 import com.openbite.core.domain.TastePhrases
-import com.openbite.core.domain.SaveApiKeyUseCase
-import com.openbite.core.domain.SetVisionModelUseCase
-import com.openbite.core.domain.VisionSettings
-import com.openbite.core.model.VisionModelChoice
 import com.openbite.core.domain.LoadSampleDataUseCase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +25,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /** 操作完成后给用户的一次性提示。 */
-enum class SettingsMessage { SAMPLE_LOADED, SAMPLE_SKIPPED_NOT_EMPTY, CLEARED, FAILED, KEY_SAVED, KEY_INVALID, KEY_CLEARED }
+enum class SettingsMessage { SAMPLE_LOADED, SAMPLE_SKIPPED_NOT_EMPTY, CLEARED, FAILED }
 
 data class SettingsUiState(
     val isWorking: Boolean = false,
@@ -41,8 +38,8 @@ data class SettingsUiState(
     val reminders: ReminderSettings? = null,
     /** “我的口味”那一行的摘要；没设过为 null。加载完之前也是 null。 */
     val tasteSummary: String? = null,
-    /** 识别模型和 API Key（只有打码后的样子）。加载完之前为 null。 */
-    val vision: VisionSettings? = null,
+    /** 识别模型：选的哪个、连了几家、演示模式。加载完之前为 null。 */
+    val ai: AiOverview? = null,
 )
 
 /** 页面自己的临时状态（忙不忙、确认框、提示）。 */
@@ -55,10 +52,8 @@ private data class SettingsLocal(
 class SettingsViewModel(
     private val loadSampleData: LoadSampleDataUseCase,
     private val clearAllData: ClearAllDataUseCase,
-    observeVisionSettings: ObserveVisionSettingsUseCase,
-    private val setVisionModel: SetVisionModelUseCase,
-    private val saveApiKey: SaveApiKeyUseCase,
-    private val clearApiKey: ClearApiKeyUseCase,
+    observeAi: ObserveAiOverviewUseCase,
+    private val setDemoMode: SetDemoModeUseCase,
     observeTaste: ObserveTasteProfileUseCase,
     observeReminders: ObserveReminderSettingsUseCase,
     private val setReminderSettings: SetReminderSettingsUseCase,
@@ -74,9 +69,9 @@ class SettingsViewModel(
         observeKeepLocation(),
         observeReminders(),
         observeTaste().map { TastePhrases.summary(it) },
-        observeVisionSettings(),
-    ) { local, keep, reminders, taste, vision ->
-        SettingsUiState(local.isWorking, local.confirmingClear, local.message, keep, reminders, taste, vision)
+        observeAi(),
+    ) { local, keep, reminders, taste, ai ->
+        SettingsUiState(local.isWorking, local.confirmingClear, local.message, keep, reminders, taste, ai)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
 
     fun setKeepLocation(keep: Boolean) {
@@ -87,18 +82,8 @@ class SettingsViewModel(
         viewModelScope.launch { setReminderSettings(ReminderSettings(meal, milestones)) }
     }
 
-    fun chooseModel(choice: VisionModelChoice) {
-        viewModelScope.launch { setVisionModel(choice) }
-    }
-
-    /** 保存粘贴的 Key。返回前不回显、不记日志。 */
-    fun saveKey(rawKey: String) = launchAction {
-        if (saveApiKey(rawKey)) SettingsMessage.KEY_SAVED else SettingsMessage.KEY_INVALID
-    }
-
-    fun clearKey() = launchAction {
-        clearApiKey()
-        SettingsMessage.KEY_CLEARED
+    fun setDemoMode(on: Boolean) {
+        viewModelScope.launch { setDemoMode.invoke(on) }
     }
 
     fun loadSample() = launchAction {

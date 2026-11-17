@@ -1,14 +1,11 @@
 package com.openbite.core.network
 
+import com.openbite.core.model.ProviderModel
 import com.openbite.core.model.ScannedReceipt
 import io.ktor.client.HttpClient
-import io.ktor.client.HttpClientConfig
-import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.network.sockets.ConnectTimeoutException
-import io.ktor.client.network.sockets.SocketTimeoutException
-import io.ktor.client.plugins.HttpRequestTimeoutException
-import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import io.ktor.client.request.preparePost
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsChannel
@@ -16,50 +13,35 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.content.TextContent
 import io.ktor.utils.io.readLine
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-/** Anthropic 的模型 id 都放在这里，别处不要写死（已确认 claude-haiku-5-5 / claude-sonnet-5-5）。 */
-object AnthropicModels {
-    const val HAIKU = "claude-haiku-5-5"
-    const val SONNET = "claude-sonnet-5-5"
-
-    const val API_URL = "https://api.anthropic.com/v1/messages"
+/** Anthropic 接口的固定部分。不写模型名：模型从 /v1/models 拉。 */
+object AnthropicApi {
     const val API_VERSION = "2023-06-01"
 }
 
-/** 识别用的 HTTP 客户端：不自动抛状态码异常（我们自己映射），带超时。引擎由平台给。 */
-fun createVisionHttpClient(engine: HttpClientEngine, extra: HttpClientConfig<*>.() -> Unit = {}): HttpClient =
-    HttpClient(engine) {
-        expectSuccess = false
-        install(HttpTimeout) {
-            connectTimeoutMillis = 15_000
-            // 两段 SSE 之间最多等 60 秒；整次识别最多 3 分钟。
-            socketTimeoutMillis = 60_000
-            requestTimeoutMillis = 180_000
-        }
-        extra()
-    }
-
-/** Claude 视觉识别：Messages API + stream=true，图片 base64 JPEG。菜单输出 NDJSON，小票输出一个 JSON 对象。 */
+/** Claude 视觉识别：Messages API + stream=true，图片 base64。菜单输出 NDJSON，小票输出一个 JSON 对象。 */
 class ClaudeVisionModel(
     private val client: HttpClient,
     override val id: String,
+    /** 如 https://api.anthropic.com/v1，结尾不带 /。 */
+    private val baseUrl: String,
     private val maxTokens: Int = 4096,
-    private val url: String = AnthropicModels.API_URL,
 ) : VisionModel {
 
     override fun scanMenu(request: MenuScanRequest): Flow<ScanEvent> = flow {
         val parser = NdjsonMenuParser()
-        streamText(request.jpegBytes, request.apiKey, MenuPrompt.system(request.targetLang), MenuPrompt.user(request.targetLang)) { text ->
+        streamText(jpeg(request.jpegBytes), JPEG, request.apiKey, MenuPrompt.system(request.targetLang), MenuPrompt.user(request.targetLang), maxTokens) { text ->
             parser.feed(text).forEach { emit(it) }
         }
         parser.finish().forEach { emit(it) }
@@ -68,17 +50,25 @@ class ClaudeVisionModel(
 
     override suspend fun readReceipt(request: ReceiptReadRequest): ScannedReceipt {
         val text = StringBuilder()
-        streamText(request.jpegBytes, request.apiKey, ReceiptPrompt.system(request.targetLang), ReceiptPrompt.USER) { text.append(it) }
+        streamText(jpeg(request.jpegBytes), JPEG, request.apiKey, ReceiptPrompt.system(request.targetLang), ReceiptPrompt.USER, maxTokens) { text.append(it) }
         return parseReceipt(text.toString()) ?: throw VisionException.StreamError("unreadable_receipt", null)
     }
 
-    /** 发一张图和两段提示词，流式收文本增量。出错抛 [VisionException]。 */
+    override suspend fun checkVision(apiKey: String): Boolean = VisionProbe.run { onText ->
+        streamText(VisionProbe.PNG_BASE64, VisionProbe.MEDIA_TYPE, apiKey, VisionProbe.SYSTEM, VisionProbe.USER, 64, onText)
+    }
+
     @OptIn(ExperimentalEncodingApi::class)
+    private fun jpeg(bytes: ByteArray): String = Base64.encode(bytes)
+
+    /** 发一张图和两段提示词，流式收文本增量。出错抛 [VisionException]。 */
     private suspend fun streamText(
-        jpegBytes: ByteArray,
+        imageBase64: String,
+        mediaType: String,
         apiKeyOrNull: String?,
         system: String,
         user: String,
+        maxTokens: Int,
         onText: suspend (String) -> Unit,
     ) {
         val apiKey = apiKeyOrNull?.takeIf { it.isNotBlank() } ?: throw VisionException.Unauthorized(401)
@@ -95,8 +85,8 @@ class ClaudeVisionModel(
                             put("type", "image")
                             putJsonObject("source") {
                                 put("type", "base64")
-                                put("media_type", "image/jpeg")
-                                put("data", Base64.encode(jpegBytes))
+                                put("media_type", mediaType)
+                                put("data", imageBase64)
                             }
                         }
                         addJsonObject {
@@ -108,17 +98,17 @@ class ClaudeVisionModel(
             }
         }.toString()
 
-        try {
-            client.preparePost(url) {
+        mapTransportErrors {
+            client.preparePost("$baseUrl/messages") {
                 header("x-api-key", apiKey)
-                header("anthropic-version", AnthropicModels.API_VERSION)
+                header("anthropic-version", AnthropicApi.API_VERSION)
                 header("accept", "text/event-stream")
                 setBody(TextContent(body, ContentType.Application.Json))
             }.execute { response ->
                 val status = response.status.value
                 if (status !in 200..299) {
                     // 400 类错误只取 Anthropic 的错误类型，不留响应正文。
-                    val detail = if (status in 400..499) errorType(response.bodyAsText()) else null
+                    val detail = if (status in 400..499) anthropicErrorType(response.bodyAsText()) else null
                     visionExceptionFor(status, detail)?.let { throw it }
                 }
                 val channel = response.bodyAsChannel()
@@ -133,18 +123,6 @@ class ClaudeVisionModel(
                 // 没等到 message_stop 连接就断了（代理截断、网络中途断开）：结果不完整。
                 throw VisionException.Truncated("eof")
             }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: VisionException) {
-            throw e
-        } catch (e: HttpRequestTimeoutException) {
-            throw VisionException.Timeout(e)
-        } catch (e: ConnectTimeoutException) {
-            throw VisionException.Timeout(e)
-        } catch (e: SocketTimeoutException) {
-            throw VisionException.Timeout(e)
-        } catch (e: Exception) {
-            throw VisionException.Network(e)
         }
     }
 
@@ -167,6 +145,7 @@ class ClaudeVisionModel(
                 "overloaded_error", "api_error" -> VisionException.Unavailable(529)
                 "rate_limit_error" -> VisionException.RateLimited()
                 "authentication_error", "permission_error" -> VisionException.Unauthorized(401)
+                "not_found_error" -> VisionException.ModelNotFound(part.type)
                 else -> VisionException.StreamError(part.type, part.message)
             }
             AnthropicStreamPart.Stop -> {
@@ -176,7 +155,39 @@ class ClaudeVisionModel(
             null -> false
         }
 
-    private fun errorType(body: String): String? = runCatching {
-        parseAnthropicEvent(SseEvent("error", body)).let { (it as? AnthropicStreamPart.Error)?.type }
-    }.getOrNull()
+    private companion object {
+        const val JPEG = "image/jpeg"
+    }
+}
+
+internal fun anthropicErrorType(body: String): String? = runCatching {
+    parseAnthropicEvent(SseEvent("error", body)).let { (it as? AnthropicStreamPart.Error)?.type }
+}.getOrNull()
+
+/**
+ * GET /v1/models，按服务商给的顺序（新的在前），分页拉完（最多 10 页）。出错抛 [VisionException]。
+ */
+internal suspend fun listAnthropicModels(client: HttpClient, baseUrl: String, apiKey: String): List<ProviderModel> = mapTransportErrors {
+    val models = mutableListOf<ProviderModel>()
+    var after: String? = null
+    repeat(10) {
+        val response = client.get("$baseUrl/models") {
+            header("x-api-key", apiKey)
+            header("anthropic-version", AnthropicApi.API_VERSION)
+            parameter("limit", 1000)
+            after?.let { parameter("after_id", it) }
+        }
+        val text = response.bodyAsText()
+        visionExceptionFor(response.status.value, anthropicErrorType(text))?.let { throw it }
+        val obj = runCatching { lenientJson.parseToJsonElement(text).jsonObject }.getOrNull()
+            ?: throw VisionException.BadRequest(response.status.value, "unreadable_models")
+        obj["data"]?.jsonArray?.forEach { item ->
+            val model = item as? kotlinx.serialization.json.JsonObject ?: return@forEach
+            val id = model.string("id")?.takeIf { it.isNotBlank() } ?: return@forEach
+            models += ProviderModel(id, model.string("display_name"))
+        }
+        if (obj.string("has_more") != "true") return@mapTransportErrors models
+        after = obj.string("last_id") ?: return@mapTransportErrors models
+    }
+    models
 }

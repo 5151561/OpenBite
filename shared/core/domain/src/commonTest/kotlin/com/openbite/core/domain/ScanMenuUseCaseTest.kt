@@ -23,10 +23,12 @@ import com.openbite.core.model.Place
 import com.openbite.core.model.ScanError
 import com.openbite.core.model.ScanException
 import com.openbite.core.model.TasteProfile
-import com.openbite.core.model.VisionModelChoice
+import com.openbite.core.model.AiProvider
+import com.openbite.core.model.AiSettings
+import com.openbite.core.model.ModelUse
 import com.openbite.core.model.maskApiKey
 import com.openbite.core.network.SampleVisionModel
-import com.openbite.core.network.VisionModelRegistry
+import com.openbite.core.network.AiProviderClient
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respondError
@@ -52,7 +54,7 @@ class ScanMenuUseCaseTest {
         photos: FakePhotoStore = FakePhotoStore(),
         gps: Pair<Double, Double>? = null,
         current: Pair<Double, Double>? = 35.0 to 135.7,
-        prefs: FakePreferences = FakePreferences(),
+        prefs: FakePreferences = FakePreferences(AiSettings(demoMode = true)),
         secrets: FakeSecrets = FakeSecrets(),
         client: HttpClient = noNetwork,
         temp: FakeTempFiles = FakeTempFiles(),
@@ -69,8 +71,7 @@ class ScanMenuUseCaseTest {
             photoStore = photos,
             scans = repo,
             preferences = prefs,
-            secrets = secrets,
-            models = VisionModelRegistry(client),
+            activeModel = ActiveVisionModel(prefs, secrets, AiProviderClient(client)),
             ids = IdGenerator { "id-${++n}" },
             now = NowProvider { 1_000L },
             tempFiles = temp,
@@ -85,22 +86,26 @@ class ScanMenuUseCaseTest {
 
         val failed = FakeTempFiles()
         assertFailsWith<ScanException> {
-            useCase(secrets = FakeSecrets("sk-ant-bad"), temp = failed).invoke(request()) { true }.toList()
+            useCase(prefs = realModel(), secrets = badKey(), temp = failed).invoke(request()) { true }.toList()
         }
         assertTrue(failed.discarded.isEmpty(), "失败时留着原图给重试")
     }
 
-    private fun request(placeId: String? = null, override: VisionModelChoice? = null) =
-        ScanMenuRequest("content://photo/1", placeId, defaultPlaceName = "新店铺", modelOverride = override)
+    private fun request(placeId: String? = null) = ScanMenuRequest("content://photo/1", placeId, defaultPlaceName = "新店铺")
+
+    /** 演示模式关着，选了 Anthropic 的一个模型。 */
+    private fun realModel() = FakePreferences(AiSettings(selected = "ANTHROPIC:claude-test"))
+
+    private fun badKey() = FakeSecrets(mapOf(AiProvider.ANTHROPIC to "sk-ant-bad"))
 
     @Test
-    fun noKeyFallsBackToSampleAndCreatesPlaceFromHeader() = runTest {
+    fun demoModeUsesSampleAndCreatesPlaceFromHeader() = runTest {
         val repo = FakeMenuScans()
         val photos = FakePhotoStore()
         var asked = false
         val updates = useCase(repo, photos, gps = 35.01 to 135.77).invoke(request()) { asked = true; true }.toList()
 
-        assertEquals(ScanUpdate.Started(VisionModelChoice.SAMPLE), updates.first())
+        assertEquals(ScanUpdate.Started(ModelUse.Demo), updates.first())
         assertTrue(updates.filterIsInstance<ScanUpdate.Prepared>().single().hasLocation)
         assertFalse(asked, "照片有 GPS 时不该要定位权限")
         assertEquals(7, updates.filterIsInstance<ScanUpdate.DishFound>().size)
@@ -161,7 +166,7 @@ class ScanMenuUseCaseTest {
     @Test
     fun keepLocationOffIgnoresGpsAndNeverAsks() = runTest {
         val repo = FakeMenuScans()
-        val prefs = FakePreferences().apply { keepLocation.value = false }
+        val prefs = FakePreferences(AiSettings(demoMode = true)).apply { keepLocation.value = false }
         var asked = false
         val updates = useCase(repo, gps = 35.01 to 135.77, prefs = prefs).invoke(request()) { asked = true; true }.toList()
         assertFalse(asked)
@@ -177,11 +182,12 @@ class ScanMenuUseCaseTest {
     }
 
     @Test
-    fun forcingRealModelWithoutKeyFails() = runTest {
-        val error = assertFailsWith<ScanException> {
-            useCase().invoke(request(override = VisionModelChoice.CLAUDE_HAIKU)) { true }.toList()
-        }
-        assertEquals(ScanError.NO_API_KEY, error.error)
+    fun noModelOrNoKeyFails() = runTest {
+        val none = assertFailsWith<ScanException> { useCase(prefs = FakePreferences()).invoke(request()) { true }.toList() }
+        assertEquals(ScanError.NO_MODEL, none.error)
+        // 选了模型，但那家的 Key 被清掉了。
+        val noKey = assertFailsWith<ScanException> { useCase(prefs = realModel()).invoke(request()) { true }.toList() }
+        assertEquals(ScanError.NO_MODEL, noKey.error)
     }
 
     @Test
@@ -189,7 +195,7 @@ class ScanMenuUseCaseTest {
         val repo = FakeMenuScans()
         val photos = FakePhotoStore()
         val error = assertFailsWith<ScanException> {
-            useCase(repo, photos, secrets = FakeSecrets("sk-ant-bad")).invoke(request()) { true }.toList()
+            useCase(repo, photos, prefs = realModel(), secrets = badKey()).invoke(request()) { true }.toList()
         }
         assertEquals(ScanError.INVALID_API_KEY, error.error)
         assertEquals(null, repo.saved)
@@ -197,20 +203,10 @@ class ScanMenuUseCaseTest {
     }
 
     @Test
-    fun visionSettingsMaskKeyAndFallBack() = runTest {
-        val secrets = FakeSecrets()
-        val prefs = FakePreferences(VisionModelChoice.CLAUDE_SONNET)
-        val observe = ObserveVisionSettingsUseCase(prefs, secrets)
-        assertEquals(VisionModelChoice.SAMPLE, observe().first().effective)
-        assertFalse(SaveApiKeyUseCase(secrets)("  "))
-        assertFalse(SaveApiKeyUseCase(secrets)("sk ant"))
-        assertTrue(SaveApiKeyUseCase(secrets)("  sk-ant-api03-abcdefghijklWXYZ \n"))
-        val settings = observe().first()
-        assertEquals(VisionModelChoice.CLAUDE_SONNET, settings.effective)
-        assertEquals("sk-ant-••••WXYZ", settings.maskedKey)
-        assertEquals("sk-ant-api03-abcdefghijklWXYZ", secrets.get(SecretKeys.ANTHROPIC_API_KEY))
-        ClearApiKeyUseCase(secrets)()
-        assertEquals(null, observe().first().maskedKey)
+    fun masksKeys() {
+        assertEquals("sk-ant-••••WXYZ", maskApiKey("sk-ant-api03-abcdefghijklWXYZ"))
+        assertEquals("sk-proj-••••WXYZ", maskApiKey("sk-proj-abcdefghijklWXYZ"))
+        assertEquals("••••WXYZ", maskApiKey("AIzaabcdefghijklWXYZ"))
         assertEquals("••••••••", maskApiKey("short"))
     }
 }

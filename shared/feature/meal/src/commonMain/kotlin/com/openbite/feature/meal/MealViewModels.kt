@@ -18,7 +18,7 @@ import com.openbite.core.model.Money
 import com.openbite.core.model.PhotoKind
 import com.openbite.core.model.ScanError
 import com.openbite.core.model.ScanException
-import com.openbite.core.model.VisionModelChoice
+import com.openbite.core.model.ModelUse
 import com.openbite.core.model.moneyInputText
 import com.openbite.core.model.parseMoneyInput
 import com.openbite.core.model.ScannedReceipt
@@ -184,7 +184,7 @@ data class ReceiptArchiveUiState(
     /** 这次新拍的小票（还没存进数据库）。 */
     val newPhoto: NewPhoto? = null,
     val reading: ScannedReceipt? = null,
-    val model: VisionModelChoice? = null,
+    val model: ModelUse? = null,
     val error: ScanError? = null,
     val currency: String = DEFAULT_CURRENCY,
     /** 实付金额输入框里的字。 */

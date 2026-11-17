@@ -36,7 +36,8 @@ class ClaudeVisionModelTest {
                     respond(ByteReadChannel(body), status, sseHeaders)
                 },
             ),
-            id = AnthropicModels.HAIKU,
+            id = "claude-test-model",
+            baseUrl = "https://api.anthropic.com/v1",
         )
 
     @Test
@@ -59,9 +60,9 @@ class ClaudeVisionModelTest {
         assertTrue(finished.rawOutput.contains("烤鸡肉串拼盘"))
 
         assertEquals("sk-ant-test-key", sentHeaders["x-api-key"])
-        assertEquals(AnthropicModels.API_VERSION, sentHeaders["anthropic-version"])
+        assertEquals(AnthropicApi.API_VERSION, sentHeaders["anthropic-version"])
         val json = lenientJson.parseToJsonElement(sentBody).jsonObject
-        assertEquals(AnthropicModels.HAIKU, json["model"]!!.jsonPrimitive.content)
+        assertEquals("claude-test-model", json["model"]!!.jsonPrimitive.content)
         assertEquals("true", json["stream"]!!.jsonPrimitive.content)
         val image = json["messages"]!!.jsonArray[0].jsonObject["content"]!!.jsonArray[0].jsonObject["source"]!!.jsonObject
         assertEquals("image/jpeg", image["media_type"]!!.jsonPrimitive.content)

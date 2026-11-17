@@ -2,7 +2,7 @@ package com.openbite.core.data.platform
 
 import com.openbite.core.model.ReminderSettings
 import com.openbite.core.model.TasteProfile
-import com.openbite.core.model.VisionModelChoice
+import com.openbite.core.model.AiSettings
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -95,9 +95,11 @@ interface TempFiles {
 
 /** 普通设置（不含密钥）：Android 存 DataStore Preferences。 */
 interface PreferencesStore {
-    /** 用户选的识别模型；没选过发 null。 */
-    fun observeVisionModel(): Flow<VisionModelChoice?>
-    suspend fun setVisionModel(choice: VisionModelChoice)
+    /** 识别模型的设置：选的模型、演示模式、接口地址、模型列表、试图结果。没设过发默认值。 */
+    fun observeAiSettings(): Flow<AiSettings>
+
+    /** 原子地改一次（读-改-写在一个事务里）。 */
+    suspend fun updateAiSettings(transform: (AiSettings) -> AiSettings)
 
     /** 我的口味；没设过或读不出来时发 [TasteProfile.EMPTY]。 */
     fun observeTasteProfile(): Flow<TasteProfile>
@@ -124,5 +126,6 @@ interface PreferencesStore {
 
 /** SecretStore 里的键名。 */
 object SecretKeys {
-    const val ANTHROPIC_API_KEY = "anthropic_api_key"
+    /** 每家一个键，见 [com.openbite.core.model.AiProvider.secretKey]。 */
+    fun apiKey(provider: com.openbite.core.model.AiProvider): String = provider.secretKey
 }

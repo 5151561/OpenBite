@@ -39,6 +39,14 @@ data class ReceiptKey(val sessionId: String) : NavKey
 @Serializable
 data object TasteKey : NavKey
 
+/** AI 服务商列表。 */
+@Serializable
+data object AiProvidersKey : NavKey
+
+/** 一家服务商：[provider] 是 AiProvider 的名字。 */
+@Serializable
+data class AiProviderKey(val provider: String) : NavKey
+
 /** 地图与时间胶囊（06）：压在当前 Tab 上，底部导航照常显示。[focusPlaceId] 是先选中的店。 */
 @Serializable
 data class MapKey(val focusPlaceId: String? = null) : NavKey

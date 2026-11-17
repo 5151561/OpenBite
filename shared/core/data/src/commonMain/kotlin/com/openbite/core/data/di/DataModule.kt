@@ -19,7 +19,7 @@ import com.openbite.core.data.SampleDataRepository
 import com.openbite.core.data.seed.SeedImporter
 import com.openbite.core.database.OpenBiteDatabase
 import com.openbite.core.database.buildOpenBite
-import com.openbite.core.network.VisionModelRegistry
+import com.openbite.core.network.AiProviderClient
 import io.ktor.client.HttpClient
 import androidx.room.RoomDatabase
 import com.openbite.core.data.InMemoryOrderSessionRepository
@@ -45,5 +45,5 @@ val dataModule: Module = module {
     single<MealRepository> { RoomMealRepository(get()) }
     single<PlaceImportRepository> { RoomPlaceImportRepository(get()) }
     single<com.openbite.core.data.PlaceRemovalRepository> { com.openbite.core.data.RoomPlaceRemovalRepository(get()) }
-    single { VisionModelRegistry(get<HttpClient>()) }
+    single { AiProviderClient(get<HttpClient>()) }
 }

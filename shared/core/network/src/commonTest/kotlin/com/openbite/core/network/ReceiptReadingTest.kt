@@ -55,7 +55,8 @@ class ReceiptReadingTest {
                 respond(ByteReadChannel(body), status, headersOf(HttpHeaders.ContentType, "text/event-stream"))
             },
         ),
-        AnthropicModels.HAIKU,
+        "claude-test-model",
+        "https://api.anthropic.com/v1",
     )
 
     @Test

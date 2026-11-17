@@ -28,13 +28,15 @@
     <string name="scan_allergens_note">过敏原是模型推测，仅供参考，请向店员确认。</string>
 
     <string name="scan_retry">重试</string>
-    <string name="scan_use_sample">改用示例菜单</string>
-    <string name="scan_open_settings">去设置填 Key</string>
+    <string name="scan_connect_ai">去连一家 AI</string>
+    <string name="scan_check_key">去检查 Key</string>
+    <string name="scan_pick_model">去换模型</string>
     <string name="scan_retake">重新拍</string>
     <string name="scan_no_camera">没有找到相机应用。</string>
 
-    <string name="scan_error_no_api_key">还没填 API Key。可以先用示例菜单体验，或去设置里填 Key。</string>
-    <string name="scan_error_invalid_api_key">API Key 无效或没有权限，请在设置里检查。</string>
+    <string name="scan_error_no_model">还没选识别模型。连一家 AI 选好模型，回来点重试。</string>
+    <string name="scan_error_invalid_api_key">API Key 无效或没有权限，去检查一下，回来点重试。</string>
+    <string name="scan_error_model_gone">选的模型这家已经没有了，换一个，回来点重试。</string>
     <string name="scan_error_rate_limited">请求太频繁或额度用完了，稍后再试。</string>
     <string name="scan_error_service_unavailable">模型服务暂时忙不过来，稍后再试。</string>
     <string name="scan_error_timeout">识别超时了，网络可能不太好。</string>

@@ -78,13 +78,15 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.openbite.android.core.designsystem.icon.OpenBiteIcons
-import com.openbite.android.core.designsystem.text.visionModelLabel
+import com.openbite.android.core.designsystem.text.modelUseLabel
 import com.openbite.android.core.designsystem.theme.OpenBiteTheme
 import com.openbite.android.core.designsystem.theme.Spacing
 import com.openbite.core.domain.ScanResult
 import com.openbite.core.model.Money
 import com.openbite.core.model.ScanError
-import com.openbite.core.model.VisionModelChoice
+import com.openbite.core.model.ModelRef
+import com.openbite.core.model.AiProvider
+import com.openbite.core.model.ModelUse
 import com.openbite.core.model.formatMoney
 import com.openbite.core.model.ScannedDish
 import com.openbite.feature.scan.ScanPhase
@@ -97,7 +99,6 @@ fun ScanScreen(
     state: ScanUiState,
     onBack: () -> Unit = {},
     onRetry: () -> Unit = {},
-    onUseSample: () -> Unit = {},
     onRetake: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
     onOrder: () -> Unit = {},
@@ -105,7 +106,7 @@ fun ScanScreen(
 ) {
     val scheme = MaterialTheme.colorScheme
     val sheet: @Composable () -> Unit = {
-        Sheet(state, onBack, onRetry, onUseSample, onRetake, onOpenSettings, onOrder, onRename)
+        Sheet(state, onBack, onRetry, onRetake, onOpenSettings, onOrder, onRename)
     }
     BoxWithConstraints(Modifier.fillMaxSize().background(scheme.inverseSurface)) {
         if (maxHeight < CompactHeight) {
@@ -226,7 +227,6 @@ private fun Sheet(
     state: ScanUiState,
     onBack: () -> Unit,
     onRetry: () -> Unit,
-    onUseSample: () -> Unit,
     onRetake: () -> Unit,
     onOpenSettings: () -> Unit,
     onOrder: () -> Unit,
@@ -250,10 +250,10 @@ private fun Sheet(
             state.hasLocation?.let {
                 InfoChip(stringResource(if (it) R.string.scan_chip_exif_location else R.string.scan_chip_exif), check = true)
             }
-            state.model?.let { InfoChip(visionModelLabel(it), check = false) }
+            state.model?.let { InfoChip(modelUseLabel(it), check = false) }
         }
         DishList(state, Modifier.weight(1f))
-        Actions(state, onBack, onRetry, onUseSample, onRetake, onOpenSettings, onOrder, onRename)
+        Actions(state, onBack, onRetry, onRetake, onOpenSettings, onOrder, onRename)
     }
 }
 
@@ -366,7 +366,6 @@ private fun Actions(
     state: ScanUiState,
     onBack: () -> Unit,
     onRetry: () -> Unit,
-    onUseSample: () -> Unit,
     onRetake: () -> Unit,
     onOpenSettings: () -> Unit,
     onOrder: () -> Unit,
@@ -391,13 +390,12 @@ private fun Actions(
                 val error = state.error ?: ScanError.UNKNOWN
                 Text(stringResource(error.message()), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
                 val retry = R.string.scan_retry to onRetry
-                val sample = R.string.scan_use_sample to onUseSample
-                val settings = R.string.scan_open_settings to onOpenSettings
                 val retake = R.string.scan_retake to onRetake
+                // 去设置弄好再回来点重试：照片还在，不用重拍。
                 val actions = when (error) {
-                    ScanError.NO_API_KEY -> listOf(sample, settings)
-                    ScanError.INVALID_API_KEY -> listOf(settings, sample)
-                    ScanError.RATE_LIMITED -> listOf(retry, sample)
+                    ScanError.NO_MODEL -> listOf(R.string.scan_connect_ai to onOpenSettings, retry)
+                    ScanError.INVALID_API_KEY -> listOf(R.string.scan_check_key to onOpenSettings, retry)
+                    ScanError.MODEL_GONE -> listOf(R.string.scan_pick_model to onOpenSettings, retry)
                     ScanError.IMAGE_UNREADABLE, ScanError.NO_DISHES -> listOf(retake, retry)
                     ScanError.PLACE_MISSING -> listOf(R.string.scan_back to onBack)
                     else -> listOf(retry, retake)
@@ -474,8 +472,9 @@ private fun SavedNote(result: ScanResult, onRename: (String) -> Unit) {
 }
 
 private fun ScanError.message(): Int = when (this) {
-    ScanError.NO_API_KEY -> R.string.scan_error_no_api_key
+    ScanError.NO_MODEL -> R.string.scan_error_no_model
     ScanError.INVALID_API_KEY -> R.string.scan_error_invalid_api_key
+    ScanError.MODEL_GONE -> R.string.scan_error_model_gone
     ScanError.RATE_LIMITED -> R.string.scan_error_rate_limited
     ScanError.SERVICE_UNAVAILABLE -> R.string.scan_error_service_unavailable
     ScanError.TIMEOUT -> R.string.scan_error_timeout
@@ -500,7 +499,7 @@ private fun ScanReadingPreview() {
         ScanScreen(
             ScanUiState(
                 phase = ScanPhase.READING,
-                model = VisionModelChoice.CLAUDE_HAIKU,
+                model = ModelUse.Real(ModelRef(AiProvider.ANTHROPIC, "claude-vision-model")),
                 hasLocation = true,
                 estimatedDishCount = 7,
                 dishes = previewDishes,
@@ -517,7 +516,7 @@ private fun ScanReadingLandscapePreview() {
         ScanScreen(
             ScanUiState(
                 phase = ScanPhase.READING,
-                model = VisionModelChoice.CLAUDE_HAIKU,
+                model = ModelUse.Real(ModelRef(AiProvider.GEMINI, "gemini-vision-model")),
                 hasLocation = true,
                 estimatedDishCount = 7,
                 dishes = previewDishes,
@@ -533,7 +532,7 @@ private fun ScanDoneDarkPreview() {
         ScanScreen(
             ScanUiState(
                 phase = ScanPhase.DONE,
-                model = VisionModelChoice.SAMPLE,
+                model = ModelUse.Demo,
                 hasLocation = false,
                 dishes = previewDishes,
                 result = ScanResult("p", "新店铺 11月17日", isNewPlace = true, scanId = "s", dishCount = 3, added = 3, updated = 0),
@@ -544,8 +543,8 @@ private fun ScanDoneDarkPreview() {
 
 @Preview(widthDp = 412, heightDp = 892)
 @Composable
-private fun ScanNoKeyPreview() {
+private fun ScanNoModelPreview() {
     OpenBiteTheme(darkTheme = false) {
-        ScanScreen(ScanUiState(phase = ScanPhase.FAILED, model = VisionModelChoice.CLAUDE_HAIKU, error = ScanError.NO_API_KEY))
+        ScanScreen(ScanUiState(phase = ScanPhase.FAILED, error = ScanError.NO_MODEL))
     }
 }

@@ -124,7 +124,6 @@ fun ScanRoute(
         state = state,
         onBack = onBack,
         onRetry = { viewModel.retry() },
-        onUseSample = { viewModel.retry(useSample = true) },
         onRetake = {
             viewModel.reset()
             photoUri = null

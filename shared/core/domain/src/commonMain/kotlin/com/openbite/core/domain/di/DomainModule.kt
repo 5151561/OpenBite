@@ -19,14 +19,10 @@ import com.openbite.core.domain.PlaceOrderUseCase
 import com.openbite.core.domain.SaveTasteProfileUseCase
 import com.openbite.core.domain.SystemTimeZoneProvider
 import com.openbite.core.domain.TimeZoneProvider
-import com.openbite.core.domain.ClearApiKeyUseCase
 import com.openbite.core.domain.IdGenerator
 import com.openbite.core.domain.NowProvider
-import com.openbite.core.domain.ObserveVisionSettingsUseCase
 import com.openbite.core.domain.RenamePlaceUseCase
-import com.openbite.core.domain.SaveApiKeyUseCase
 import com.openbite.core.domain.ScanMenuUseCase
-import com.openbite.core.domain.SetVisionModelUseCase
 import com.openbite.core.domain.SystemNowProvider
 import com.openbite.core.domain.UuidGenerator
 import com.openbite.core.domain.LoadSampleDataUseCase
@@ -65,11 +61,14 @@ val sharedCoreModule: Module = module {
     factory { ClearAllDataUseCase(get(), get(), get()) }
     single<IdGenerator> { UuidGenerator() }
     single<NowProvider> { SystemNowProvider() }
-    factory { ScanMenuUseCase(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-    factory { ObserveVisionSettingsUseCase(get(), get()) }
-    factory { SetVisionModelUseCase(get()) }
-    factory { SaveApiKeyUseCase(get()) }
-    factory { ClearApiKeyUseCase(get()) }
+    factory { ScanMenuUseCase(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { com.openbite.core.domain.ActiveVisionModel(get(), get(), get()) }
+    factory { com.openbite.core.domain.ObserveAiOverviewUseCase(get(), get()) }
+    factory { com.openbite.core.domain.ConnectProviderUseCase(get(), get(), get(), get()) }
+    factory { com.openbite.core.domain.RefreshModelsUseCase(get(), get(), get(), get()) }
+    factory { com.openbite.core.domain.DisconnectProviderUseCase(get(), get()) }
+    factory { com.openbite.core.domain.SelectModelUseCase(get(), get(), get()) }
+    factory { com.openbite.core.domain.SetDemoModeUseCase(get()) }
     factory { RenamePlaceUseCase(get()) }
     single<TimeZoneProvider> { SystemTimeZoneProvider() }
     single { OrderSessions(get(), get()) }
@@ -80,7 +79,7 @@ val sharedCoreModule: Module = module {
     factory { AddMealPhotoUseCase(get(), get(), get(), get(), get()) }
     factory { DiscardPhotosUseCase(get(), get()) }
     factory { com.openbite.core.domain.DiscardCaptureUseCase(get(), get()) }
-    factory { ReadReceiptUseCase(get(), get(), get()) }
+    factory { ReadReceiptUseCase(get()) }
     factory { SaveReceiptUseCase(get(), get(), get()) }
     factory { ObserveReminderSettingsUseCase(get()) }
     factory { SetReminderSettingsUseCase(get(), get()) }

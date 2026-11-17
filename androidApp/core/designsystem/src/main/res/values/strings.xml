@@ -56,9 +56,12 @@
     <string name="ds_quote">「%1$s」</string>
 
     <!-- 识别模型 -->
-    <string name="ds_model_claude_haiku">Claude Haiku 5.5</string>
-    <string name="ds_model_claude_sonnet">Claude Sonnet 5.5</string>
-    <string name="ds_model_sample">示例菜单（不调用模型）</string>
+    <string name="ds_model_demo">演示模式</string>
+    <string name="ds_provider_anthropic">Anthropic</string>
+    <string name="ds_provider_openai">OpenAI</string>
+    <string name="ds_provider_gemini">Google Gemini</string>
+    <string name="ds_provider_deepseek">DeepSeek</string>
+    <string name="ds_provider_custom">自定义</string>
 
     <!-- 我的口味：选项名。小票上的句子在共享代码 TastePhrases 里，这里只是界面上的按钮。 -->
     <string name="ds_taste_allergens">过敏</string>

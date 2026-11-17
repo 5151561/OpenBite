@@ -1,20 +1,7 @@
 package com.openbite.android.feature.settings
 
 import androidx.compose.foundation.layout.Arrangement
-import com.openbite.android.core.designsystem.text.visionModelLabel
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.background
+import com.openbite.android.core.designsystem.text.providerLabel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -56,18 +43,18 @@ import com.openbite.android.core.designsystem.icon.OpenBiteIcons
 import com.openbite.android.core.designsystem.theme.OpenBiteTheme
 import com.openbite.android.core.designsystem.theme.Spacing
 import com.openbite.core.model.ReminderSettings
-import com.openbite.core.domain.VisionSettings
-import com.openbite.core.model.VisionModelChoice
+import com.openbite.core.domain.AiOverview
 import com.openbite.feature.settings.SettingsMessage
 import com.openbite.feature.settings.SettingsUiState
 import com.openbite.feature.settings.SettingsViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
-/** 设置页：口味、识别模型和 Key、隐私、手机助手、提醒、示例数据。 */
+/** 设置页：口味、识别模型（入口到 AI 服务商）、演示模式、隐私、手机助手、提醒、示例数据。 */
 @Composable
 fun SettingsRoute(
     onBack: () -> Unit,
     onOpenTaste: () -> Unit,
+    onOpenProviders: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -75,15 +62,14 @@ fun SettingsRoute(
         keepLocation = state.keepLocation,
         onKeepLocation = viewModel::setKeepLocation,
         state = state,
-        vision = state.vision,
+        ai = state.ai,
         tasteSummary = state.tasteSummary,
         reminders = state.reminders,
         onReminders = viewModel::setReminders,
         onBack = onBack,
         onOpenTaste = onOpenTaste,
-        onChooseModel = viewModel::chooseModel,
-        onSaveKey = viewModel::saveKey,
-        onClearKey = viewModel::clearKey,
+        onOpenProviders = onOpenProviders,
+        onDemoMode = viewModel::setDemoMode,
         onLoadSample = viewModel::loadSample,
         onRequestClear = viewModel::requestClear,
         onConfirmClear = viewModel::confirmClear,
@@ -96,7 +82,7 @@ fun SettingsRoute(
 @Composable
 fun SettingsScreen(
     state: SettingsUiState,
-    vision: VisionSettings? = null,
+    ai: AiOverview? = null,
     tasteSummary: String? = null,
     reminders: ReminderSettings? = null,
     keepLocation: Boolean? = null,
@@ -104,9 +90,8 @@ fun SettingsScreen(
     onReminders: (meal: Boolean, milestones: Boolean) -> Unit = { _, _ -> },
     onBack: () -> Unit = {},
     onOpenTaste: () -> Unit = {},
-    onChooseModel: (VisionModelChoice) -> Unit = {},
-    onSaveKey: (String) -> Unit = {},
-    onClearKey: () -> Unit = {},
+    onOpenProviders: () -> Unit = {},
+    onDemoMode: (Boolean) -> Unit = {},
     onLoadSample: () -> Unit = {},
     onRequestClear: () -> Unit = {},
     onConfirmClear: () -> Unit = {},
@@ -122,9 +107,6 @@ fun SettingsScreen(
             SettingsMessage.SAMPLE_SKIPPED_NOT_EMPTY -> R.string.settings_msg_sample_skipped
             SettingsMessage.CLEARED -> R.string.settings_msg_cleared
             SettingsMessage.FAILED -> R.string.settings_msg_failed
-            SettingsMessage.KEY_SAVED -> R.string.settings_msg_key_saved
-            SettingsMessage.KEY_INVALID -> R.string.settings_msg_key_invalid
-            SettingsMessage.KEY_CLEARED -> R.string.settings_msg_key_cleared
         }
         onMessageShown()
         snackbar.showSnackbar(resources.getString(text))
@@ -177,7 +159,7 @@ fun SettingsScreen(
             )
 
             SectionHeader(stringResource(R.string.settings_model_section), color = MaterialTheme.colorScheme.primary)
-            if (vision != null) VisionSection(vision, state.isWorking, onChooseModel, onSaveKey, onClearKey)
+            if (ai != null) ModelSection(ai, onOpenProviders, onDemoMode)
 
             SectionHeader(stringResource(R.string.settings_privacy_section), color = MaterialTheme.colorScheme.primary)
             SegmentedList {
@@ -263,7 +245,7 @@ private fun Note(text: String) {
 @Composable
 private fun SettingsScreenPreview() {
     OpenBiteTheme(darkTheme = false) {
-        SettingsScreen(SettingsUiState(), VisionSettings(VisionModelChoice.CLAUDE_HAIKU, VisionModelChoice.SAMPLE, null))
+        SettingsScreen(SettingsUiState(), previewOverview(selected = null, demo = false))
     }
 }
 
@@ -273,117 +255,70 @@ private fun SettingsConfirmClearDarkPreview() {
     OpenBiteTheme(darkTheme = true) {
         SettingsScreen(
             SettingsUiState(confirmingClear = true),
-            VisionSettings(VisionModelChoice.CLAUDE_HAIKU, VisionModelChoice.CLAUDE_HAIKU, "sk-ant-••••WXYZ"),
+            previewOverview(selected = com.openbite.core.model.ModelRef(com.openbite.core.model.AiProvider.OPENAI, "vision-model-1"), demo = true),
         )
     }
 }
 
-/** 识别模型：选模型 + API Key。没 Key 时需要 Key 的模型不能选，实际用示例菜单。 */
+/** 识别模型：正在用哪个、连了几家（点进去管服务商）、演示模式开关。 */
 @Composable
-private fun VisionSection(
-    vision: VisionSettings,
-    busy: Boolean,
-    onChooseModel: (VisionModelChoice) -> Unit,
-    onSaveKey: (String) -> Unit,
-    onClearKey: () -> Unit,
-) {
-    var menuOpen by remember { mutableStateOf(false) }
+private fun ModelSection(ai: AiOverview, onOpenProviders: () -> Unit, onDemoMode: (Boolean) -> Unit) {
+    val chevron: @Composable () -> Unit = {
+        Icon(OpenBiteIcons.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
     SegmentedList {
-        Box {
-            SegmentedListItem(
-                headline = stringResource(R.string.settings_model),
-                shape = segmentShape(0, 2),
-                trailing = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        TrailingText(visionModelLabel(vision.effective))
-                        Icon(OpenBiteIcons.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                },
-                onClick = { menuOpen = true },
-            )
-            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }, modifier = Modifier.align(Alignment.TopEnd)) {
-                VisionModelChoice.entries.forEach { choice ->
-                    val enabled = !choice.needsApiKey || vision.hasApiKey
-                    DropdownMenuItem(
-                        text = {
-                            Column {
-                                Text(visionModelLabel(choice))
-                                if (!enabled) {
-                                    Text(
-                                        stringResource(R.string.settings_model_needs_key),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            }
-                        },
-                        enabled = enabled,
-                        leadingIcon = {
-                            if (choice == vision.effective) Icon(OpenBiteIcons.Check, contentDescription = null)
-                        },
-                        onClick = {
-                            onChooseModel(choice)
-                            menuOpen = false
-                        },
-                    )
-                }
-            }
+        val selected = ai.selected
+        val modelText = when {
+            selected == null -> stringResource(R.string.settings_model_none)
+            !ai.selectedUsable -> stringResource(R.string.settings_model_unusable, ai.displayName(selected))
+            else -> "${ai.displayName(selected)} · ${providerLabel(selected.provider)}"
         }
-        val masked = vision.maskedKey
-        if (masked != null) {
-            SegmentedListItem(
-                headline = stringResource(R.string.settings_api_key),
-                supporting = masked,
-                shape = segmentShape(1, 2),
-                trailing = {
-                    TextButton(onClick = onClearKey, enabled = !busy) { Text(stringResource(R.string.settings_api_key_clear)) }
-                },
-            )
-        } else {
-            ApiKeyField(segmentShape(1, 2), busy, onSaveKey)
-        }
+        SegmentedListItem(
+            headline = stringResource(R.string.settings_model_in_use),
+            supporting = modelText,
+            shape = segmentShape(0, 2),
+            trailing = chevron,
+            onClick = onOpenProviders,
+        )
+        SegmentedListItem(
+            headline = stringResource(R.string.settings_providers),
+            supporting = if (ai.connectedCount == 0) {
+                stringResource(R.string.settings_providers_none)
+            } else {
+                stringResource(R.string.settings_providers_count, ai.connectedCount)
+            },
+            shape = segmentShape(1, 2),
+            trailing = chevron,
+            onClick = onOpenProviders,
+        )
     }
-    Note(stringResource(if (vision.hasApiKey) R.string.settings_model_note_key else R.string.settings_model_note))
+    Note(stringResource(R.string.settings_model_note))
+
+    SectionHeader(stringResource(R.string.settings_demo_section), color = MaterialTheme.colorScheme.primary)
+    SegmentedList {
+        SegmentedListItem(
+            headline = stringResource(R.string.settings_demo),
+            supporting = stringResource(R.string.settings_demo_hint),
+            shape = segmentShape(0, 1),
+            trailing = { Switch(checked = ai.demoMode, onCheckedChange = onDemoMode) },
+            onClick = { onDemoMode(!ai.demoMode) },
+        )
+    }
+    if (ai.demoMode) Note(stringResource(R.string.settings_demo_on_note))
 }
 
-@Composable
-private fun ApiKeyField(shape: androidx.compose.ui.graphics.Shape, busy: Boolean, onSaveKey: (String) -> Unit) {
-    // 输入框内容只在内存里，不进 saveable（避免进 Bundle）。
-    var input by remember { mutableStateOf("") }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceContainer, shape)
-            .padding(start = Spacing.l, end = Spacing.s, top = Spacing.s, bottom = Spacing.m),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
-    ) {
-        OutlinedTextField(
-            value = input,
-            onValueChange = { input = it },
-            modifier = Modifier.weight(1f),
-            label = { Text(stringResource(R.string.settings_api_key)) },
-            placeholder = { Text(stringResource(R.string.settings_api_key_placeholder)) },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                autoCorrectEnabled = false,
-                imeAction = ImeAction.Done,
-            ),
-            keyboardActions = KeyboardActions(onDone = {
-                if (input.isNotBlank()) {
-                    onSaveKey(input)
-                    input = ""
-                }
-            }),
+/** 预览用：OpenAI 已连接、其他没连。 */
+internal fun previewOverview(selected: com.openbite.core.model.ModelRef?, demo: Boolean): AiOverview = AiOverview(
+    providers = com.openbite.core.model.AiProvider.entries.map { p ->
+        com.openbite.core.domain.ProviderStatus(
+            provider = p,
+            maskedKey = if (p == com.openbite.core.model.AiProvider.OPENAI) "sk-proj-••••WXYZ" else null,
+            baseUrl = p.defaultBaseUrl,
+            customBaseUrl = false,
+            catalog = null,
         )
-        TextButton(
-            onClick = {
-                onSaveKey(input)
-                input = ""
-            },
-            enabled = input.isNotBlank() && !busy,
-        ) { Text(stringResource(R.string.settings_api_key_save)) }
-    }
-}
+    },
+    selected = selected,
+    demoMode = demo,
+    visionChecks = emptyMap(),
+)

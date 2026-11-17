@@ -13,14 +13,11 @@ import com.openbite.core.data.platform.TempFiles
 import com.openbite.core.model.Place
 import com.openbite.core.model.ScanError
 import com.openbite.core.model.ScanException
-import com.openbite.core.model.VisionModelChoice
-import com.openbite.core.model.effectiveVisionModel
-import com.openbite.core.model.maskApiKey
+import com.openbite.core.model.ModelUse
 import com.openbite.core.network.MenuScanRequest
 import com.openbite.core.network.ScanEvent
 import com.openbite.core.model.ScannedDish
 import com.openbite.core.network.VisionException
-import com.openbite.core.network.VisionModelRegistry
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -60,8 +57,6 @@ data class ScanMenuRequest(
     /** 菜单抬头认不出店名时用的名字，用户之后可以改。 */
     val defaultPlaceName: String,
     val targetLang: String = "zh-CN",
-    /** “换成示例菜单重试”时指定；null 表示按设置。 */
-    val modelOverride: VisionModelChoice? = null,
 )
 
 data class ScanResult(
@@ -78,7 +73,7 @@ data class ScanResult(
 
 sealed interface ScanUpdate {
     /** [placeName]：从店铺页发起时是这家店的名字，新店为 null。 */
-    data class Started(val model: VisionModelChoice, val placeName: String? = null) : ScanUpdate
+    data class Started(val model: ModelUse, val placeName: String? = null) : ScanUpdate
 
     /** 处理好的照片（已去 EXIF、压缩），界面直接显示它，和发给模型的是同一张。 */
     class PhotoReady(val jpegBytes: ByteArray) : ScanUpdate
@@ -109,8 +104,7 @@ class ScanMenuUseCase(
     private val photoStore: PhotoStore,
     private val scans: MenuScanRepository,
     private val preferences: PreferencesStore,
-    private val secrets: SecretStore,
-    private val models: VisionModelRegistry,
+    private val activeModel: ActiveVisionModel,
     private val ids: IdGenerator,
     private val now: NowProvider,
     private val tempFiles: TempFiles,
@@ -124,12 +118,9 @@ class ScanMenuUseCase(
         request: ScanMenuRequest,
         ensureLocationPermission: suspend () -> Boolean,
     ): Flow<ScanUpdate> = flow {
-        val apiKey = secrets.get(SecretKeys.ANTHROPIC_API_KEY)?.takeIf { it.isNotBlank() }
-        val choice = request.modelOverride
-            ?: effectiveVisionModel(preferences.observeVisionModel().first() ?: VisionModelChoice.DEFAULT, apiKey != null)
-        if (choice.needsApiKey && apiKey == null) throw ScanException(ScanError.NO_API_KEY)
+        val active = activeModel.resolve()
         val existingPlace = request.placeId?.let { scans.place(it) ?: throw ScanException(ScanError.PLACE_MISSING) }
-        emit(ScanUpdate.Started(choice, existingPlace?.name))
+        emit(ScanUpdate.Started(active.use, existingPlace?.name))
 
         val image = try {
             imageProcessor.process(request.sourceUri)
@@ -153,12 +144,12 @@ class ScanMenuUseCase(
         }
         emit(ScanUpdate.Prepared(location))
 
-        val model = models.modelFor(choice)
+        val model = active.model
         val dishes = mutableListOf<ScannedDish>()
         var header: ScanEvent.Header? = null
         var raw = ""
         try {
-            model.scanMenu(MenuScanRequest(image.jpegBytes, request.targetLang, apiKey)).collect { event ->
+            model.scanMenu(MenuScanRequest(image.jpegBytes, request.targetLang, active.apiKey)).collect { event ->
                 when (event) {
                     is ScanEvent.Header -> {
                         header = event
@@ -246,47 +237,8 @@ internal fun VisionException.toScanError(): ScanError = when (this) {
     is VisionException.Timeout -> ScanError.TIMEOUT
     is VisionException.Network -> ScanError.NETWORK
     is VisionException.Truncated -> ScanError.INCOMPLETE
+    is VisionException.ModelNotFound -> ScanError.MODEL_GONE
     is VisionException.BadRequest, is VisionException.StreamError -> ScanError.UNKNOWN
-}
-
-/** 设置页“识别模型”部分要显示的东西。Key 本身不出这一层，只给打码后的样子。 */
-data class VisionSettings(
-    val choice: VisionModelChoice,
-    /** 实际会用的模型：没 Key 时是示例菜单。 */
-    val effective: VisionModelChoice,
-    val maskedKey: String?,
-) {
-    val hasApiKey: Boolean get() = maskedKey != null
-}
-
-class ObserveVisionSettingsUseCase(private val preferences: PreferencesStore, private val secrets: SecretStore) {
-    operator fun invoke(): Flow<VisionSettings> =
-        combine(
-            preferences.observeVisionModel(),
-            secrets.observe(SecretKeys.ANTHROPIC_API_KEY),
-        ) { stored, key ->
-            val choice = stored ?: VisionModelChoice.DEFAULT
-            val present = key?.takeIf { it.isNotBlank() }
-            VisionSettings(choice, effectiveVisionModel(choice, present != null), present?.let(::maskApiKey))
-        }
-}
-
-class SetVisionModelUseCase(private val preferences: PreferencesStore) {
-    suspend operator fun invoke(choice: VisionModelChoice) = preferences.setVisionModel(choice)
-}
-
-class SaveApiKeyUseCase(private val secrets: SecretStore) {
-    /** 去掉首尾空白后保存；空的或中间有空白的不保存，返回 false。 */
-    suspend operator fun invoke(rawKey: String): Boolean {
-        val key = rawKey.trim()
-        if (key.isEmpty() || key.any { it.isWhitespace() }) return false
-        secrets.put(SecretKeys.ANTHROPIC_API_KEY, key)
-        return true
-    }
-}
-
-class ClearApiKeyUseCase(private val secrets: SecretStore) {
-    suspend operator fun invoke() = secrets.remove(SecretKeys.ANTHROPIC_API_KEY)
 }
 
 class RenamePlaceUseCase(private val places: PlaceRepository) {

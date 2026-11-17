@@ -16,7 +16,7 @@ import com.openbite.core.domain.ScanResult
 import com.openbite.core.domain.ScanUpdate
 import com.openbite.core.model.ScanError
 import com.openbite.core.model.ScanException
-import com.openbite.core.model.VisionModelChoice
+import com.openbite.core.model.ModelUse
 import com.openbite.core.model.ScannedDish
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -31,7 +31,7 @@ enum class ScanPhase { WAITING_PHOTO, PREPARING, READING, SAVING, DONE, FAILED }
 
 data class ScanUiState(
     val phase: ScanPhase = ScanPhase.WAITING_PHOTO,
-    val model: VisionModelChoice? = null,
+    val model: ModelUse? = null,
     /** 处理好的照片 JPEG（和发给模型的同一张）。 */
     val photo: ByteArray? = null,
     /** null：还不知道。 */
@@ -96,12 +96,12 @@ class ScanViewModel(
         start(ScanMenuRequest(sourceUri, placeId, defaultPlaceName, targetLang))
     }
 
-    /** 重试；[useSample] 为 true 时这次改用示例菜单（没 Key / Key 无效 / 额度用完时给的出路）。 */
-    fun retry(useSample: Boolean = false): Boolean {
+    /** 重试。去设置里连好模型、换了 Key 或开了演示模式再回来，也走这里，按最新设置识别。 */
+    fun retry(): Boolean {
         val request = lastRequest ?: return false
         if (state.value.isWorking) return false
         val photo = state.value.photo
-        start(request.copy(modelOverride = if (useSample) VisionModelChoice.SAMPLE else request.modelOverride))
+        start(request)
         // 重试时先把上次的照片放回去，界面不闪空。
         if (photo != null) state.update { it.copy(photo = photo) }
         return true

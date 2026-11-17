@@ -15,14 +15,63 @@
     <string name="taste_note">设一次就一直用。点单时还能临时改，只影响当次。档案只存在本机。</string>
 
     <string name="settings_model_section">识别模型</string>
-    <string name="settings_model">模型</string>
-    <string name="settings_model_needs_key">先填 API Key</string>
-    <string name="settings_model_note">没填 Key 时用示例菜单（不调用模型），也能体验全部流程。识别真实菜单要填你自己的 Anthropic API Key。</string>
-    <string name="settings_model_note_key">Key 用 Android Keystore 加密后只存在这台手机上，只在识别时发给 Anthropic。</string>
-    <string name="settings_api_key">API Key</string>
-    <string name="settings_api_key_placeholder">粘贴你的 API Key</string>
-    <string name="settings_api_key_save">保存</string>
-    <string name="settings_api_key_clear">清除</string>
+    <string name="settings_model_in_use">正在用</string>
+    <string name="settings_model_none">还没选</string>
+    <string name="settings_model_unusable">%1$s · 那家已断开</string>
+    <string name="settings_providers">AI 服务商</string>
+    <string name="settings_providers_none">还没连</string>
+    <string name="settings_providers_count">%1$d 家已连接</string>
+    <string name="settings_model_note">Key 用 Android Keystore 加密，只存在这台手机上，只在识别时发给你选的那家。</string>
+    <string name="settings_demo_section">演示</string>
+    <string name="settings_demo">演示模式</string>
+    <string name="settings_demo_hint">不联网，扫菜单、读小票都用示例</string>
+    <string name="settings_demo_on_note">演示模式开着：拍什么都出示例菜单，不会用你选的模型。</string>
+
+    <!-- AI 服务商列表 -->
+    <string name="providers_title">AI 服务商</string>
+    <string name="providers_back">返回设置</string>
+    <string name="providers_connected">已连接</string>
+    <string name="providers_not_set">未设置</string>
+    <string name="providers_in_use">正在用 %1$s</string>
+    <string name="providers_custom_hint">OpenAI 兼容接口</string>
+    <string name="providers_note">模型列表从服务商实时拉取，不写死。识别菜单要能看图的模型。</string>
+
+    <!-- 某一家的详情 -->
+    <string name="provider_back">返回服务商列表</string>
+    <string name="provider_key">API Key</string>
+    <string name="provider_key_placeholder">粘贴你的 API Key</string>
+    <string name="provider_base_url">接口地址</string>
+    <string name="provider_base_url_optional">接口地址（选填，用代理时改）</string>
+    <string name="provider_base_url_required">接口地址，如 https://example.com/v1</string>
+    <string name="provider_connect">连接</string>
+    <string name="provider_connecting">正在连接…</string>
+    <string name="provider_disconnect">断开</string>
+    <string name="provider_disconnect_title">断开 %1$s？</string>
+    <string name="provider_disconnect_text">会删掉这台手机上存的 Key 和模型列表。选的是这家的模型也会清掉。</string>
+    <string name="provider_cancel">取消</string>
+    <string name="provider_models">模型 · %1$d 个</string>
+    <string name="provider_models_empty">连上后这里列出这家现在有的模型</string>
+    <string name="provider_models_no_match">没有名字里带“%1$s”的模型</string>
+    <string name="provider_search">搜模型名</string>
+    <string name="provider_refresh">刷新模型列表</string>
+    <string name="provider_fetched_at">新的排前面 · 上次刷新 %1$s</string>
+    <string name="provider_vision_yes">能看图</string>
+    <string name="provider_vision_no">不能看图</string>
+    <string name="provider_vision_unknown">没试过</string>
+    <string name="provider_vision_checking">试图中…</string>
+    <string name="provider_check_note">选一个没试过的模型时，会发一张很小的图试它能不能看图，约 1 秒，费用很少。</string>
+    <string name="provider_msg_connected">已连接</string>
+    <string name="provider_msg_refreshed">模型列表已刷新</string>
+    <string name="provider_msg_selected">选好了，之后用它识别</string>
+    <string name="provider_msg_disconnected">已断开</string>
+    <string name="provider_msg_key_malformed">Key 格式不对：不能为空，中间不能有空格</string>
+    <string name="provider_msg_url_invalid">接口地址不对：要 https:// 开头，而且是 OpenAI 兼容接口</string>
+    <string name="provider_msg_key_rejected">服务商说这个 Key 不对或没权限</string>
+    <string name="provider_msg_no_models">连上了，但这家一个模型都没给</string>
+    <string name="provider_msg_no_vision">这个模型不能看图，识别不了菜单，换一个吧</string>
+    <string name="provider_msg_rate_limited">请求太频繁或额度用完了，稍后再试</string>
+    <string name="provider_msg_network">连不上服务商，检查一下网络</string>
+    <string name="provider_msg_failed">出错了，再试一次</string>
 
     <string name="settings_privacy_section">隐私</string>
     <string name="settings_strip_exif">上传前剥离 EXIF</string>
@@ -56,7 +105,4 @@
     <string name="settings_msg_sample_skipped">已有记忆，没有载入。想换成示例数据，先清空。</string>
     <string name="settings_msg_cleared">已清空全部记忆</string>
     <string name="settings_msg_failed">操作失败，请重试</string>
-    <string name="settings_msg_key_saved">已保存 API Key</string>
-    <string name="settings_msg_key_invalid">Key 格式不对：不能为空，中间不能有空格</string>
-    <string name="settings_msg_key_cleared">已清除 API Key，识别会用示例菜单</string>
 </resources>

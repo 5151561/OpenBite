@@ -48,7 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.openbite.android.core.designsystem.component.rememberPhotoSources
 import com.openbite.android.core.designsystem.icon.OpenBiteIcons
-import com.openbite.android.core.designsystem.text.visionModelLabel
+import com.openbite.android.core.designsystem.text.modelUseLabel
 import com.openbite.android.core.designsystem.theme.OpenBiteTheme
 import com.openbite.android.core.designsystem.theme.Spacing
 import com.openbite.core.model.Money
@@ -186,7 +186,7 @@ private fun Status(state: ReceiptArchiveUiState, onRetry: () -> Unit) {
             if (state.newPhoto != null) TextButton(onClick = onRetry) { Text(stringResource(R.string.receipt_retry)) }
         }
         ReceiptPhase.READ -> state.model?.let {
-            Text(stringResource(R.string.receipt_read_by, visionModelLabel(it)), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
+            Text(stringResource(R.string.receipt_read_by, modelUseLabel(it)), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
         }
         else -> Unit
     }

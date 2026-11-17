@@ -102,7 +102,7 @@ Hackathon-kiroween/
 ├── shared/                          # KMP 共享内核（现在只编 Android 目标）
 │   ├── core/model/                  # 纯数据类（@Serializable）            ✅ 已建
 │   ├── core/database/               # Room：11 张表、DAO、Schema 导出       ✅ 已建
-│   ├── core/network/                # VisionModel：Claude（SSE 流式）+ 示例菜单  ✅ U3a
+│   ├── core/network/                # VisionModel：Anthropic + OpenAI 兼容（SSE 流式）+ 示例菜单  ✅ U3a F7
 │   ├── core/data/                   # Repository、种子导入、平台接口        ✅ 已建
 │   ├── core/domain/                 # 用例、纪念日计算（含单元测试）         ✅ 已建
 │   └── feature/                     # 各页 ViewModel：home / memories / milestone / settings ✅ U1，place ✅ U2，scan ✅ U3a，order ✅ U3b，meal ✅ U4，map ✅ U5，share ✅ U6，search ✅ F2
@@ -179,9 +179,11 @@ Hackathon-kiroween/
 
 **用 adb 调 AppFunctions：** `adb shell cmd app_function list-app-functions` 列出手机上全部 App 的函数（这台 Android 16 手机上这个命令没有 `--package`，只有 `--user`），在输出里找 `com.openbite.android`。调用用 `execute-app-function --package <包名> --function 'com.openbite.android.assistant.BaseOpenBiteAppFunctionService#<函数名>' --parameters '<json>'`，debug 包名是 `com.openbite.android.debug`，release 是 `com.openbite.android`。
 
-**视觉模型：** `VisionModel` 接口很薄：输入图片和目标语言，输出菜品流。默认接 Claude：开发测试用 Haiku 5.5 控制成本，效果不够再切 Sonnet 5.5。11/20 用测试集各跑一遍，按识别准确率定默认值。
+**视觉模型（F7）：** `VisionModel` 接口很薄：输入图片和目标语言，输出菜品流。能接 Anthropic、OpenAI、Google Gemini、DeepSeek 和自定义地址，只有两种请求格式：Anthropic Messages，和 OpenAI Chat Completions（Gemini 走它的 OpenAI 兼容接口，DeepSeek 和自定义也走这个）。代码里不写任何模型名：连上一家后从它的 `/models` 拉全部模型，新的排前面，可以搜索、刷新。服务商不告诉我们哪个模型能看图，所以选一个没试过的模型时先发一张 64×64 的纯红 PNG 问颜色，答出 red 才能选，结果记住。选的模型被下架时识别报“模型没有了”，让用户去换。OpenAI 兼容请求不传 max_tokens，用各家默认值。
 
-**评委不需要 API Key：** 首次启动导入种子数据（预先识别好的菜单 + 记录）。不填 Key 也能体验点单、记录、地图和助手调用。只有“现场拍新菜单”需要用户自带 Key。
+**演示模式：** 设置里一个开关，默认关。开着时扫菜单、读小票都用打包好的示例，不联网。关着又没选模型时，识别页提示“去连一家 AI”。
+
+**评委不需要 API Key：** 首次启动导入种子数据（预先识别好的菜单 + 记录）。不填 Key 也能体验点单、记录、地图和助手调用。现场拍新菜单要么自带 Key，要么打开演示模式。
 
 ## 数据模型
 
@@ -236,8 +238,8 @@ erDiagram
 
 | 数据 | 存哪里 |
 | --- | --- |
-| 默认模型、我的口味（一个 JSON 值）、提醒开关 | DataStore Preferences（目标语言跟手机系统语言） |
-| 视觉模型 API Key | Android Keystore 加密，不进数据库、不进日志 |
+| 识别模型设置（选的模型、演示模式、接口地址、各家模型列表、试图结果，一个 JSON 值 `ai_settings`）、我的口味（一个 JSON 值）、提醒开关 | DataStore Preferences（目标语言跟手机系统语言） |
+| 各家 API Key（每家一个键，Anthropic 沿用老键 `anthropic_api_key`） | Android Keystore 加密，不进数据库、不进日志 |
 | 种子数据 | `androidApp/app/src/main/assets/seed/seed.json`，首次启动由 `SeedImporter` 导入 |
 
 ## 系统助手接口 ✅ F3
@@ -351,7 +353,7 @@ erDiagram
 | 数据库 | Room KMP，手机本地单文件 SQLite |
 | 助手接口 | Android AppFunctions，逻辑放共享 `AssistantApi`；暂不申请 Gemini |
 | 构建版本 | 用本机已有的 Gradle 9.8.2 和已缓存的 AGP 9.5.0 / Kotlin 2.4.21 |
-| 视觉模型 | 适配层 + 默认 Claude（Haiku 5.5 起步，必要时 Sonnet 5.5）；评委用种子数据，无需 Key |
+| 视觉模型 | 多家服务商，模型列表全从服务商拉，不写死；能不能看图靠选的时候试一次；示例菜单只在演示模式（默认关）里用 |
 | 菜单照片 | 优先自己去小店拍；不够再用 Wikimedia Commons 等明确 CC 授权的图，并在 README 署名 |
 
 网上随手找的菜单照片多半有版权，放进公开仓库和 Demo 视频有风险，所以只用自己拍的或明确授权的。

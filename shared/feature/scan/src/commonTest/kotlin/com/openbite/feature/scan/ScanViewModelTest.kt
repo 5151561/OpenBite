@@ -9,7 +9,9 @@ import com.openbite.core.domain.ScanMenuUseCase
 import com.openbite.core.data.platform.LocationProvider
 import com.openbite.core.model.MenuStatus
 import com.openbite.core.model.ScanError
-import com.openbite.core.network.VisionModelRegistry
+import com.openbite.core.network.AiProviderClient
+import com.openbite.core.domain.ActiveVisionModel
+import com.openbite.core.model.AiSettings
 import com.openbite.core.testing.FakeImageProcessor
 import com.openbite.core.testing.FakeMenuScans
 import com.openbite.core.testing.FakePhotoStore
@@ -36,6 +38,7 @@ class ScanViewModelTest {
     private val images = FakeImageProcessor(gps = 35.0 to 135.7)
     private val scans = FakeMenuScans()
     private val temp = FakeTempFiles()
+    private val prefs = FakePreferences(AiSettings(demoMode = true))
     private val sessions = OrderSessions(sequentialIds("session-"), InMemoryOrderSessionRepository())
 
     private fun TestScope.viewModel() = ScanViewModel(
@@ -45,9 +48,8 @@ class ScanViewModelTest {
             locationProvider = LocationProvider { 35.0 to 135.7 },
             photoStore = FakePhotoStore(),
             scans = scans,
-            preferences = FakePreferences(),
-            secrets = FakeSecrets(),
-            models = VisionModelRegistry(noNetworkClient()),
+            preferences = prefs,
+            activeModel = ActiveVisionModel(prefs, FakeSecrets(), AiProviderClient(noNetworkClient())),
             ids = sequentialIds(),
             now = { 1_000L },
             tempFiles = temp,
@@ -118,13 +120,15 @@ class ScanViewModelTest {
     }
 
     @Test
-    fun retryWithSampleAfterFailure() = runViewModelTest {
+    fun retryUsesLatestSettings() = runViewModelTest {
+        prefs.ai.value = AiSettings()
         val vm = viewModel()
-        images.fail = true
         vm.onPhoto("content://camera/1", "新店铺")
         advanceUntilIdle()
-        images.fail = false
-        assertTrue(vm.retry(useSample = true))
+        assertEquals(ScanError.NO_MODEL, vm.uiState.value.error)
+        // 去设置里开了演示模式，回来点重试。
+        prefs.ai.value = AiSettings(demoMode = true)
+        assertTrue(vm.retry())
         advanceUntilIdle()
         assertEquals(ScanPhase.DONE, vm.uiState.value.phase)
     }

@@ -27,7 +27,7 @@ import com.openbite.core.data.platform.PhotoStore
 import com.openbite.core.data.platform.PreferencesStore
 import com.openbite.core.data.platform.SecretStore
 import com.openbite.core.model.TasteProfile
-import com.openbite.core.model.VisionModelChoice
+import com.openbite.core.model.AiSettings
 import kotlinx.serialization.json.Json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -48,19 +48,23 @@ import kotlin.coroutines.resume
 private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 private val Context.secretsDataStore: DataStore<Preferences> by preferencesDataStore(name = "secrets")
 
-/** 普通设置：识别模型。 */
+/** 普通设置：识别模型、口味、提醒、隐私。 */
 internal class DataStorePreferencesStore(context: Context) : PreferencesStore {
     private val appContext = context.applicationContext
     private val store = context.applicationContext.settingsDataStore
-    private val visionModel = stringPreferencesKey("vision_model")
 
-    override fun observeVisionModel(): Flow<VisionModelChoice?> = store.data.map { prefs ->
-        prefs[visionModel]?.let { name -> VisionModelChoice.entries.firstOrNull { it.name == name } }
+    override fun observeAiSettings(): Flow<AiSettings> = store.data.map { prefs -> decodeAi(prefs[aiSettings]) }
+
+    override suspend fun updateAiSettings(transform: (AiSettings) -> AiSettings) {
+        store.edit { prefs ->
+            prefs[aiSettings] = json.encodeToString(transform(decodeAi(prefs[aiSettings])))
+            // 老版本存的是写死的两个 Claude 选项，现在模型都从服务商拉，旧值不再有意义。
+            prefs.remove(legacyVisionModel)
+        }
     }
 
-    override suspend fun setVisionModel(choice: VisionModelChoice) {
-        store.edit { it[visionModel] = choice.name }
-    }
+    private fun decodeAi(raw: String?): AiSettings =
+        raw?.let { runCatching { json.decodeFromString<AiSettings>(it) }.getOrNull() } ?: AiSettings()
 
     override fun observeTasteProfile(): Flow<TasteProfile> = store.data.map { prefs ->
         prefs[tasteProfile]?.let { runCatching { json.decodeFromString<TasteProfile>(it) }.getOrNull() } ?: TasteProfile.EMPTY
@@ -120,6 +124,8 @@ internal class DataStorePreferencesStore(context: Context) : PreferencesStore {
         val milestoneReminders = booleanPreferencesKey("reminder_milestone")
         val sentMilestones = stringSetPreferencesKey("milestone_reminders_sent")
         val tasteProfile = stringPreferencesKey("taste_profile")
+        val aiSettings = stringPreferencesKey("ai_settings")
+        val legacyVisionModel = stringPreferencesKey("vision_model")
         val json = Json { ignoreUnknownKeys = true }
     }
 }

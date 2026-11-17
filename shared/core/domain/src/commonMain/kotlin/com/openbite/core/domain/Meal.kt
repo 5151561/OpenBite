@@ -21,12 +21,10 @@ import com.openbite.core.model.Person
 import com.openbite.core.model.PhotoKind
 import com.openbite.core.model.ScanError
 import com.openbite.core.model.ScanException
-import com.openbite.core.model.VisionModelChoice
-import com.openbite.core.model.effectiveVisionModel
+import com.openbite.core.model.ModelUse
 import com.openbite.core.network.ReceiptReadRequest
 import com.openbite.core.model.ScannedReceipt
 import com.openbite.core.network.VisionException
-import com.openbite.core.network.VisionModelRegistry
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
@@ -123,23 +121,18 @@ class DiscardCaptureUseCase(private val tempFiles: TempFiles, private val appSco
     }
 }
 
-/** 读小票照片。没 Key 时用示例小票；返回模型名，界面显示“由谁读的”。 */
-class ReadReceiptUseCase(
-    private val preferences: PreferencesStore,
-    private val secrets: SecretStore,
-    private val models: VisionModelRegistry,
-) {
-    data class Result(val receipt: ScannedReceipt, val model: VisionModelChoice)
+/** 读小票照片。演示模式用示例小票；没选模型抛 [ScanError.NO_MODEL]。返回用的模型，界面显示“由谁读的”。 */
+class ReadReceiptUseCase(private val activeModel: ActiveVisionModel) {
+    data class Result(val receipt: ScannedReceipt, val model: ModelUse)
 
     suspend operator fun invoke(jpegBytes: ByteArray, targetLang: String): Result {
-        val apiKey = secrets.get(SecretKeys.ANTHROPIC_API_KEY)?.takeIf { it.isNotBlank() }
-        val choice = effectiveVisionModel(preferences.observeVisionModel().first() ?: VisionModelChoice.DEFAULT, apiKey != null)
+        val active = activeModel.resolve()
         val receipt = try {
-            models.modelFor(choice).readReceipt(ReceiptReadRequest(jpegBytes, targetLang, apiKey))
+            active.model.readReceipt(ReceiptReadRequest(jpegBytes, targetLang, active.apiKey))
         } catch (e: VisionException) {
             throw ScanException(e.toScanError(), e)
         }
-        return Result(receipt, choice)
+        return Result(receipt, active.use)
     }
 }
 

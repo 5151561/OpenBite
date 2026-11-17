@@ -83,7 +83,6 @@ fun parseAnthropicEvent(event: SseEvent): AnthropicStreamPart? {
     }
 }
 
-private fun JsonObject.string(key: String): String? = this[key]?.jsonPrimitive?.contentOrNull
 
 /**
  * 模型按行输出 JSON（NDJSON），一行一个对象：

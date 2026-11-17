@@ -39,7 +39,8 @@ import com.openbite.core.model.Place
 import com.openbite.core.model.PlaceDeletionSummary
 import com.openbite.core.model.ReminderSettings
 import com.openbite.core.model.TasteProfile
-import com.openbite.core.model.VisionModelChoice
+import com.openbite.core.model.AiProvider
+import com.openbite.core.model.AiSettings
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respondError
@@ -66,16 +67,16 @@ fun testAppScope(scope: CoroutineScope) = ApplicationScope(scope)
 /** 不联网：任何请求都返回 401。 */
 fun noNetworkClient(): HttpClient = HttpClient(MockEngine { respondError(HttpStatusCode.Unauthorized) })
 
-class FakePreferences(initialModel: VisionModelChoice? = null) : PreferencesStore {
-    val visionModel = MutableStateFlow(initialModel)
+class FakePreferences(initialAi: AiSettings = AiSettings()) : PreferencesStore {
+    val ai = MutableStateFlow(initialAi)
     val taste = MutableStateFlow(TasteProfile.EMPTY)
     val reminderSettings = MutableStateFlow(ReminderSettings())
     val sent = mutableSetOf<String>()
     val keepLocation = MutableStateFlow(true)
     var seedDone = false
 
-    override fun observeVisionModel(): Flow<VisionModelChoice?> = visionModel
-    override suspend fun setVisionModel(choice: VisionModelChoice) { visionModel.value = choice }
+    override fun observeAiSettings(): Flow<AiSettings> = ai
+    override suspend fun updateAiSettings(transform: (AiSettings) -> AiSettings) { ai.update(transform) }
     override fun observeTasteProfile(): Flow<TasteProfile> = taste
     override suspend fun setTasteProfile(profile: TasteProfile) { taste.value = profile }
     override fun observeReminderSettings(): Flow<ReminderSettings> = reminderSettings
@@ -89,8 +90,9 @@ class FakePreferences(initialModel: VisionModelChoice? = null) : PreferencesStor
     override suspend fun markSeedAutoImported() { seedDone = true }
 }
 
-class FakeSecrets(apiKey: String? = null) : SecretStore {
-    val values = MutableStateFlow(apiKey?.let { mapOf(SecretKeys.ANTHROPIC_API_KEY to it) } ?: emptyMap())
+/** [keys]：一开始就存好的 Key，按服务商。 */
+class FakeSecrets(keys: Map<AiProvider, String> = emptyMap()) : SecretStore {
+    val values = MutableStateFlow(keys.mapKeys { SecretKeys.apiKey(it.key) })
     override fun observe(key: String): Flow<String?> = values.map { it[key] }
     override suspend fun get(key: String) = values.value[key]
     override suspend fun put(key: String, value: String) { values.update { it + (key to value) } }

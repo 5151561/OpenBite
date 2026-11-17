@@ -10,7 +10,7 @@ import com.openbite.core.data.NewDraftLog
 import com.openbite.core.model.Money
 import com.openbite.core.model.Place
 import com.openbite.core.model.ScanError
-import com.openbite.core.model.VisionModelChoice
+import com.openbite.core.model.ModelUse
 import com.openbite.core.model.ScannedDish
 import com.openbite.core.data.InMemoryOrderSessionRepository
 import kotlinx.coroutines.launch
@@ -34,7 +34,7 @@ class OrderTest {
     )
 
     private fun OrderSession.scan(vararg dishes: ScannedDish) {
-        apply(ScanUpdate.Started(VisionModelChoice.SAMPLE))
+        apply(ScanUpdate.Started(ModelUse.Demo))
         apply(ScanUpdate.Prepared(35.0 to 135.7))
         apply(ScanUpdate.Header("とり松", 3, "JPY", "ja"))
         dishes.forEach { apply(ScanUpdate.DishFound(it)) }
@@ -57,7 +57,7 @@ class OrderTest {
     @Test
     fun existingPlaceKeepsItsName() {
         val session = newSession(placeId = "p")
-        session.apply(ScanUpdate.Started(VisionModelChoice.SAMPLE, placeName = "割烹 みなと"))
+        session.apply(ScanUpdate.Started(ModelUse.Demo, placeName = "割烹 みなと"))
         session.apply(ScanUpdate.Header("お品書き", null))
         assertEquals("割烹 みなと", session.menu.value.placeName)
     }
