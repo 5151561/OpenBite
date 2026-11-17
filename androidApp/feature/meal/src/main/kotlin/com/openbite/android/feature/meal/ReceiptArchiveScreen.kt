@@ -10,7 +10,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fitInside
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -111,7 +115,13 @@ fun ReceiptArchiveScreen(
                     Button(
                         onClick = onSave,
                         enabled = !state.totalInvalid && state.phase !in setOf(ReceiptPhase.PROCESSING, ReceiptPhase.READING, ReceiptPhase.SAVING),
-                        modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(Spacing.l).height(48.dp),
+                        // 跟着键盘上移：键盘收起时让开导航栏，弹出时贴在键盘上方。Scaffold 把底栏高度算进 padding，
+                        // 内容区随之变矮，输入框的 fitInside(Ime) 不会再多让一次。
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
+                            .padding(Spacing.l)
+                            .height(48.dp),
                     ) { Text(stringResource(R.string.receipt_save), style = MaterialTheme.typography.titleMedium) }
                 }
             }
