@@ -95,10 +95,14 @@ fun MapScreen(
     var savedCamera by rememberSaveable { mutableStateOf<DoubleArray?>(null) }
     var cardHeight by rememberSaveable { mutableStateOf(0) }
     var camera by remember { mutableStateOf<CameraCommand?>(null) }
+    // 首次镜头放好之前不存镜头：MapLibre 一加载完就会以默认的全球视角报一次“镜头停下”，
+    // 那时数据可能还没到，存下来就会让下面的首次定位被跳过（地图停在全世界、看不到图钉）。
+    var cameraPlaced by rememberSaveable { mutableStateOf(false) }
 
-    // 第一次打开（没有存过镜头）：框住全部图钉，再对准选中的店。
+    // 第一次打开：框住全部图钉，或对准选中的店。转屏、返回时用存下来的镜头。
     LaunchedEffect(state.isLoading) {
-        if (state.isLoading || savedCamera != null) return@LaunchedEffect
+        if (state.isLoading || cameraPlaced) return@LaunchedEffect
+        cameraPlaced = true
         val focus = state.allPins.firstOrNull { it.place.id == (focusPlaceId ?: state.selectedPlaceId) }
         camera = if (focusPlaceId != null && focus != null) {
             CameraCommand.MoveTo(LatLng(focus.lat, focus.lon), MapStyle.PIN_ZOOM)
@@ -121,7 +125,7 @@ fun MapScreen(
             borderColor = scheme.surfaceContainerLowest.toArgb(),
             camera = camera,
             savedCamera = savedCamera,
-            onCameraSaved = { savedCamera = it },
+            onCameraSaved = { if (cameraPlaced) savedCamera = it },
             onPinClick = { id ->
                 onSelect(id)
                 state.pins.firstOrNull { it.place.id == id }?.let { camera = CameraCommand.MoveTo(LatLng(it.lat, it.lon)) }

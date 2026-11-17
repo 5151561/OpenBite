@@ -54,10 +54,15 @@ fun PickLocationRoute(
     var savedCamera by rememberSaveable { mutableStateOf<DoubleArray?>(null) }
     var camera by remember { mutableStateOf<CameraCommand?>(null) }
     var map by remember { mutableStateOf<MapLibreMap?>(null) }
+    // 和地图页一样：首次镜头放好之前不存镜头，否则默认的全球视角会顶掉首次定位。
+    var cameraPlaced by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(state.saved) { if (state.saved) onDone() }
     LaunchedEffect(state.isLoading) {
-        if (!state.isLoading && savedCamera == null) camera = CameraCommand.Fit(state.otherPins.map { LatLng(it.lat, it.lon) })
+        if (!state.isLoading && !cameraPlaced) {
+            cameraPlaced = true
+            camera = CameraCommand.Fit(state.otherPins.map { LatLng(it.lat, it.lon) })
+        }
     }
 
     Box(Modifier.fillMaxSize().background(scheme.surfaceContainerHigh)) {
@@ -69,7 +74,7 @@ fun PickLocationRoute(
             borderColor = scheme.surfaceContainerLowest.toArgb(),
             camera = camera,
             savedCamera = savedCamera,
-            onCameraSaved = { savedCamera = it },
+            onCameraSaved = { if (cameraPlaced) savedCamera = it },
             onPinClick = {},
             attributionBottom = 140.dp,
             onLongPress = { camera = CameraCommand.MoveTo(it) },
