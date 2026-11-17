@@ -9,7 +9,9 @@ import com.openbite.core.data.NewDraftLog
 import com.openbite.core.data.NewMenuScan
 import com.openbite.core.data.PlaceCounts
 import com.openbite.core.data.PlaceImportRepository
+import com.openbite.core.data.PlaceRemovalRepository
 import com.openbite.core.data.PlaceRepository
+import com.openbite.core.data.RemovedPlace
 import com.openbite.core.data.SampleDataRepository
 import com.openbite.core.data.platform.ImageProcessor
 import com.openbite.core.data.platform.IncomingFile
@@ -34,6 +36,7 @@ import com.openbite.core.model.Money
 import com.openbite.core.model.NewPhoto
 import com.openbite.core.model.Person
 import com.openbite.core.model.Place
+import com.openbite.core.model.PlaceDeletionSummary
 import com.openbite.core.model.ReminderSettings
 import com.openbite.core.model.TasteProfile
 import com.openbite.core.model.VisionModelChoice
@@ -145,6 +148,8 @@ class FakeReminders : ReminderScheduler {
     var milestoneChecks = 0
     override fun scheduleMealFollowUp(logId: String, delayMinutes: Int) { meals += logId to delayMinutes }
     override fun scheduleMilestoneCheck() { milestoneChecks++ }
+    val cancelled = mutableListOf<String>()
+    override fun cancelMealFollowUp(logId: String) { cancelled += logId }
 }
 
 class FakeDrafts : DraftRepository {
@@ -308,4 +313,34 @@ class FakeImport : PlaceImportRepository {
 /** 收到的文件：按 uri 返回 [files] 里的内容，没有就读失败。 */
 class FakeIncomingFiles(val files: MutableMap<String, IncomingFile> = mutableMapOf()) : IncomingFileSource {
     override suspend fun read(uri: String, maxBytes: Long): IncomingFile = files[uri] ?: error("revoked")
+}
+
+/** 删除店铺：在 [places] 和 [logs] 上删，行为和 Room 实现一致（纪念日、人不动）。[fail] 为 true 时删除失败。 */
+class FakePlaceRemoval(private val places: FakePlaces, private val logs: FakeLogs) : PlaceRemovalRepository {
+    var fail = false
+
+    private fun photoPaths(placeId: String) =
+        places.scans.value[placeId].orEmpty().map { it.photoPath } +
+            logs.logs.value.filter { it.place.id == placeId }.flatMap { log -> log.photos.map { it.path } }
+
+    override suspend fun summary(placeId: String): PlaceDeletionSummary? {
+        val place = places.places.value.firstOrNull { it.id == placeId } ?: return null
+        return PlaceDeletionSummary(
+            place.name,
+            places.menus.value[placeId].orEmpty().size,
+            logs.logs.value.count { it.place.id == placeId },
+            photoPaths(placeId).size,
+        )
+    }
+
+    override suspend fun delete(placeId: String): RemovedPlace? {
+        if (fail) error("disk full")
+        if (places.places.value.none { it.id == placeId }) return null
+        val removed = RemovedPlace(photoPaths(placeId), logs.logs.value.filter { it.place.id == placeId }.map { it.id })
+        places.places.update { all -> all.filterNot { it.id == placeId } }
+        places.menus.update { it - placeId }
+        places.scans.update { it - placeId }
+        logs.logs.update { all -> all.filterNot { it.place.id == placeId } }
+        return removed
+    }
 }

@@ -63,6 +63,9 @@ interface ReminderScheduler {
     fun scheduleMealFollowUp(logId: String, delayMinutes: Int = 90)
 
     /** 每天检查一次纪念日；已经排过就不重复排。 */
+    /** 记录被删了：取消还没发的饭后提醒，已经显示的通知也收掉。 */
+    fun cancelMealFollowUp(logId: String)
+
     fun scheduleMilestoneCheck()
 }
 

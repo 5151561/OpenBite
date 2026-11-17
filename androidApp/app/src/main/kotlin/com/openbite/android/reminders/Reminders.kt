@@ -45,6 +45,11 @@ class WorkManagerReminderScheduler(private val context: Context) : ReminderSched
         WorkManager.getInstance(context).enqueueUniqueWork(mealWorkName(logId), ExistingWorkPolicy.REPLACE, request)
     }
 
+    override fun cancelMealFollowUp(logId: String) {
+        WorkManager.getInstance(context).cancelUniqueWork(mealWorkName(logId))
+        NotificationManagerCompat.from(context).cancel(Notifications.mealNotificationId(logId))
+    }
+
     override fun scheduleMilestoneCheck() {
         val request = PeriodicWorkRequestBuilder<MilestoneCheckWorker>(1, TimeUnit.DAYS).build()
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(MILESTONE_WORK, ExistingPeriodicWorkPolicy.KEEP, request)

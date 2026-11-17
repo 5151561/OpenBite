@@ -36,6 +36,29 @@ const val SEARCH_LOGS_SQL =
         "WHERE lp.logId = l.id AND pe.displayName LIKE :pattern ESCAPE '\\') " +
         "ORDER BY l.visitedAt DESC LIMIT :limit"
 
+// 删除一家店用的 SQL，按子表到父表的顺序（JVM 测试按 [DELETE_PLACE_STATEMENTS] 原样跑）。
+const val DELETE_PLACE_LOG_PHOTOS_SQL = "DELETE FROM photo WHERE logId IN (SELECT id FROM dining_log WHERE placeId = :placeId)"
+const val DELETE_PLACE_LOG_ITEMS_SQL = "DELETE FROM dining_log_item WHERE logId IN (SELECT id FROM dining_log WHERE placeId = :placeId)"
+const val DELETE_PLACE_LOG_PERSONS_SQL = "DELETE FROM dining_log_person WHERE logId IN (SELECT id FROM dining_log WHERE placeId = :placeId)"
+const val DELETE_PLACE_LOGS_SQL = "DELETE FROM dining_log WHERE placeId = :placeId"
+const val UNLINK_PLACE_DISHES_SQL = "UPDATE dining_log_item SET dishId = NULL WHERE dishId IN (SELECT id FROM dish WHERE placeId = :placeId)"
+const val DELETE_PLACE_DISHES_SQL = "DELETE FROM dish WHERE placeId = :placeId"
+const val DELETE_PLACE_SCANS_SQL = "DELETE FROM menu_scan WHERE placeId = :placeId"
+const val DELETE_PLACE_TAGS_SQL = "DELETE FROM place_tag WHERE placeId = :placeId"
+const val DELETE_PLACE_ROW_SQL = "DELETE FROM place WHERE id = :placeId"
+const val PLACE_PHOTO_PATHS_SQL = "SELECT photoPath FROM menu_scan WHERE placeId = :placeId UNION ALL SELECT path FROM photo WHERE logId IN (SELECT id FROM dining_log WHERE placeId = :placeId)"
+val DELETE_PLACE_STATEMENTS = listOf(
+    DELETE_PLACE_LOG_PHOTOS_SQL,
+    DELETE_PLACE_LOG_ITEMS_SQL,
+    DELETE_PLACE_LOG_PERSONS_SQL,
+    DELETE_PLACE_LOGS_SQL,
+    UNLINK_PLACE_DISHES_SQL,
+    DELETE_PLACE_DISHES_SQL,
+    DELETE_PLACE_SCANS_SQL,
+    DELETE_PLACE_TAGS_SQL,
+    DELETE_PLACE_ROW_SQL,
+)
+
 const val SEARCH_PLACES_SQL =
     "SELECT DISTINCT p.id FROM place p " +
         "LEFT JOIN place_tag t ON t.placeId = p.id " +
@@ -241,7 +264,58 @@ abstract class MaintenanceDao {
         deleteMilestones()
         deletePersons()
     }
+
+    // ---- 删除一家店 ----
+    // 外键虽然都是 ON DELETE CASCADE，这里仍按子表到父表显式删，不依赖连接上有没有开 foreign_keys。
+
+    @Query("SELECT COUNT(*) FROM dish WHERE placeId = :placeId") abstract suspend fun dishCountOf(placeId: String): Int
+    @Query("SELECT COUNT(*) FROM dining_log WHERE placeId = :placeId") abstract suspend fun logCountOf(placeId: String): Int
+    /** 菜单原照片 + 饭菜照片 + 小票照片的文件路径。 */
+    @Query(PLACE_PHOTO_PATHS_SQL) abstract suspend fun photoPathsOf(placeId: String): List<String>
+    @Query("SELECT id FROM dining_log WHERE placeId = :placeId") abstract suspend fun logIdsOf(placeId: String): List<String>
+    @Query("SELECT name FROM place WHERE id = :placeId") abstract suspend fun placeName(placeId: String): String?
+
+    @Query(DELETE_PLACE_LOG_PHOTOS_SQL)
+    protected abstract suspend fun deleteLogPhotosOf(placeId: String)
+    @Query(DELETE_PLACE_LOG_ITEMS_SQL)
+    protected abstract suspend fun deleteLogItemsOf(placeId: String)
+    @Query(DELETE_PLACE_LOG_PERSONS_SQL)
+    protected abstract suspend fun deleteLogPersonsOf(placeId: String)
+    @Query(DELETE_PLACE_LOGS_SQL) protected abstract suspend fun deleteLogsOf(placeId: String)
+    /** 别家店的记录不会引用这家店的菜，万一有（旧数据）就断开，不删记录。 */
+    @Query(UNLINK_PLACE_DISHES_SQL)
+    protected abstract suspend fun unlinkDishesOf(placeId: String)
+    @Query(DELETE_PLACE_DISHES_SQL) protected abstract suspend fun deleteDishesOf(placeId: String)
+    @Query(DELETE_PLACE_SCANS_SQL) protected abstract suspend fun deleteScansOf(placeId: String)
+    @Query(DELETE_PLACE_TAGS_SQL) protected abstract suspend fun deleteTagsOf(placeId: String)
+    @Query(DELETE_PLACE_ROW_SQL) protected abstract suspend fun deletePlaceRow(placeId: String): Int
+
+    /**
+     * 删一家店：店铺、标签、菜单照片记录、菜品、这家店的用餐记录（菜、同行人关联、饭菜照片和小票照片）。
+     * 纪念日和人不动（只是关联行随记录一起没了）。整批一个事务；返回要删的照片文件和被删的记录 id，店不存在返回 null。
+     */
+    @Transaction
+    open suspend fun deletePlace(placeId: String): DeletedPlaceRows? {
+        if (placeName(placeId) == null) return null
+        val rows = DeletedPlaceRows(
+            photoPaths = photoPathsOf(placeId),
+            logIds = logIdsOf(placeId),
+        )
+        deleteLogPhotosOf(placeId)
+        deleteLogItemsOf(placeId)
+        deleteLogPersonsOf(placeId)
+        deleteLogsOf(placeId)
+        unlinkDishesOf(placeId)
+        deleteDishesOf(placeId)
+        deleteScansOf(placeId)
+        deleteTagsOf(placeId)
+        deletePlaceRow(placeId)
+        return rows
+    }
 }
+
+/** 删掉一家店后要在事务外处理的：照片文件（相对路径）和被删的用餐记录 id（取消饭后提醒用）。 */
+data class DeletedPlaceRows(val photoPaths: List<String>, val logIds: List<String>)
 
 /** 一次识别的结果整批写入：新店铺（可选）、menu_scan、合并后的菜品。 */
 @Dao

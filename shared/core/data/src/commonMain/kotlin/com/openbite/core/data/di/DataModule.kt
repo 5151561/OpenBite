@@ -44,5 +44,6 @@ val dataModule: Module = module {
     single<DraftRepository> { RoomDraftRepository(get()) }
     single<MealRepository> { RoomMealRepository(get()) }
     single<PlaceImportRepository> { RoomPlaceImportRepository(get()) }
+    single<com.openbite.core.data.PlaceRemovalRepository> { com.openbite.core.data.RoomPlaceRemovalRepository(get()) }
     single { VisionModelRegistry(get<HttpClient>()) }
 }
