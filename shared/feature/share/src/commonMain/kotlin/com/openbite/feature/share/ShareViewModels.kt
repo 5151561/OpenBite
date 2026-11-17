@@ -205,4 +205,6 @@ class ImportViewModel(
             }
         }
     }
+    /** 已经跳去新店铺页：清掉结果，重组时不再跳第二次。 */
+    fun importHandled() = state.update { it.copy(placeId = null) }
 }

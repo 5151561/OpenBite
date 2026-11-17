@@ -30,11 +30,14 @@ class NavigationState(
 
     val currentStack: NavBackStack<NavKey> get() = backStacks.getValue(currentTab.key)
 
+    /** 底部弹窗下面露出来的那一页。 */
+    private val visiblePage: NavKey? get() = currentStack.lastOrNull { it !is ImportPlaceKey }
+
     /** 当前页是不是某个 Tab 的根页面；只有根页面显示底部导航。 */
-    val isAtTabRoot: Boolean get() = currentStack.lastOrNull() == currentTab.key
+    val isAtTabRoot: Boolean get() = visiblePage == currentTab.key
 
     /** 底部导航：Tab 根页面和地图（设计稿 06 带底部导航）显示，其余页面藏起来。 */
-    val showsBottomBar: Boolean get() = isAtTabRoot || currentStack.lastOrNull() is MapKey
+    val showsBottomBar: Boolean get() = isAtTabRoot || visiblePage is MapKey
 
     fun selectTab(tab: TopLevelDestination) = setSelectedIndex(tabs.indexOf(tab))
 

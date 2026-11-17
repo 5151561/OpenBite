@@ -87,6 +87,10 @@ sealed interface DeepLink {
 }
 
 /** 店铺详情，压在当前 Tab 的返回栈上。 */
+/** 导入店铺文件（设计稿 18）：底部弹窗，盖在店铺列表上。 */
+@Serializable
+data class ImportPlaceKey(val uri: String) : NavKey
+
 @Serializable
 data class PlaceKey(val placeId: String) : NavKey
 

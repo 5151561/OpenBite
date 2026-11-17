@@ -39,35 +39,40 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import com.openbite.android.core.designsystem.R as DsR
 
-/** 导入店铺（设计稿 18），盖在店铺列表上。[uri] 是收到或选中的文件。导入成功后交出新店铺 id。 */
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * 导入店铺（设计稿 18），盖在店铺列表上。[uri] 是收到或选中的文件。导入成功后交出新店铺 id。
+ * 外层的 ModalBottomSheet 由 App 的 bottom sheet scene 提供，ViewModel 跟着这个返回栈 entry 走，
+ * 关掉就清理，同一个文件再导入一次会重新读。
+ */
 @Composable
 fun ImportSheetRoute(
     uri: String,
     onDismiss: () -> Unit,
     onImported: (placeId: String) -> Unit,
-    viewModel: ImportViewModel = koinViewModel(key = "import-$uri", parameters = { parametersOf(uri) }),
+    viewModel: ImportViewModel = koinViewModel(parameters = { parametersOf(uri) }),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    LaunchedEffect(state.placeId) { state.placeId?.let(onImported) }
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        when (state.phase) {
-            ImportPhase.READING -> Box(Modifier.fillMaxWidth().padding(Spacing.xxxl), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
-                    CircularProgressIndicator()
-                    Text(stringResource(R.string.import_reading))
-                }
+    LaunchedEffect(state.placeId) {
+        val placeId = state.placeId ?: return@LaunchedEffect
+        viewModel.importHandled()
+        onImported(placeId)
+    }
+    when (state.phase) {
+        ImportPhase.READING -> Box(Modifier.fillMaxWidth().padding(Spacing.xxxl), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                CircularProgressIndicator()
+                Text(stringResource(R.string.import_reading))
             }
-            ImportPhase.FAILED -> ImportFailed(state.error ?: ImportError.READ_FAILED, onDismiss)
-            else -> state.preview?.let {
-                ImportSheetContent(
-                    preview = it,
-                    title = stringResource(R.string.import_title),
-                    busy = state.phase == ImportPhase.IMPORTING || state.phase == ImportPhase.DONE,
-                    onCancel = onDismiss,
-                    onConfirm = viewModel::confirm,
-                )
-            }
+        }
+        ImportPhase.FAILED -> ImportFailed(state.error ?: ImportError.READ_FAILED, onDismiss)
+        else -> state.preview?.let {
+            ImportSheetContent(
+                preview = it,
+                title = stringResource(R.string.import_title),
+                busy = state.phase == ImportPhase.IMPORTING || state.phase == ImportPhase.DONE,
+                onCancel = onDismiss,
+                onConfirm = viewModel::confirm,
+            )
         }
     }
 }
