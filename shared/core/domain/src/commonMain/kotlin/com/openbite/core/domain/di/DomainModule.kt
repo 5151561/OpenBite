@@ -61,6 +61,7 @@ val sharedCoreModule: Module = module {
     factory { ObservePlaceDetailUseCase(get(), get(), get(), get()) }
     factory { ObservePlaceMenuUseCase(get(), get()) }
     factory { LoadSampleDataUseCase(get()) }
+    factory { com.openbite.core.domain.FirstLaunchSeedUseCase(get(), get()) }
     factory { ClearAllDataUseCase(get(), get(), get()) }
     single<IdGenerator> { UuidGenerator() }
     single<NowProvider> { SystemNowProvider() }

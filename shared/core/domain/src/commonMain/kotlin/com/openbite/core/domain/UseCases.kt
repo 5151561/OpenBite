@@ -5,6 +5,7 @@ import com.openbite.core.data.MilestoneRepository
 import com.openbite.core.data.PlaceRepository
 import com.openbite.core.data.SampleDataRepository
 import com.openbite.core.data.platform.PhotoStore
+import com.openbite.core.data.platform.PreferencesStore
 import com.openbite.core.data.platform.TempFiles
 import com.openbite.core.model.DiningLog
 import com.openbite.core.model.MemorySummary
@@ -65,6 +66,15 @@ class ObserveMilestoneHighlightsUseCase(
 /** 载入示例数据。数据库里已有数据时不动，返回 false。 */
 class LoadSampleDataUseCase(private val repository: SampleDataRepository) {
     suspend operator fun invoke(): Boolean = repository.loadSampleIfEmpty()
+}
+
+/** 只在第一次启动时自动导入示例数据；用户清空记忆后不再自动导回来。导入失败下次启动再试。 */
+class FirstLaunchSeedUseCase(private val loadSample: LoadSampleDataUseCase, private val preferences: PreferencesStore) {
+    suspend operator fun invoke() {
+        if (preferences.isSeedAutoImported()) return
+        loadSample()
+        preferences.markSeedAutoImported()
+    }
 }
 
 /** 清空全部记忆。界面必须先让用户确认。 */

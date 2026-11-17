@@ -49,6 +49,7 @@ private val Context.secretsDataStore: DataStore<Preferences> by preferencesDataS
 
 /** 普通设置：识别模型。 */
 internal class DataStorePreferencesStore(context: Context) : PreferencesStore {
+    private val appContext = context.applicationContext
     private val store = context.applicationContext.settingsDataStore
     private val visionModel = stringPreferencesKey("vision_model")
 
@@ -95,8 +96,25 @@ internal class DataStorePreferencesStore(context: Context) : PreferencesStore {
         store.edit { it[keepLocation] = keep }
     }
 
+    override suspend fun isSeedAutoImported(): Boolean {
+        if (store.data.first()[seedAutoImported] == true) return true
+        // 兼容老版本：标志以前存在 SharedPreferences（openbite_app / seed_auto_import_done）。
+        val legacy = withContext(Dispatchers.IO) {
+            appContext.getSharedPreferences(LEGACY_PREFS, Context.MODE_PRIVATE).getBoolean(LEGACY_SEED_DONE, false)
+        }
+        if (legacy) markSeedAutoImported()
+        return legacy
+    }
+
+    override suspend fun markSeedAutoImported() {
+        store.edit { it[seedAutoImported] = true }
+    }
+
     private companion object {
         val keepLocation = booleanPreferencesKey("privacy_keep_location")
+        val seedAutoImported = booleanPreferencesKey("seed_auto_import_done")
+        const val LEGACY_PREFS = "openbite_app"
+        const val LEGACY_SEED_DONE = "seed_auto_import_done"
         val mealReminders = booleanPreferencesKey("reminder_meal")
         val milestoneReminders = booleanPreferencesKey("reminder_milestone")
         val sentMilestones = stringSetPreferencesKey("milestone_reminders_sent")

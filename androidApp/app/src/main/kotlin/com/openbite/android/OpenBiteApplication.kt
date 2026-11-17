@@ -2,7 +2,6 @@ package com.openbite.android
 
 import android.app.Application
 import android.util.Log
-import androidx.core.content.edit
 import com.openbite.feature.home.homeFeatureModule
 import com.openbite.feature.map.mapFeatureModule
 import com.openbite.feature.meal.mealFeatureModule
@@ -17,7 +16,7 @@ import com.openbite.feature.share.shareFeatureModule
 import com.openbite.android.platform.androidPlatformModule
 import com.openbite.android.reminders.Notifications
 import com.openbite.core.data.platform.ReminderScheduler
-import com.openbite.core.data.seed.SeedImporter
+import com.openbite.core.domain.FirstLaunchSeedUseCase
 import com.openbite.core.domain.di.sharedCoreModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -61,18 +60,10 @@ class OpenBiteApplication : Application() {
         }
         // 只在第一次启动时自动导入种子数据；用户在设置里清空后不再自动导回来。
         // 页面订阅的是 Flow，导入完会自动刷新。
-        val prefs = getSharedPreferences(PREFS, MODE_PRIVATE)
-        if (!prefs.getBoolean(KEY_SEED_DONE, false)) {
-            appScope.launch {
-                runCatching { get<SeedImporter>().importIfEmpty() }
-                    .onSuccess { prefs.edit { putBoolean(KEY_SEED_DONE, true) } }
-                    .onFailure { Log.e("OpenBite", "Seed import failed", it) }
-            }
+        // 标志存在 DataStore；老版本存在 SharedPreferences 的标志也认。
+        appScope.launch {
+            runCatching { get<FirstLaunchSeedUseCase>()() }
+                .onFailure { Log.e("OpenBite", "Seed import failed", it) }
         }
-    }
-
-    private companion object {
-        const val PREFS = "openbite_app"
-        const val KEY_SEED_DONE = "seed_auto_import_done"
     }
 }

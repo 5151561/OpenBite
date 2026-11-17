@@ -48,6 +48,11 @@ class ScanMenuUseCaseTest {
     }
 
     internal class FakePrefs(initial: VisionModelChoice? = null) : PreferencesStore {
+        var seedDone = false
+        override suspend fun isSeedAutoImported() = seedDone
+        override suspend fun markSeedAutoImported() {
+            seedDone = true
+        }
         val value = MutableStateFlow(initial)
         override fun observeVisionModel() = value
         override suspend fun setVisionModel(choice: VisionModelChoice) { value.value = choice }

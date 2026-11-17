@@ -20,7 +20,7 @@ import kotlinx.serialization.json.Json
 import kotlin.time.ExperimentalTime
 
 /** 首次启动导入种子数据，让评委不填 API Key 也能体验全部功能。数据库非空时跳过。 */
-class SeedImporter(
+internal class SeedImporter(
     private val db: OpenBiteDatabase,
     private val source: SeedSource,
 ) {

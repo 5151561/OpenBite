@@ -113,6 +113,10 @@ interface PreferencesStore {
     /** 隐私：识别新店时要不要用照片 GPS / 当前定位作为店铺位置。默认 true。 */
     fun observeKeepLocation(): Flow<Boolean>
     suspend fun setKeepLocation(keep: Boolean)
+
+    /** 首次启动时已经自动导入过示例数据（不管导没导成，库里本来有数据也算）。清空记忆后不再自动导回来。 */
+    suspend fun isSeedAutoImported(): Boolean
+    suspend fun markSeedAutoImported()
 }
 
 /** SecretStore 里的键名。 */
