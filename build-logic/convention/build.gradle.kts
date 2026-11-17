@@ -27,6 +27,14 @@ gradlePlugin {
             id = "openbite.android.application"
             implementationClass = "AndroidApplicationConventionPlugin"
         }
+        register("androidLibrary") {
+            id = "openbite.android.library"
+            implementationClass = "AndroidLibraryConventionPlugin"
+        }
+        register("androidCompose") {
+            id = "openbite.android.compose"
+            implementationClass = "AndroidComposeConventionPlugin"
+        }
         register("androidFeature") {
             id = "openbite.android.feature"
             implementationClass = "AndroidFeatureConventionPlugin"

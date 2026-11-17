@@ -90,4 +90,6 @@ androidx-room = { id = "androidx.room", version.ref = "room" }
 # 约定插件（build-logic/convention），没有版本号
 openbite-kmp-library = { id = "openbite.kmp.library" }
 openbite-android-application = { id = "openbite.android.application" }
+openbite-android-library = { id = "openbite.android.library" }
+openbite-android-compose = { id = "openbite.android.compose" }
 openbite-android-feature = { id = "openbite.android.feature" }
