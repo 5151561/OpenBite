@@ -11,6 +11,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * 在 JVM 上用 SQLite（sqlite-jdbc）验证 v1 -> v2 迁移：
@@ -103,16 +104,54 @@ class MigrationSqlTest {
         assertEquals(listOf(listOf<String?>("meal")), query("SELECT kind FROM photo"))
     }
 
+    private fun tables(): List<String> =
+        query("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name").map { it.single()!! }
+
+    /** 索引名 -> (唯一, 列)。 */
+    private fun indices(table: String): Map<String, Pair<Boolean, List<String>>> =
+        query("PRAGMA index_list(`$table`)").filter { it[1]?.startsWith("sqlite_autoindex") == false }.associate { row ->
+            val name = row[1]!!
+            name to ((row[2] == "1") to query("PRAGMA index_info(`$name`)").map { it[2]!! })
+        }
+
+    /** 外键：(引用的表, 本表列, 对方列, ON UPDATE, ON DELETE)。 */
+    private fun foreignKeys(table: String): Set<List<String?>> =
+        query("PRAGMA foreign_key_list(`$table`)").map { listOf(it[2], it[3], it[4], it[5], it[6]) }.toSet()
+
+    private data class Schema(
+        val columns: Map<String, Map<String, Triple<String, Boolean, String?>>>,
+        val indices: Map<String, Map<String, Pair<Boolean, List<String>>>>,
+        val foreignKeys: Map<String, Set<List<String?>>>,
+    )
+
+    private fun schema(): Schema {
+        val all = tables()
+        return Schema(all.associateWith(::columns), all.associateWith(::indices), all.associateWith(::foreignKeys))
+    }
+
     @Test
     fun migratedSchemaMatchesExportedV2() {
         MIGRATION_1_2_SQL.forEach(::exec)
-        val migrated = listOf("dining_log", "dining_log_item", "photo").associateWith(::columns)
+        val migrated = schema()
 
         db.close()
         db = DriverManager.getConnection("jdbc:sqlite::memory:")
         createSqls(2).forEach(::exec)
-        val fresh = listOf("dining_log", "dining_log_item", "photo").associateWith(::columns)
+        val fresh = schema()
 
-        assertEquals(fresh, migrated)
+        // 全部表都比：列（类型、非空、默认值）、索引（唯一、列顺序）、外键（引用、级联）。
+        assertEquals(fresh.columns.keys, migrated.columns.keys)
+        assertEquals(fresh.columns, migrated.columns)
+        assertEquals(fresh.indices, migrated.indices)
+        assertEquals(fresh.foreignKeys, migrated.foreignKeys)
+    }
+
+    @Test
+    fun schemaCheckSeesIndicesAndForeignKeys() {
+        // 确认比较真的读到了东西：v2 里有索引和外键，空比较会让上面的测试形同虚设。
+        createSqls(2).forEach(::exec)
+        val schema = schema()
+        assertTrue(schema.indices.values.sumOf { it.size } > 0)
+        assertTrue(schema.foreignKeys.values.sumOf { it.size } > 0)
     }
 }
