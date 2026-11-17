@@ -11,10 +11,11 @@ import com.openbite.core.model.Place
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -25,18 +26,27 @@ import kotlinx.datetime.LocalDate
  * （StandardTestDispatcher，协程要 runCurrent / advanceUntilIdle 才往前走，方便卡在中间状态）。
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-fun runViewModelTest(block: suspend TestScope.() -> Unit) = runTest {
-    Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+fun runViewModelTest(block: suspend TestScope.() -> Unit) {
+    // Main 在 runTest 外面换、外面恢复：测试结束取消 backgroundScope 时 viewModelScope 还要用 Main。
+    val main = StandardTestDispatcher()
+    Dispatchers.setMain(main)
     try {
-        block()
+        runTest(main) { block() }
     } finally {
         Dispatchers.resetMain()
     }
 }
 
 /** 一直订阅 [flow]（WhileSubscribed 的 stateIn 才会开始算），测试结束自动取消。 */
-fun <T> TestScope.keepCollecting(flow: StateFlow<T>) {
-    backgroundScope.launch { flow.collect {} }
+@OptIn(ExperimentalCoroutinesApi::class)
+fun <T> TestScope.keepCollecting(flow: Flow<T>) {
+    backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { flow.collect {} }
+}
+
+/** 在后台一直跑 [block]（比如扮演另一个页面收命令），立刻开始订阅，测试结束自动取消。 */
+@OptIn(ExperimentalCoroutinesApi::class)
+fun TestScope.inBackground(block: suspend CoroutineScope.() -> Unit) {
+    backgroundScope.launch(UnconfinedTestDispatcher(testScheduler), block = block)
 }
 
 /** 模拟页面出栈：ViewModelStore 清掉时会调 onCleared。 */
