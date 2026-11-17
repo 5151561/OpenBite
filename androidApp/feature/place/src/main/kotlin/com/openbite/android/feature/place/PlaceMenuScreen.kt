@@ -29,8 +29,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
@@ -402,7 +402,8 @@ private fun AddPageThumb(onClick: () -> Unit) {
 /** 全屏看原照片，双指缩放和拖动。 */
 @Composable
 private fun FullscreenPhoto(photo: MenuPhoto, index: Int, onDismiss: () -> Unit) {
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    // 边到边：黑底铺满状态栏和导航栏下面，不露出 Dialog 的遮罩。
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         var zoom by remember { mutableFloatStateOf(1f) }
         var pan by remember { mutableStateOf(Offset.Zero) }
         Surface(color = Color.Black, modifier = Modifier.fillMaxSize()) {
@@ -428,7 +429,7 @@ private fun FullscreenPhoto(photo: MenuPhoto, index: Int, onDismiss: () -> Unit)
                         translationY = pan.y
                     },
                 )
-                Box(Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(Spacing.m)) {
+                Box(Modifier.align(Alignment.TopEnd).safeDrawingPadding().padding(Spacing.m)) {
                     RoundIconButton(OpenBiteIcons.Close, stringResource(R.string.menu_photo_close), onDismiss)
                 }
             }
