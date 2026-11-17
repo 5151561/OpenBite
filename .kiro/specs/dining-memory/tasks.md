@@ -1,0 +1,28 @@
+# Tasks: Dining memory and milestones
+
+- [x] 1. Room schema v1, seed import on first launch, milestone maths with unit tests
+  - _Requirements: 4.2, 4.5_ · `e56b7a6`, `dfdc289`
+- [x] 2. Memories list, milestones tab, home "N days to go"
+  - _Requirements: 4.3_ · `dfdc289`
+- [x] 3. Fill-in screen, meal detail, receipt archive, follow-up and milestone notifications, schema v2 with migration
+  - _Requirements: 1.3, 1.4, 2.1, 3.1, 3.2_ · `32d5e20`
+- [x] 4. Milestone management (create, edit, delete, advance days; reset this year's reminder on edit)
+  - _Requirements: 4.1, 4.4_ · `ab7cf7a`
+- [x] 5. Search memories and places; "keep coordinates" privacy switch
+  - _Requirements: 5.1, 5.2_ · `0562418`
+- [x] 6. Back handling only with unsaved edits; temp photos cleaned in app scope
+  - _Requirements: 2.2, 2.4_ · `4bc5105`
+- [x] 7. Exclude private data from backup and transfer; clear caches on "clear all"
+  - _Requirements: 5.3, 5.4_ · `b701308`, `0ade95d`
+- [x] 8. First-launch seed through `FirstLaunchSeedUseCase`, flag moved to DataStore
+  - `9b8e91c`
+- [x] 9. Tests: meal edit save failure `3b9fff2`, milestone and reminder edges `8b363ed`, full migration comparison `e3833da`
+  - _Requirements: 2.3, 4.2, 4.3_
+- [x] 10. Receipt "Save to this meal" button above the keyboard
+  - _Requirements: 3.3_ · `0dc1701`
+- [x] 11. Delete a place
+  - 11.1 Data layer and `DeletePlaceUseCase` in one transaction · `b101b1b`
+  - 11.2 Menu item and confirmation dialog listing what is deleted · `aaa996b`
+  - _Requirements: 6.1, 6.2_
+- [ ] 12. One year of demo data (feature freeze day, 11/30)
+- [ ] 13. Verify the milestone reminder on device by changing the system date

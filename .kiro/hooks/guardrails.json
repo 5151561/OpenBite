@@ -1,0 +1,21 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "block-secrets-in-writes",
+      "description": "Stop the agent from writing API keys, private keys or signing passwords into the repo, which will be public.",
+      "trigger": "PreToolUse",
+      "matcher": "write",
+      "action": { "type": "command", "command": "sh .kiro/hooks/scripts/block-secrets.sh" },
+      "timeout": 10
+    },
+    {
+      "name": "shared-feature-layer-check",
+      "description": "Shared ViewModels may only import domain and model.",
+      "trigger": "PostFileSave",
+      "matcher": "shared/feature/.*\\.kt$",
+      "action": { "type": "command", "command": "sh .kiro/hooks/scripts/check-layers.sh \"{{filePath}}\"" },
+      "timeout": 10
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "room-schema-change",
+      "description": "Entity edits need a version bump, a migration, an exported schema and a migration test.",
+      "trigger": "PostFileSave",
+      "matcher": "shared/core/database/.*(Entities|OpenBiteDatabase)\\.kt$",
+      "action": {
+        "type": "agent",
+        "prompt": "A Room entity or the database class changed. Check against .kiro/steering/data-conventions.md: if any column, index or foreign key changed, bump the version in OpenBiteDatabase.kt, add a Migration in Migrations.kt (never destructive), build once so the new schemas/<version>.json is exported, and extend the migration test. Money stays in integer minor units; photos stay relative paths."
+      }
+    },
+    {
+      "name": "strings-en-sync",
+      "description": "Every Chinese string needs an English twin so judges can run the app in English.",
+      "trigger": "PostFileSave",
+      "matcher": "res/values/strings\\.xml$",
+      "action": {
+        "type": "agent",
+        "prompt": "values/strings.xml (Simplified Chinese) changed. Add or update the same keys in the sibling values-en/strings.xml with natural English. Keep format arguments identical, use plurals for counts, and keep brand or provider names translatable=\"false\". Report any key that exists in one file but not the other."
+      }
+    },
+    {
+      "name": "assistant-boundary-review",
+      "description": "Changes to the assistant surface are reviewed against the read-only / append-only boundary.",
+      "trigger": "PostFileSave",
+      "matcher": "(AssistantApi|BaseOpenBiteAppFunctionService|AppFunction[A-Za-z]*)\\.kt$",
+      "action": {
+        "type": "agent",
+        "prompt": "The phone AI assistant surface changed. Review the diff against .kiro/steering/assistant-boundary.md: four functions stay read-only and createDiningLog stays append-only; results never include photos, paths, receipts or API keys; every input is validated against the ASSISTANT_* limits and out-of-range input throws INVALID_ARGUMENT; unknown errors are not leaked. Update AssistantApi tests and the generated-XML snapshot test if a signature changed."
+      }
+    },
+    {
+      "name": "no-hardcoded-models",
+      "description": "Model lists come from each provider's /models endpoint.",
+      "trigger": "PostFileSave",
+      "matcher": "shared/core/(network|domain)/.*\\.kt$",
+      "action": {
+        "type": "agent",
+        "prompt": "Network or domain code changed. Make sure no model name or default model list was hardcoded (for example claude-*, gpt-*, gemini-*, deepseek-* string literals outside tests). Models must be fetched from the provider's /models endpoint and checked with the red-PNG vision probe."
+      }
+    },
+    {
+      "name": "unit-tests-after-spec-task",
+      "description": "Run the JVM unit tests when a spec task finishes.",
+      "trigger": "PostTaskExec",
+      "action": { "type": "command", "command": "./gradlew test --console=plain -q" },
+      "timeout": 900
+    }
+  ]
+}
