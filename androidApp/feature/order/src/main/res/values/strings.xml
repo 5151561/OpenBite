@@ -41,4 +41,8 @@
     <string name="receipt_without_menu">只记菜名和价格</string>
     <string name="receipt_cancel">取消</string>
     <string name="receipt_qty">×%1$d</string>
+    <string name="receipt_ai_tag">%1$s · AI 翻译</string>
+    <string name="receipt_translating">正在翻译成 %1$s…</string>
+    <string name="receipt_translate_failed">没网，翻不了 %1$s。先用英文。</string>
+    <string name="receipt_translate_retry">联网后重试</string>
 </resources>

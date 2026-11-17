@@ -58,12 +58,18 @@ class ClaudeVisionModel(
         streamText(VisionProbe.PNG_BASE64, VisionProbe.MEDIA_TYPE, apiKey, VisionProbe.SYSTEM, VisionProbe.USER, 64, onText)
     }
 
+    override suspend fun completeText(apiKey: String?, system: String, user: String): String {
+        val text = StringBuilder()
+        streamText(null, JPEG, apiKey, system, user, maxTokens) { text.append(it) }
+        return text.toString()
+    }
+
     @OptIn(ExperimentalEncodingApi::class)
     private fun jpeg(bytes: ByteArray): String = Base64.encode(bytes)
 
-    /** 发一张图和两段提示词，流式收文本增量。出错抛 [VisionException]。 */
+    /** 发一张图（[imageBase64] 为 null 时只发文字）和两段提示词，流式收文本增量。出错抛 [VisionException]。 */
     private suspend fun streamText(
-        imageBase64: String,
+        imageBase64: String?,
         mediaType: String,
         apiKeyOrNull: String?,
         system: String,
@@ -81,12 +87,14 @@ class ClaudeVisionModel(
                 addJsonObject {
                     put("role", "user")
                     putJsonArray("content") {
-                        addJsonObject {
-                            put("type", "image")
-                            putJsonObject("source") {
-                                put("type", "base64")
-                                put("media_type", mediaType)
-                                put("data", imageBase64)
+                        if (imageBase64 != null) {
+                            addJsonObject {
+                                put("type", "image")
+                                putJsonObject("source") {
+                                    put("type", "base64")
+                                    put("media_type", mediaType)
+                                    put("data", imageBase64)
+                                }
                             }
                         }
                         addJsonObject {

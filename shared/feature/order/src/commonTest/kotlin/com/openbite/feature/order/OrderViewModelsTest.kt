@@ -5,6 +5,11 @@ import com.openbite.core.domain.ObservePlaceMenuUseCase
 import com.openbite.core.domain.ObserveTasteProfileUseCase
 import com.openbite.core.domain.OrderSessions
 import com.openbite.core.domain.PlaceOrderUseCase
+import com.openbite.core.domain.ResolveReceiptLanguageUseCase
+import com.openbite.core.domain.ActiveVisionModel
+import com.openbite.core.network.AiProviderClient
+import com.openbite.core.testing.FakeSecrets
+import com.openbite.core.testing.noNetworkClient
 import com.openbite.core.domain.fail
 import com.openbite.core.model.Dish
 import com.openbite.core.model.MenuStatus
@@ -69,6 +74,7 @@ class OrderViewModelsTest {
         sessions,
         ObserveTasteProfileUseCase(prefs),
         PlaceOrderUseCase(drafts, sequentialIds("log-"), { 1_794_913_200_000 }, { TimeZone.of("Asia/Tokyo") }, FakeReminders()),
+        ResolveReceiptLanguageUseCase(prefs, ActiveVisionModel(prefs, FakeSecrets(), AiProviderClient(noNetworkClient()))),
     )
 
     /** 扮演识别页：收到重试命令就把菜单存好。 */
@@ -113,6 +119,29 @@ class OrderViewModelsTest {
 
         val receipt = receiptVm("gone")
         assertTrue(receipt.uiState.value.sessionLost)
+    }
+
+    @Test
+    fun receiptFollowsMenuLanguageAndFallsBackToEnglishWhenItCannotTranslate() = runViewModelTest {
+        val session = sessions.create(scanningMenu())
+        session.setQuantity("冷奴", 1)
+        val vm = receiptVm(session.id)
+        keepCollecting(vm.uiState)
+        advanceUntilIdle()
+        assertEquals("ja", vm.uiState.value.receipt!!.language.tag)
+        assertNull(vm.uiState.value.pendingLanguage)
+
+        // 瑞典语不在内置表里；没选模型，翻不了：先用英文，记下想要的语言。
+        session.updateMenu { it.copy(sourceLang = "sv-SE") }
+        advanceUntilIdle()
+        val state = vm.uiState.value
+        assertEquals("en", state.receipt!!.language.tag)
+        assertEquals("sv", state.pendingLanguage)
+        assertFalse(state.translating)
+
+        vm.retryTranslation()
+        advanceUntilIdle()
+        assertEquals("sv", vm.uiState.value.pendingLanguage, "还是翻不了，横幅留着")
     }
 
     @Test

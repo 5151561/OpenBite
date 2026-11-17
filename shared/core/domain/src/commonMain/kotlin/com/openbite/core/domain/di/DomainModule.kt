@@ -97,6 +97,7 @@ val sharedCoreModule: Module = module {
     factory { com.openbite.core.domain.ResolvePlaceCountryUseCase(get(), get()) }
     factory { com.openbite.core.domain.DefaultCurrencyUseCase(get(), get(), get(), get()) }
     factory { com.openbite.core.domain.CurrencyPreferencesUseCase(get()) }
+    factory { com.openbite.core.domain.ResolveReceiptLanguageUseCase(get(), get()) }
     factory { com.openbite.core.domain.AddPlaceTagUseCase(get()) }
     factory { com.openbite.core.domain.RemovePlaceTagUseCase(get()) }
     factory { com.openbite.core.domain.ObserveAllTagsUseCase(get()) }

@@ -16,6 +16,12 @@ import kotlinx.coroutines.flow.filterNotNull
 import com.openbite.core.domain.Receipt
 import com.openbite.core.domain.ReceiptLine
 import com.openbite.core.domain.buildReceipt
+import com.openbite.core.domain.ReceiptLanguage
+import com.openbite.core.domain.ResolveReceiptLanguageUseCase
+import com.openbite.core.domain.phraseTag
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.update
 import com.openbite.core.domain.effectiveTaste
 import com.openbite.core.domain.matchedAllergens
 import com.openbite.core.domain.orderLines
@@ -204,6 +210,10 @@ data class ReceiptUiState(
     val phase: PlacePhase = PlacePhase.IDLE,
     /** 下单成功后的草稿记录 id。 */
     val placedLogId: String? = null,
+    /** 正在让 AI 把句子翻成菜单语言（小票先用英文）。 */
+    val translating: Boolean = false,
+    /** 正在翻译 / 翻不了的菜单语言（[com.openbite.core.domain.phraseTag] 的键）。 */
+    val pendingLanguage: String? = null,
 )
 
 /** “给店员看”（设计稿 04）。点“已下单”才生成草稿记录。 */
@@ -213,26 +223,60 @@ class ReceiptViewModel(
     sessions: OrderSessions,
     observeTaste: ObserveTasteProfileUseCase,
     private val placeOrder: PlaceOrderUseCase,
+    private val resolveLanguage: ResolveReceiptLanguageUseCase,
 ) : ViewModel() {
     private val session: OrderSession? = sessions[sessionId]
     private val phase = MutableStateFlow(PlacePhase.IDLE)
     private val placedLogId = MutableStateFlow<String?>(null)
     private var placing = false
 
+    /** 小票语言：内置表马上有；要 AI 翻的先显示英文，翻好再换。 */
+    private data class LanguageState(val language: ReceiptLanguage = ReceiptLanguage.ENGLISH, val translating: Boolean = false, val pending: String? = null)
+
+    private val language = MutableStateFlow(LanguageState())
+    private val retries = MutableStateFlow(0)
+
+    init {
+        val session = session
+        if (session != null) {
+            viewModelScope.launch {
+                combine(session.menu.map { it.sourceLang }.distinctUntilChanged(), retries) { lang, _ -> lang }
+                    .collectLatest { lang -> resolve(lang) }
+            }
+        }
+    }
+
+    private suspend fun resolve(menuLang: String?) {
+        resolveLanguage.offline(menuLang)?.let {
+            language.value = LanguageState(it)
+            return
+        }
+        language.value = LanguageState(ReceiptLanguage.ENGLISH, translating = true, pending = phraseTag(menuLang))
+        val result = resolveLanguage(menuLang)
+        language.value = LanguageState(result, translating = false, pending = result.unavailable)
+    }
+
+    /** “联网后重试”：重新让 AI 翻一次。 */
+    fun retryTranslation() {
+        if (!language.value.translating) retries.update { it + 1 }
+    }
+
     val uiState: StateFlow<ReceiptUiState> = if (session == null) {
         MutableStateFlow(ReceiptUiState(isLoading = false, unavailable = true, sessionLost = true))
     } else {
-        combine(session.menu, session.quantities, session.tasteOverride, observeTaste(), phase) { menu, quantities, override, profile, p ->
+        combine(session.menu, session.quantities, session.tasteOverride, observeTaste(), language) { menu, quantities, override, profile, lang ->
             val lines = orderLines(menu, quantities).map {
                 ReceiptLine(it.dish.nameOriginal, it.dish.nameTranslated.takeIf { name -> name.isNotBlank() && name != it.dish.nameOriginal }, it.qty)
             }
             ReceiptUiState(
                 isLoading = false,
-                receipt = buildReceipt(lines, effectiveTaste(profile, override), menu.sourceLang),
+                receipt = buildReceipt(lines, effectiveTaste(profile, override), lang.language),
                 menuStatus = menu.status,
-                phase = p,
+                translating = lang.translating,
+                pendingLanguage = lang.pending,
             )
-        }.combine(placedLogId) { state, logId -> state.copy(placedLogId = logId) }
+        }.combine(phase) { state, p -> state.copy(phase = p) }
+            .combine(placedLogId) { state, logId -> state.copy(placedLogId = logId) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ReceiptUiState())
     }
 

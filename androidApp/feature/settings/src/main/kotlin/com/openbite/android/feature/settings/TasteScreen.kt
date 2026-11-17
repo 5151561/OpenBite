@@ -33,9 +33,8 @@ import com.openbite.android.core.designsystem.component.segmentShape
 import com.openbite.android.core.designsystem.icon.OpenBiteIcons
 import com.openbite.android.core.designsystem.theme.OpenBiteTheme
 import com.openbite.android.core.designsystem.theme.Spacing
-import com.openbite.core.domain.PhraseLanguage
+import com.openbite.feature.settings.tastePreview
 import com.openbite.core.domain.TasteNote
-import com.openbite.core.domain.tasteNotes
 import com.openbite.core.model.Allergen
 import com.openbite.core.model.AvoidItem
 import com.openbite.core.model.SpiceLevel
@@ -155,7 +154,7 @@ private val designProfile = TasteProfile(
 @Composable
 private fun TasteScreenPreview() {
     OpenBiteTheme(darkTheme = false) {
-        TasteScreen(TasteUiState(false, designProfile, tasteNotes(designProfile, PhraseLanguage.JA)))
+        TasteScreen(TasteUiState(false, designProfile, tastePreview(designProfile, "zh-CN")))
     }
 }
 
@@ -163,6 +162,6 @@ private fun TasteScreenPreview() {
 @Composable
 private fun TasteScreenDarkPreview() {
     OpenBiteTheme(darkTheme = true) {
-        TasteScreen(TasteUiState(false, designProfile, tasteNotes(designProfile, PhraseLanguage.JA)))
+        TasteScreen(TasteUiState(false, designProfile, tastePreview(designProfile, "zh-CN")))
     }
 }

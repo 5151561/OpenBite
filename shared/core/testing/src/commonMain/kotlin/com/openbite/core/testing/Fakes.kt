@@ -94,6 +94,9 @@ class FakePreferences(initialAi: AiSettings = AiSettings()) : PreferencesStore {
     override suspend fun setFallbackCurrency(code: String?) { fallbackCurrency.value = code }
     override fun observeRecentCurrencies(): Flow<List<String>> = recentCurrencies
     override suspend fun addRecentCurrency(code: String) { recentCurrencies.update { it.withRecentCurrency(code) } }
+    val phraseCache = mutableMapOf<String, String>()
+    override suspend fun cachedPhraseTable(languageTag: String) = phraseCache[languageTag]
+    override suspend fun cachePhraseTable(languageTag: String, json: String) { phraseCache[languageTag] = json }
     override suspend fun isSeedAutoImported() = seedDone
     override suspend fun markSeedAutoImported() { seedDone = true }
 }

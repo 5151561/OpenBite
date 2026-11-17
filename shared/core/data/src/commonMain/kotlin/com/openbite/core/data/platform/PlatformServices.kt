@@ -137,6 +137,10 @@ interface PreferencesStore {
     /** 记一次用过 [code]：挪到最前面，超出上限的丢掉。 */
     suspend fun addRecentCurrency(code: String)
 
+    /** AI 翻好的小票句子表（JSON），按语言标签缓存；没缓存过返回 null。 */
+    suspend fun cachedPhraseTable(languageTag: String): String?
+    suspend fun cachePhraseTable(languageTag: String, json: String)
+
     /** 首次启动时已经自动导入过示例数据（不管导没导成，库里本来有数据也算）。清空记忆后不再自动导回来。 */
     suspend fun isSeedAutoImported(): Boolean
     suspend fun markSeedAutoImported()

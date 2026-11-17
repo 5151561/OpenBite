@@ -119,6 +119,15 @@ internal class DataStorePreferencesStore(context: Context) : PreferencesStore {
         }
     }
 
+    override suspend fun cachedPhraseTable(languageTag: String): String? = store.data.first()[phraseKey(languageTag)]
+
+    override suspend fun cachePhraseTable(languageTag: String, json: String) {
+        store.edit { it[phraseKey(languageTag)] = json }
+    }
+
+    /** 一种语言一个键：phrase_table_de、phrase_table_zh-Hant。 */
+    private fun phraseKey(languageTag: String) = stringPreferencesKey("phrase_table_" + languageTag.filter { it.isLetterOrDigit() || it == '-' })
+
     override suspend fun isSeedAutoImported(): Boolean {
         if (store.data.first()[seedAutoImported] == true) return true
         // 兼容老版本：标志以前存在 SharedPreferences（openbite_app / seed_auto_import_done）。

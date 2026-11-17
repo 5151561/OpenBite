@@ -63,6 +63,8 @@ import com.openbite.core.domain.Phrase
 import com.openbite.core.domain.Receipt
 import com.openbite.core.domain.ReceiptLine
 import com.openbite.core.domain.buildReceipt
+import com.openbite.core.model.languageDisplayName
+import androidx.compose.ui.text.intl.Locale as ComposeLocale
 import com.openbite.core.model.Allergen
 import com.openbite.core.model.AvoidItem
 import com.openbite.core.model.SpiceLevel
@@ -112,6 +114,7 @@ fun ReceiptRoute(
         onRetrySave = viewModel::retrySave,
         onPlaceWithoutMenu = viewModel::placeWithoutMenu,
         onDismissDecision = viewModel::dismissDecision,
+        onRetryTranslation = viewModel::retryTranslation,
     )
 }
 
@@ -123,6 +126,7 @@ fun ReceiptScreen(
     onRetrySave: () -> Unit = {},
     onPlaceWithoutMenu: () -> Unit = {},
     onDismissDecision: () -> Unit = {},
+    onRetryTranslation: () -> Unit = {},
 ) {
     KeepScreenOnFullScreen()
     val scheme = MaterialTheme.colorScheme
@@ -158,7 +162,10 @@ fun ReceiptScreen(
             )
             receipt == null -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             else -> {
-                Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) { ReceiptCard(receipt) }
+                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                    TranslationStatus(state, onRetryTranslation)
+                    ReceiptCard(receipt)
+                }
                 Footer(state, onPlace, onBack)
             }
         }
@@ -174,7 +181,34 @@ fun ReceiptScreen(
     }
 }
 
-/** 小票卡片：日文（菜单语言）大字，中文小字在下。 */
+/** 菜单语言要 AI 翻：翻的时候说一声；翻不了时提示先用英文，给“联网后重试”。 */
+@Composable
+private fun TranslationStatus(state: ReceiptUiState, onRetry: () -> Unit) {
+    val pending = state.pendingLanguage ?: return
+    val scheme = MaterialTheme.colorScheme
+    val name = languageDisplayName(pending, ComposeLocale.current.toLanguageTag())
+    if (state.translating) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+            CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp, color = scheme.onPrimaryContainer)
+            Text(stringResource(R.string.receipt_translating, name), style = MaterialTheme.typography.bodyMedium, color = scheme.onPrimaryContainer)
+        }
+    } else {
+        Row(
+            Modifier.fillMaxWidth().background(scheme.surfaceContainerLowest, MaterialTheme.shapes.large).padding(start = Spacing.l, end = Spacing.xs),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                stringResource(R.string.receipt_translate_failed, name),
+                Modifier.weight(1f).padding(vertical = Spacing.m),
+                style = MaterialTheme.typography.bodyMedium,
+                color = scheme.onSurface,
+            )
+            TextButton(onClick = onRetry) { Text(stringResource(R.string.receipt_translate_retry)) }
+        }
+    }
+}
+
+/** 小票卡片：菜单语言大字，用户自己的语言小字在下。AI 翻的句子在顶上标“Deutsch · AI 翻译”。 */
 @Composable
 private fun ReceiptCard(receipt: Receipt) {
     val scheme = MaterialTheme.colorScheme
@@ -186,6 +220,13 @@ private fun ReceiptCard(receipt: Receipt) {
             .padding(Spacing.xl),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
+        if (receipt.language.aiTranslated) {
+            Text(
+                stringResource(R.string.receipt_ai_tag, languageDisplayName(receipt.language.tag, receipt.language.tag)),
+                style = MaterialTheme.typography.labelMedium,
+                color = scheme.onSurfaceVariant,
+            )
+        }
         PhraseText(receipt.header, MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.SemiBold))
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
             receipt.lines.forEach { line ->

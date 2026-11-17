@@ -27,6 +27,9 @@ interface VisionModel {
      * 服务商因为“不支持图片 / 不是聊天模型 / 没这个模型”拒绝时返回 false；Key 错、断网、限流照常抛 [VisionException]。
      */
     suspend fun checkVision(apiKey: String): Boolean
+
+    /** 纯文字对话（不带图），返回模型写的全文。小票句子翻译用。出错抛 [VisionException]。 */
+    suspend fun completeText(apiKey: String?, system: String, user: String): String
 }
 
 /** 试图用的图和问题。图是 64×64 的纯红 PNG（136 字节）。 */

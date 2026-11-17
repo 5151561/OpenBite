@@ -58,11 +58,18 @@ class OpenAiCompatVisionModel(
         streamText("data:${VisionProbe.MEDIA_TYPE};base64,${VisionProbe.PNG_BASE64}", apiKey, VisionProbe.SYSTEM, VisionProbe.USER, onText)
     }
 
+    override suspend fun completeText(apiKey: String?, system: String, user: String): String {
+        val text = StringBuilder()
+        streamText(null, apiKey, system, user) { text.append(it) }
+        return text.toString()
+    }
+
     @OptIn(ExperimentalEncodingApi::class)
     private fun jpegUrl(bytes: ByteArray): String = "data:image/jpeg;base64," + Base64.encode(bytes)
 
+    /** [imageUrl] 为 null 时只发文字。 */
     private suspend fun streamText(
-        imageUrl: String,
+        imageUrl: String?,
         apiKeyOrNull: String?,
         system: String,
         user: String,
@@ -79,14 +86,18 @@ class OpenAiCompatVisionModel(
                 }
                 addJsonObject {
                     put("role", "user")
-                    putJsonArray("content") {
-                        addJsonObject {
-                            put("type", "image_url")
-                            putJsonObject("image_url") { put("url", imageUrl) }
-                        }
-                        addJsonObject {
-                            put("type", "text")
-                            put("text", user)
+                    if (imageUrl == null) {
+                        put("content", user)
+                    } else {
+                        putJsonArray("content") {
+                            addJsonObject {
+                                put("type", "image_url")
+                                putJsonObject("image_url") { put("url", imageUrl) }
+                            }
+                            addJsonObject {
+                                put("type", "text")
+                                put("text", user)
+                            }
                         }
                     }
                 }

@@ -4,138 +4,121 @@ import com.openbite.core.model.Allergen
 import com.openbite.core.model.AvoidItem
 import com.openbite.core.model.SpiceLevel
 import com.openbite.core.model.TasteProfile
+import com.openbite.core.model.currentLocaleTag
 
-/** 小票能写的语言。菜单语言不在表里时只写中文。 */
-enum class PhraseLanguage { ZH, JA, EN }
-
-/** BCP 47 -> 小票语言：“ja”“ja-JP” -> JA，“en-US” -> EN，其余（含 null）-> ZH。 */
-fun phraseLanguage(tag: String?): PhraseLanguage = when (tag?.trim()?.lowercase()?.substringBefore('-')?.substringBefore('_')) {
-    "ja" -> PhraseLanguage.JA
-    "en" -> PhraseLanguage.EN
-    else -> PhraseLanguage.ZH
-}
-
-/** 一句话：[primary] 用菜单语言，[secondary] 是中文；菜单本身是中文时 [secondary] 为 null。 */
+/** 一句话：[primary] 用菜单语言给店员看，[secondary] 是用户自己的语言（手机语言）；两者相同时 [secondary] 为 null。 */
 data class Phrase(val primary: String, val secondary: String?)
 
 /**
- * 小票上的固定句子。不依赖模型，离线可用。
- * 中文是对照行；日文、英文给店员看。
+ * 小票上的固定句子，按 [PhraseTable] 拼。不依赖模型，离线可用。
+ * [lang] 都是 [phraseTag] 规范过的键；不在内置表里的按英文。
  */
 object TastePhrases {
-    private val allergenNames = mapOf(
-        PhraseLanguage.ZH to listOf("花生", "虾蟹", "蛋", "乳制品", "小麦", "大豆", "鱼", "坚果", "芝麻", "荞麦"),
-        PhraseLanguage.JA to listOf("ピーナッツ", "えび・かに", "卵", "乳製品", "小麦", "大豆", "魚", "ナッツ", "ごま", "そば"),
-        PhraseLanguage.EN to listOf("peanuts", "shellfish", "eggs", "dairy", "wheat", "soy", "fish", "tree nuts", "sesame", "buckwheat"),
-    )
-    private val avoidNames = mapOf(
-        PhraseLanguage.ZH to listOf("葱", "香菜", "内脏", "生食", "牛肉", "猪肉"),
-        PhraseLanguage.JA to listOf("ネギ", "パクチー", "ホルモン", "生もの", "牛肉", "豚肉"),
-        PhraseLanguage.EN to listOf("green onion", "cilantro", "offal", "raw food", "beef", "pork"),
-    )
-    private val spiceSentences = mapOf(
-        PhraseLanguage.ZH to listOf("不辣", "微辣", "中辣", "特辣"),
-        PhraseLanguage.JA to listOf(
-            "辛くしないでください",
-            "辛さ控えめでお願いします",
-            "普通の辛さでお願いします",
-            "辛口でお願いします",
-        ),
-        PhraseLanguage.EN to listOf("Not spicy, please.", "Only a little spicy, please.", "Medium spicy, please.", "Extra spicy, please."),
-    )
-    private val headers = mapOf(
-        PhraseLanguage.ZH to "我要点这些",
-        PhraseLanguage.JA to "注文をお願いします",
-        PhraseLanguage.EN to "I'd like to order:",
-    )
-    private val disclaimers = mapOf(
-        PhraseLanguage.ZH to "过敏原为 AI 推测，仅供参考，请向店员确认。",
-        PhraseLanguage.JA to "アレルギー表示はAIの推定です。必ず店員さんにご確認ください。",
-        PhraseLanguage.EN to "Allergen notes are an AI guess. Please check with the staff.",
-    )
+    private fun table(lang: String?): PhraseTable = PhraseTables.builtIn(lang) ?: PhraseTables.EN
 
-    fun allergenName(allergen: Allergen, lang: PhraseLanguage): String = allergenNames.getValue(lang)[allergen.ordinal]
+    fun allergenName(allergen: Allergen, table: PhraseTable): String = table.allergens[allergen.ordinal]
 
-    fun avoidName(avoid: AvoidItem, lang: PhraseLanguage): String = avoidNames.getValue(lang)[avoid.ordinal]
+    fun avoidName(avoid: AvoidItem, table: PhraseTable): String = table.avoids[avoid.ordinal]
 
-    fun spice(level: SpiceLevel, lang: PhraseLanguage): String = spiceSentences.getValue(lang)[level.ordinal]
+    fun spice(level: SpiceLevel, table: PhraseTable): String = table.spice[level.ordinal]
 
-    fun allergySentence(allergens: List<Allergen>, lang: PhraseLanguage): String? {
-        if (allergens.isEmpty()) return null
-        val names = allergens.map { allergenName(it, lang) }
-        return when (lang) {
-            PhraseLanguage.ZH -> names.joinToString("、") + "过敏"
-            PhraseLanguage.JA -> names.joinToString("・") + "アレルギーがあります"
-            PhraseLanguage.EN -> "I'm allergic to ${englishList(names, "and")}."
-        }
-    }
+    fun allergySentence(allergens: List<Allergen>, table: PhraseTable): String? =
+        table.allergySentence(allergens.map { allergenName(it, table) })
 
-    fun avoidSentence(avoids: List<AvoidItem>, lang: PhraseLanguage): String? {
-        if (avoids.isEmpty()) return null
-        val names = avoids.map { avoidName(it, lang) }
-        return when (lang) {
-            PhraseLanguage.ZH -> "不要" + names.joinToString("、")
-            PhraseLanguage.JA -> names.joinToString("・") + "抜きでお願いします"
-            PhraseLanguage.EN -> "No ${englishList(names, "or")}, please."
-        }
-    }
+    fun avoidSentence(avoids: List<AvoidItem>, table: PhraseTable): String? =
+        table.avoidSentence(avoids.map { avoidName(it, table) })
 
-    fun header(lang: PhraseLanguage): String = headers.getValue(lang)
+    fun allergySentence(allergens: List<Allergen>, lang: String): String? = allergySentence(allergens, table(lang))
 
-    fun disclaimer(lang: PhraseLanguage): String = disclaimers.getValue(lang)
+    fun avoidSentence(avoids: List<AvoidItem>, lang: String): String? = avoidSentence(avoids, table(lang))
 
-    /** 设置页和点单页的一行摘要：“花生过敏 · 不要葱、香菜 · 微辣”。空档案返回 null。 */
-    fun summary(profile: TasteProfile): String? = listOfNotNull(
-        allergySentence(profile.allergens, PhraseLanguage.ZH),
-        avoidSentence(profile.avoids, PhraseLanguage.ZH),
-        profile.spice?.let { spice(it, PhraseLanguage.ZH) },
-    ).takeIf { it.isNotEmpty() }?.joinToString(" · ")
-
-    private fun englishList(items: List<String>, conjunction: String): String = when (items.size) {
-        1 -> items[0]
-        2 -> "${items[0]} $conjunction ${items[1]}"
-        else -> items.dropLast(1).joinToString(", ") + ", $conjunction " + items.last()
+    /**
+     * 设置页和点单页的一行摘要，用用户自己的语言（[localeTag]，默认手机语言）：
+     * “花生过敏 · 不要葱、香菜 · 微辣”。空档案返回 null。
+     */
+    fun summary(profile: TasteProfile, localeTag: String = currentLocaleTag()): String? {
+        val table = table(userPhraseTag(localeTag))
+        return listOfNotNull(
+            allergySentence(profile.allergens, table),
+            avoidSentence(profile.avoids, table),
+            profile.spice?.let { spice(it, table) },
+        ).takeIf { it.isNotEmpty() }?.joinToString(" · ")
     }
 }
+
+/** 用户自己的语言对应的内置表键：手机语言在内置表里就用它，否则用中文（App 默认界面语言）。 */
+fun userPhraseTag(localeTag: String = currentLocaleTag()): String =
+    phraseTag(localeTag)?.takeIf { it in PhraseTables.builtIn } ?: "zh-Hans"
 
 /** 小票上的口味说明。[isAllergy] 的那条要醒目显示。 */
 data class TasteNote(val phrase: Phrase, val isAllergy: Boolean)
 
-private fun phrase(lang: PhraseLanguage, build: (PhraseLanguage) -> String?): Phrase? {
-    val primary = build(lang) ?: return null
-    val secondary = if (lang == PhraseLanguage.ZH) null else build(PhraseLanguage.ZH)
-    return Phrase(primary, secondary)
+private fun phrase(primary: PhraseTable, secondary: PhraseTable?, build: (PhraseTable) -> String?): Phrase? {
+    val text = build(primary) ?: return null
+    return Phrase(text, secondary?.let(build)?.takeIf { it != text })
 }
 
-/** 过敏、不要、辣度三条，按这个顺序；空的不写。 */
-fun tasteNotes(profile: TasteProfile, lang: PhraseLanguage): List<TasteNote> = listOfNotNull(
-    phrase(lang) { TastePhrases.allergySentence(profile.allergens, it) }?.let { TasteNote(it, isAllergy = true) },
-    phrase(lang) { TastePhrases.avoidSentence(profile.avoids, it) }?.let { TasteNote(it, isAllergy = false) },
-    profile.spice?.let { level -> phrase(lang) { TastePhrases.spice(level, it) } }?.let { TasteNote(it, isAllergy = false) },
+/** 过敏、不要、辣度三条，按这个顺序；空的不写。[secondary] 为 null 时只写一种语言。过敏那条一定带对照行（两种语言不同时）。 */
+fun tasteNotes(profile: TasteProfile, primary: PhraseTable, secondary: PhraseTable?): List<TasteNote> = listOfNotNull(
+    phrase(primary, secondary) { TastePhrases.allergySentence(profile.allergens, it) }?.let { TasteNote(it, isAllergy = true) },
+    phrase(primary, secondary) { TastePhrases.avoidSentence(profile.avoids, it) }?.let { TasteNote(it, isAllergy = false) },
+    profile.spice?.let { level -> phrase(primary, secondary) { TastePhrases.spice(level, it) } }?.let { TasteNote(it, isAllergy = false) },
 )
 
 /** 小票的一行菜：大字是菜单原文，小字是译名。 */
 data class ReceiptLine(val nameOriginal: String, val nameTranslated: String?, val qty: Int)
 
+/**
+ * 小票用哪张句子表。
+ * - [tag]：实际用的表（[phraseTag] 的键）；
+ * - [aiTranslated]：这张表是 AI 翻的（界面标“Deutsch · AI 翻译”）；
+ * - [unavailable]：菜单语言翻不了（没网、没选模型、翻译失败），先用英文；界面提示并给“联网后重试”。
+ */
+data class ReceiptLanguage(
+    val tag: String,
+    val table: PhraseTable,
+    val aiTranslated: Boolean = false,
+    val unavailable: String? = null,
+) {
+    companion object {
+        val ENGLISH = ReceiptLanguage("en", PhraseTables.EN)
+
+        /** 菜单语言在内置表里就直接用；不认识语言用英文；要 AI 翻的返回 null。 */
+        fun builtIn(menuLang: String?): ReceiptLanguage? {
+            val tag = phraseTag(menuLang) ?: return ENGLISH
+            return PhraseTables.builtIn(tag)?.let { ReceiptLanguage(tag, it) }
+        }
+    }
+}
+
 data class Receipt(
-    val language: PhraseLanguage,
+    val language: ReceiptLanguage,
+    /** 对照行用的语言（用户自己的语言）；和小票语言相同时为 null。 */
+    val secondaryTag: String?,
     val header: Phrase,
     val lines: List<ReceiptLine>,
     val notes: List<TasteNote>,
     val disclaimer: Phrase,
 )
 
-/** 给店员看的小票。[menuLang] 是识别出的菜单语言（BCP 47）。 */
-fun buildReceipt(lines: List<ReceiptLine>, taste: TasteProfile, menuLang: String?): Receipt {
-    val lang = phraseLanguage(menuLang)
+/** 给店员看的小票。主语言是 [language]，对照行用 [userLang]（手机语言，不在内置表时用中文）。 */
+fun buildReceipt(lines: List<ReceiptLine>, taste: TasteProfile, language: ReceiptLanguage, userLang: String = currentLocaleTag()): Receipt {
+    val secondaryTag = userPhraseTag(userLang).takeIf { it != language.tag }
+    val secondary = PhraseTables.builtIn(secondaryTag)
+    val primary = language.table
     return Receipt(
-        language = lang,
-        header = phrase(lang) { TastePhrases.header(it) }!!,
+        language = language,
+        secondaryTag = secondaryTag,
+        header = phrase(primary, secondary) { it.header }!!,
         lines = lines,
-        notes = tasteNotes(taste, lang),
-        disclaimer = phrase(lang) { TastePhrases.disclaimer(it) }!!,
+        notes = tasteNotes(taste, primary, secondary),
+        disclaimer = phrase(primary, secondary) { it.disclaimer }!!,
     )
 }
+
+/** 只用内置表（预览、测试）：[menuLang] 不在内置表时按英文。 */
+fun buildReceipt(lines: List<ReceiptLine>, taste: TasteProfile, menuLang: String?, userLang: String = currentLocaleTag()): Receipt =
+    buildReceipt(lines, taste, ReceiptLanguage.builtIn(menuLang) ?: ReceiptLanguage.ENGLISH, userLang)
 
 private val allergenSynonyms = mapOf(
     "peanuts" to Allergen.PEANUT,

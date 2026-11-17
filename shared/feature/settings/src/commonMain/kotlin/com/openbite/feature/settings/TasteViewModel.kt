@@ -3,7 +3,8 @@ package com.openbite.feature.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.openbite.core.domain.ObserveTasteProfileUseCase
-import com.openbite.core.domain.PhraseLanguage
+import com.openbite.core.domain.PhraseTables
+import com.openbite.core.domain.userPhraseTag
 import com.openbite.core.domain.SaveTasteProfileUseCase
 import com.openbite.core.domain.TasteNote
 import com.openbite.core.domain.tasteNotes
@@ -21,7 +22,7 @@ import kotlinx.coroutines.launch
 data class TasteUiState(
     val isLoading: Boolean = true,
     val profile: TasteProfile = TasteProfile.EMPTY,
-    /** “小票上会这样写”：用日文预览（种子数据都是日本的店）。 */
+    /** “小票上会这样写”：用日文预览（种子数据都是日本的店），对照行是用户自己的语言。 */
     val preview: List<TasteNote> = emptyList(),
 )
 
@@ -33,7 +34,7 @@ class TasteViewModel(
     private val profile = observeTaste()
 
     val uiState: StateFlow<TasteUiState> = profile
-        .map { TasteUiState(isLoading = false, profile = it, preview = tasteNotes(it, PhraseLanguage.JA)) }
+        .map { TasteUiState(isLoading = false, profile = it, preview = tastePreview(it)) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TasteUiState())
 
     fun toggle(allergen: Allergen) = edit { it.toggle(allergen) }
@@ -48,4 +49,10 @@ class TasteViewModel(
     private fun edit(transform: (TasteProfile) -> TasteProfile) {
         viewModelScope.launch { saveTaste(transform(profile.first())) }
     }
+}
+
+/** 口味页的小票预览：日文给店员看，下面一行用 [localeTag]（手机语言）；手机就是日文时只写一行。 */
+fun tastePreview(profile: TasteProfile, localeTag: String = com.openbite.core.model.currentLocaleTag()): List<TasteNote> {
+    val user = userPhraseTag(localeTag)
+    return tasteNotes(profile, PhraseTables.JA, PhraseTables.builtIn(user).takeIf { user != "ja" })
 }

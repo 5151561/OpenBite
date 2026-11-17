@@ -35,6 +35,9 @@ class SampleVisionModel(
 
     override suspend fun checkVision(apiKey: String): Boolean = true
 
+    /** 演示模式不联网，也不假装翻译：调用方会退回英文。 */
+    override suspend fun completeText(apiKey: String?, system: String, user: String): String = throw VisionException.Network(null)
+
     companion object {
         const val ID = "sample"
 
