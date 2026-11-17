@@ -6,6 +6,6 @@ plugins {
 dependencies {
     implementation(project(":shared:feature:meal"))
     implementation(project(":shared:core:domain"))
-    // BackHandler：返回时先确认要不要放弃改动。
+    // NavigationBackHandler（navigationevent-compose 随 activity-compose 传递）：有没存的改动时返回先确认。
     implementation(libs.androidx.activity.compose)
 }

@@ -39,6 +39,10 @@ import com.openbite.core.domain.ObservePlacesUseCase
 import com.openbite.core.domain.ObserveUpcomingMilestonesUseCase
 import com.openbite.core.domain.SystemTodayProvider
 import com.openbite.core.domain.TodayProvider
+import com.openbite.core.domain.ApplicationScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -46,6 +50,7 @@ import org.koin.dsl.module
 val sharedCoreModule: Module = module {
     includes(dataModule)
     single<TodayProvider> { SystemTodayProvider() }
+    single { ApplicationScope(CoroutineScope(SupervisorJob() + Dispatchers.Default)) }
     factory { ObserveDiningLogsUseCase(get()) }
     factory { ObserveUpcomingMilestonesUseCase(get(), get()) }
     factory { ObserveMemoriesUseCase(get(), get()) }
@@ -70,7 +75,7 @@ val sharedCoreModule: Module = module {
     factory { SaveMealUseCase(get(), get(), get()) }
     factory { AddPersonUseCase(get(), get()) }
     factory { AddMealPhotoUseCase(get(), get(), get(), get()) }
-    factory { DiscardPhotosUseCase(get()) }
+    factory { DiscardPhotosUseCase(get(), get()) }
     factory { ReadReceiptUseCase(get(), get(), get()) }
     factory { SaveReceiptUseCase(get(), get(), get()) }
     factory { ObserveReminderSettingsUseCase(get()) }

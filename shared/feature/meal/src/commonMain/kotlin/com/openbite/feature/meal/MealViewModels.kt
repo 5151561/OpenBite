@@ -146,7 +146,16 @@ class MemoryEditViewModel(
     fun discard() {
         val added = state.value.editor?.addedPhotos.orEmpty().map { it.path }
         edit { it.copy(addedPhotos = emptyList(), dirty = false) }
-        if (added.isNotEmpty()) viewModelScope.launch { discardPhotos(added) }
+        discardPhotos.inBackground(added)
+    }
+
+    /**
+     * 页面不管怎么离开（返回、通知深链清栈）都会走到这里：新拍但没存的照片在应用级作用域里删掉。
+     * 正在保存时不删，照片可能已经写进数据库。
+     */
+    override fun onCleared() {
+        val s = state.value
+        if (!s.saving) discardPhotos.inBackground(s.editor?.addedPhotos.orEmpty().map { it.path })
     }
 }
 
@@ -289,10 +298,13 @@ class ReceiptArchiveViewModel(
         }
     }
 
-    /** 不存就走：删掉这次新拍的照片。 */
-    fun discard() {
-        val photo = state.value.newPhoto ?: return
-        state.update { it.copy(newPhoto = null) }
-        viewModelScope.launch { discardPhotos(listOf(photo.path)) }
+    /**
+     * 不存就走（返回、手势、通知深链清栈都算）：删掉这次新拍的照片。
+     * 存好后 newPhoto 已是 null；正在保存时不删，照片可能已经写进数据库。
+     */
+    override fun onCleared() {
+        val s = state.value
+        val photo = s.newPhoto ?: return
+        if (s.phase != ReceiptPhase.SAVING) discardPhotos.inBackground(listOf(photo.path))
     }
 }

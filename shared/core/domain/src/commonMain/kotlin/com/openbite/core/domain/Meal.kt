@@ -27,9 +27,12 @@ import com.openbite.core.network.ScannedReceipt
 import com.openbite.core.network.VisionException
 import com.openbite.core.network.VisionModelRegistry
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** 一餐的详情，加上编辑时要选的纪念日和同行人。 */
 data class MealDetail(
@@ -96,8 +99,16 @@ class AddMealPhotoUseCase(
 }
 
 /** 放弃编辑时，把还没存进数据库的照片文件删掉。 */
-class DiscardPhotosUseCase(private val photos: PhotoStore) {
-    suspend operator fun invoke(paths: List<String>) = paths.forEach { runCatching { photos.delete(it) } }
+class DiscardPhotosUseCase(private val photos: PhotoStore, private val appScope: ApplicationScope) {
+    /** 删除不受调用方取消影响：页面刚好关掉时也会删完。 */
+    suspend operator fun invoke(paths: List<String>) = withContext(NonCancellable) {
+        paths.forEach { runCatching { photos.delete(it) } }
+    }
+
+    /** 不跟调用方的生命周期走，在应用级作用域里删；给 ViewModel.onCleared 这类马上要被取消的地方用。 */
+    fun inBackground(paths: List<String>) {
+        if (paths.isNotEmpty()) appScope.launch { invoke(paths) }
+    }
 }
 
 /** 读小票照片。没 Key 时用示例小票；返回模型名，界面显示“由谁读的”。 */

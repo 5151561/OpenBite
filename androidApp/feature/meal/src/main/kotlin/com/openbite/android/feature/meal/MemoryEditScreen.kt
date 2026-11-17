@@ -1,7 +1,6 @@
 package com.openbite.android.feature.meal
 
 import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -48,6 +47,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import androidx.compose.ui.layout.WindowInsetsRulers
 import androidx.compose.foundation.layout.fitInside
 import androidx.compose.ui.platform.LocalContext
@@ -111,10 +113,17 @@ fun MemoryEditRoute(
             viewModel.photoErrorShown()
         }
     }
+    val dirty = state.editor?.dirty == true
     val close = {
-        if (state.editor?.dirty == true) confirmDiscard = true else onDone()
+        if (dirty) confirmDiscard = true else onDone()
     }
-    BackHandler(onBack = close)
+    // 只在有没存的改动时拦截返回；没改动时交给 Navigation 3，保留预测性返回动画。
+    val backState = rememberNavigationEventState(currentInfo = NavigationEventInfo.None)
+    NavigationBackHandler(
+        state = backState,
+        isBackEnabled = dirty && !confirmDiscard,
+        onBackCompleted = { confirmDiscard = true },
+    )
 
     MemoryEditScreen(
         state = state,

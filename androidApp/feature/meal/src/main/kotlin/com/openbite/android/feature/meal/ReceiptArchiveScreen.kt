@@ -1,7 +1,6 @@
 package com.openbite.android.feature.meal
 
 import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -74,15 +73,11 @@ fun ReceiptArchiveRoute(
         onPicked = { viewModel.onPhoto(it, lang) },
         onNoCamera = { Toast.makeText(context, noCamera, Toast.LENGTH_SHORT).show() },
     )
-    val leave = {
-        viewModel.discard()
-        onBack()
-    }
-    BackHandler(onBack = leave)
+    // 返回交给 Navigation 3（带预测性返回动画）；没存的新照片由 ViewModel.onCleared 删。
     LaunchedEffect(state.phase) { if (state.phase == ReceiptPhase.SAVED) onBack() }
     ReceiptArchiveScreen(
         state = state,
-        onBack = leave,
+        onBack = onBack,
         onTakePhoto = sources.takePhoto,
         onPickPhoto = sources.pickPhoto,
         onRetry = viewModel::retryReading,
