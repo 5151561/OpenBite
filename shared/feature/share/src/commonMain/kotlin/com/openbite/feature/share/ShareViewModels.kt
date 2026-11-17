@@ -132,7 +132,13 @@ class SharePlaceViewModel(
         if (transient.value.exporting) return
         transient.update { it.copy(exporting = true, failed = false) }
         viewModelScope.launch {
-            val file = runCatching { export(placeId, options.value) }.getOrNull()
+            val file = try {
+                export(placeId, options.value)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                null
+            }
             transient.update { it.copy(exporting = false, exported = file, failed = file == null) }
         }
     }

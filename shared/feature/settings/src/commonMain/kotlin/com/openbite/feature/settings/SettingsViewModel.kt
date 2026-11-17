@@ -17,6 +17,7 @@ import com.openbite.core.domain.SetVisionModelUseCase
 import com.openbite.core.domain.VisionSettings
 import com.openbite.core.model.VisionModelChoice
 import com.openbite.core.domain.LoadSampleDataUseCase
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -125,7 +126,14 @@ class SettingsViewModel(
         if (state.value.isWorking) return
         state.update { it.copy(isWorking = true) }
         viewModelScope.launch {
-            val message = runCatching { block() }.getOrDefault(SettingsMessage.FAILED)
+            // 页面关掉时的取消要继续往外抛，不能当成“失败”。
+            val message = try {
+                block()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                SettingsMessage.FAILED
+            }
             state.update { it.copy(isWorking = false, message = message) }
         }
     }
