@@ -56,6 +56,10 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
                         implementation(project.dependencies.platform(libs.lib("koin-bom")))
                         implementation(libs.lib("koin-core"))
                     }
+                    // ViewModel 测试：共用的 Fake 和 runViewModelTest。
+                    sourceSets.getByName("commonTest").dependencies {
+                        implementation(project(":shared:core:testing"))
+                    }
                 }
                 val modulePath = path
                 val forbidden = setOf(":shared:core:data", ":shared:core:database", ":shared:core:network")

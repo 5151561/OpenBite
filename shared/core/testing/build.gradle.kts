@@ -12,6 +12,7 @@ kotlin {
             api(project(":shared:core:network"))
             api(libs.kotlinx.coroutines.test)
             api(libs.ktor.client.mock)
+            api(libs.jetbrains.lifecycle.viewmodel)
         }
     }
 }

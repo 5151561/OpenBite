@@ -100,6 +100,7 @@ fun MemoryEditRoute(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val photoFailed = stringResource(R.string.edit_photo_failed)
+    val saveFailed = stringResource(R.string.edit_save_failed)
     val noCamera = stringResource(R.string.edit_no_camera)
     val sources = rememberPhotoSources(onPicked = viewModel::addPhoto, onNoCamera = {
         Toast.makeText(context, noCamera, Toast.LENGTH_SHORT).show()
@@ -107,6 +108,12 @@ fun MemoryEditRoute(
     var confirmDiscard by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(state.saved) { if (state.saved != null) onDone() }
+    LaunchedEffect(state.saveFailed) {
+        if (state.saveFailed) {
+            Toast.makeText(context, saveFailed, Toast.LENGTH_SHORT).show()
+            viewModel.saveErrorShown()
+        }
+    }
     LaunchedEffect(state.photoError) {
         if (state.photoError != null) {
             Toast.makeText(context, photoFailed, Toast.LENGTH_SHORT).show()

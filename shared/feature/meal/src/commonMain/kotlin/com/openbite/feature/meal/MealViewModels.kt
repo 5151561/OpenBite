@@ -58,6 +58,8 @@ data class MemoryEditUiState(
     val photoError: ScanError? = null,
     /** 保存完成：true 是存入记忆，false 是稍后。 */
     val saved: Boolean? = null,
+    /** 保存失败了，界面提示一次后调 [MemoryEditViewModel.saveErrorShown]。改动都还在，可以再存。 */
+    val saveFailed: Boolean = false,
     val currentYear: Int = 0,
 )
 
@@ -116,6 +118,8 @@ class MemoryEditViewModel(
 
     fun photoErrorShown() = state.update { it.copy(photoError = null) }
 
+    fun saveErrorShown() = state.update { it.copy(saveFailed = false) }
+
     /** 在纪念日旁边直接加一个同行人，加完就选上。 */
     fun addCompanion(name: String) {
         viewModelScope.launch {
@@ -128,19 +132,28 @@ class MemoryEditViewModel(
     fun save(done: Boolean) {
         val editor = state.value.editor ?: return
         if (state.value.saving) return
-        state.update { it.copy(saving = true) }
+        state.update { it.copy(saving = true, saveFailed = false) }
         viewModelScope.launch {
             try {
                 saveMeal(editor.toEdit(done, now.nowMillis()), editor.removedPhotos.map { it.path })
-                // 存进去了，新照片不再算“待清理”。
-                state.update { s -> s.copy(saving = false, saved = done, editor = s.editor?.copy(addedPhotos = emptyList(), dirty = false)) }
+                state.update { s -> s.copy(saving = false, saved = done, editor = s.editor?.afterSaving(editor)) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                state.update { it.copy(saving = false) }
+                state.update { it.copy(saving = false, saveFailed = true) }
             }
         }
     }
+
+    /**
+     * 保存的是 [saved] 这份快照。保存期间又改了（比如刚好加好一张照片）的部分还没存：
+     * 只把快照里的新照片移出“待清理”，有新改动就还算 dirty。
+     */
+    private fun MealEditor.afterSaving(saved: MealEditor): MealEditor = copy(
+        addedPhotos = addedPhotos - saved.addedPhotos.toSet(),
+        removedPhotos = removedPhotos - saved.removedPhotos.toSet(),
+        dirty = this != saved,
+    )
 
     /** 放弃改动：删掉这次新拍、但没存进去的照片文件。 */
     fun discard() {

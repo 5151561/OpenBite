@@ -38,6 +38,7 @@
     <string name="edit_keep">继续编辑</string>
     <string name="edit_missing">这条记录已经不在了。</string>
     <string name="edit_photo_failed">这张照片读不出来，换一张试试。</string>
+    <string name="edit_save_failed">没存上，改动都还在，再点一次保存试试。</string>
     <string name="edit_no_camera">没有找到相机应用。</string>
 
     <!-- 一餐（只读） -->
