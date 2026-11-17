@@ -1,5 +1,6 @@
 package com.openbite.core.network
 
+import com.openbite.core.model.ScannedReceipt
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine

@@ -2,7 +2,7 @@ package com.openbite.core.domain
 
 import com.openbite.core.model.Dish
 import com.openbite.core.model.Money
-import com.openbite.core.network.ScannedDish
+import com.openbite.core.model.ScannedDish
 
 /** 合并结果：[upserts] 原样交给数据库 upsert；不在里面的旧菜原样保留。 */
 data class MenuMergeResult(

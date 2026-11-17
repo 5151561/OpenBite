@@ -55,7 +55,7 @@ import com.openbite.android.core.designsystem.component.segmentShape
 import com.openbite.android.core.designsystem.icon.OpenBiteIcons
 import com.openbite.android.core.designsystem.theme.OpenBiteTheme
 import com.openbite.android.core.designsystem.theme.Spacing
-import com.openbite.core.data.platform.ReminderSettings
+import com.openbite.core.model.ReminderSettings
 import com.openbite.core.domain.VisionSettings
 import com.openbite.core.model.VisionModelChoice
 import com.openbite.feature.settings.SettingsMessage

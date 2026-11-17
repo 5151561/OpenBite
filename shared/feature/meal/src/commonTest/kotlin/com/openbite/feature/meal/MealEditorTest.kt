@@ -1,6 +1,6 @@
 package com.openbite.feature.meal
 
-import com.openbite.core.data.NewPhoto
+import com.openbite.core.model.NewPhoto
 import com.openbite.core.model.DiningLog
 import com.openbite.core.model.DiningLogItem
 import com.openbite.core.model.DiningStatus

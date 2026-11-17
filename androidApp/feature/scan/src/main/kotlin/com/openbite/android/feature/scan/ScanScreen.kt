@@ -86,7 +86,7 @@ import com.openbite.core.model.Money
 import com.openbite.core.model.ScanError
 import com.openbite.core.model.VisionModelChoice
 import com.openbite.core.model.formatMoney
-import com.openbite.core.network.ScannedDish
+import com.openbite.core.model.ScannedDish
 import com.openbite.feature.scan.ScanPhase
 import com.openbite.feature.scan.ScanUiState
 import kotlinx.coroutines.Dispatchers

@@ -1,5 +1,6 @@
 package com.openbite.core.network
 
+import com.openbite.core.model.ScannedReceipt
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 

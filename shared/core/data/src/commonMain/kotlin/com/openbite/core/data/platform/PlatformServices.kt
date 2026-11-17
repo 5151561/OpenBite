@@ -1,5 +1,6 @@
 package com.openbite.core.data.platform
 
+import com.openbite.core.model.ReminderSettings
 import com.openbite.core.model.TasteProfile
 import com.openbite.core.model.VisionModelChoice
 import kotlinx.coroutines.flow.Flow
@@ -64,9 +65,6 @@ interface ReminderScheduler {
     /** 每天检查一次纪念日；已经排过就不重复排。 */
     fun scheduleMilestoneCheck()
 }
-
-/** 两类提醒的开关。 */
-data class ReminderSettings(val mealFollowUp: Boolean = true, val milestones: Boolean = true)
 
 /** 照片文件存 App 私有目录：`photos/<id>.jpg`，返回相对路径。 */
 interface PhotoStore {

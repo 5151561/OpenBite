@@ -18,7 +18,7 @@ import com.openbite.core.model.effectiveVisionModel
 import com.openbite.core.model.maskApiKey
 import com.openbite.core.network.MenuScanRequest
 import com.openbite.core.network.ScanEvent
-import com.openbite.core.network.ScannedDish
+import com.openbite.core.model.ScannedDish
 import com.openbite.core.network.VisionException
 import com.openbite.core.network.VisionModelRegistry
 import kotlinx.coroutines.CancellationException

@@ -1,5 +1,6 @@
 package com.openbite.core.domain
 
+import com.openbite.core.model.ReminderSettings
 import com.openbite.core.data.MenuScanRepository
 import com.openbite.core.data.NewMenuScan
 import com.openbite.core.data.platform.ImageProcessor
@@ -53,9 +54,9 @@ class ScanMenuUseCaseTest {
         val taste = MutableStateFlow(TasteProfile.EMPTY)
         override fun observeTasteProfile() = taste
         override suspend fun setTasteProfile(profile: TasteProfile) { taste.value = profile }
-        val reminderSettings = MutableStateFlow(com.openbite.core.data.platform.ReminderSettings())
+        val reminderSettings = MutableStateFlow(com.openbite.core.model.ReminderSettings())
         override fun observeReminderSettings() = reminderSettings
-        override suspend fun setReminderSettings(settings: com.openbite.core.data.platform.ReminderSettings) { reminderSettings.value = settings }
+        override suspend fun setReminderSettings(settings: com.openbite.core.model.ReminderSettings) { reminderSettings.value = settings }
         val sent = mutableSetOf<String>()
         override suspend fun sentMilestoneReminders(): Set<String> = sent.toSet()
         override suspend fun markMilestoneRemindersSent(keys: Set<String>) { sent += keys }

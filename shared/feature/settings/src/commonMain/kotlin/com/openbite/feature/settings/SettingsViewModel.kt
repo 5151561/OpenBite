@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.openbite.core.domain.ClearAllDataUseCase
 import com.openbite.core.domain.ClearApiKeyUseCase
-import com.openbite.core.data.platform.ReminderSettings
+import com.openbite.core.model.ReminderSettings
 import com.openbite.core.domain.ObserveKeepLocationUseCase
 import com.openbite.core.domain.ObserveReminderSettingsUseCase
 import com.openbite.core.domain.SetKeepLocationUseCase

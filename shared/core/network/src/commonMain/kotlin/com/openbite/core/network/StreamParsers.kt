@@ -1,5 +1,6 @@
 package com.openbite.core.network
 
+import com.openbite.core.model.ScannedDish
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull

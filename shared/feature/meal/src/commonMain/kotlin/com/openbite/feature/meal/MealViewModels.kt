@@ -2,7 +2,7 @@ package com.openbite.feature.meal
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.openbite.core.data.NewPhoto
+import com.openbite.core.model.NewPhoto
 import com.openbite.core.domain.AddMealPhotoUseCase
 import com.openbite.core.domain.AddPersonUseCase
 import com.openbite.core.domain.DiscardPhotosUseCase
@@ -21,7 +21,7 @@ import com.openbite.core.model.ScanException
 import com.openbite.core.model.VisionModelChoice
 import com.openbite.core.model.moneyInputText
 import com.openbite.core.model.parseMoneyInput
-import com.openbite.core.network.ScannedReceipt
+import com.openbite.core.model.ScannedReceipt
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

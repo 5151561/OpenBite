@@ -1,14 +1,14 @@
 package com.openbite.core.domain
 
-import com.openbite.core.data.MealEdit
+import com.openbite.core.model.MealEdit
 import com.openbite.core.data.MealRepository
 import com.openbite.core.data.MilestoneRepository
-import com.openbite.core.data.NewPhoto
+import com.openbite.core.model.NewPhoto
 import com.openbite.core.data.platform.ImageProcessor
 import com.openbite.core.data.platform.PhotoStore
 import com.openbite.core.data.platform.PreferencesStore
 import com.openbite.core.data.platform.ReminderScheduler
-import com.openbite.core.data.platform.ReminderSettings
+import com.openbite.core.model.ReminderSettings
 import com.openbite.core.data.platform.SecretKeys
 import com.openbite.core.data.platform.SecretStore
 import com.openbite.core.data.platform.TempFiles
@@ -24,7 +24,7 @@ import com.openbite.core.model.ScanException
 import com.openbite.core.model.VisionModelChoice
 import com.openbite.core.model.effectiveVisionModel
 import com.openbite.core.network.ReceiptReadRequest
-import com.openbite.core.network.ScannedReceipt
+import com.openbite.core.model.ScannedReceipt
 import com.openbite.core.network.VisionException
 import com.openbite.core.network.VisionModelRegistry
 import kotlinx.coroutines.CancellationException

@@ -17,7 +17,7 @@ import com.openbite.core.domain.ScanUpdate
 import com.openbite.core.model.ScanError
 import com.openbite.core.model.ScanException
 import com.openbite.core.model.VisionModelChoice
-import com.openbite.core.network.ScannedDish
+import com.openbite.core.model.ScannedDish
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job

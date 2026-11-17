@@ -19,7 +19,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
-import com.openbite.core.data.platform.ReminderSettings
+import com.openbite.core.model.ReminderSettings
 import androidx.datastore.preferences.preferencesDataStore
 import com.openbite.core.data.platform.LocationProvider
 import com.openbite.core.data.platform.PhotoStore

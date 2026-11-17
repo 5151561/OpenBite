@@ -1,5 +1,6 @@
 package com.openbite.core.network
 
+import com.openbite.core.model.ScannedReceipt
 import com.openbite.core.model.VisionModelChoice
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.delay

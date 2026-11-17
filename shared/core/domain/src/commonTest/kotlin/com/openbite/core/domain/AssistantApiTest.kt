@@ -2,12 +2,12 @@ package com.openbite.core.domain
 
 import com.openbite.core.data.DiningLogRepository
 import com.openbite.core.data.DraftRepository
-import com.openbite.core.data.MealEdit
+import com.openbite.core.model.MealEdit
 import com.openbite.core.data.MealRepository
 import com.openbite.core.data.MilestoneRepository
 import com.openbite.core.data.MilestoneWithPeople
 import com.openbite.core.data.NewDraftLog
-import com.openbite.core.data.NewPhoto
+import com.openbite.core.model.NewPhoto
 import com.openbite.core.data.PlaceCounts
 import com.openbite.core.data.PlaceRepository
 import com.openbite.core.model.DiningLog

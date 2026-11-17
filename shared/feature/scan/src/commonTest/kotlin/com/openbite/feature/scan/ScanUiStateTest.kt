@@ -1,6 +1,6 @@
 package com.openbite.feature.scan
 
-import com.openbite.core.network.ScannedDish
+import com.openbite.core.model.ScannedDish
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

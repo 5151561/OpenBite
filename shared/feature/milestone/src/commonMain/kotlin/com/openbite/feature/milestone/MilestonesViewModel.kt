@@ -2,7 +2,7 @@ package com.openbite.feature.milestone
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.openbite.core.data.platform.ReminderSettings
+import com.openbite.core.model.ReminderSettings
 import com.openbite.core.domain.ObserveMilestoneHighlightsUseCase
 import com.openbite.core.domain.ObserveReminderSettingsUseCase
 import com.openbite.core.domain.SetReminderSettingsUseCase

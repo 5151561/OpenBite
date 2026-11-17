@@ -10,7 +10,7 @@ import com.openbite.core.model.Place
 import com.openbite.core.model.PlaceMenu
 import com.openbite.core.model.ScanError
 import com.openbite.core.model.TasteProfile
-import com.openbite.core.network.ScannedDish
+import com.openbite.core.model.ScannedDish
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

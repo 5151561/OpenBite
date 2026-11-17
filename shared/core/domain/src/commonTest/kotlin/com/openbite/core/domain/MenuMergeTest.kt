@@ -2,7 +2,7 @@ package com.openbite.core.domain
 
 import com.openbite.core.model.Dish
 import com.openbite.core.model.Money
-import com.openbite.core.network.ScannedDish
+import com.openbite.core.model.ScannedDish
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

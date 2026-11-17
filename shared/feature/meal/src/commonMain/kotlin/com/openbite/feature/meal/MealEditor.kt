@@ -1,8 +1,8 @@
 package com.openbite.feature.meal
 
-import com.openbite.core.data.MealEdit
-import com.openbite.core.data.MealItemEdit
-import com.openbite.core.data.NewPhoto
+import com.openbite.core.model.MealEdit
+import com.openbite.core.model.MealItemEdit
+import com.openbite.core.model.NewPhoto
 import com.openbite.core.model.DiningLog
 import com.openbite.core.model.Money
 import com.openbite.core.model.Photo

@@ -6,7 +6,7 @@ import com.openbite.core.model.Money
 import com.openbite.core.model.Place
 import com.openbite.core.model.ScanError
 import com.openbite.core.model.VisionModelChoice
-import com.openbite.core.network.ScannedDish
+import com.openbite.core.model.ScannedDish
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
